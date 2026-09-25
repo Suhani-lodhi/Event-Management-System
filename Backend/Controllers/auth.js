@@ -28,6 +28,7 @@ const participantSignup = async (req, res) =>{
    
    res.status(StatusCodes.CREATED).json({
     token: token,
+    msg: "user signed up successfully",
     success: true
    })
 }
@@ -39,9 +40,11 @@ const userData = {
    firstName:data.firstName,
    lastName: data.lastName,
    email: data.email,
-   password: data.password
+   password: data.password,
+   phoneNumber: data.phoneNumber? data.phoneNumber: null,
+   role: 'ORGANIZER'
 }
-data.phoneNumber? userData.phoneNumber=data.phoneNumber: null;
+
 
 console.log("userData", userData)
 
@@ -57,6 +60,7 @@ console.log("userData", userData)
    }
 
    const organizerData={
+    userid: user.id,
     displayName: data.displayName,
     companyName: data.companyName,
     alternatePhoneNumber: data.alternatePhoneNumber? data.alternatePhoneNumber: null,
@@ -67,16 +71,15 @@ console.log("userData", userData)
     pincode: data.pincode
    }
 
-   const organizer = await prisma.Users.create({
+   const organizer = await prisma.Organizer.create({
     data: organizerData
    })
-
-   
 
    const token = await jwt.sign({id: organizer.id, email: userData.email, password:userData.password}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
    
    res.status(StatusCodes.CREATED).json({
     token: token,
+    msg: "user signed up successfully",
     success: true
    })
 }
