@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// model User {
+//   id        Int      @id @default(autoincrement())
+//   email     String   @unique
+//   name      String?
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @default(now()) @updatedAt
+// }
+
+enum Role {
+  USER
+  ORGANIZER
+}
+
+enum Status {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Category{
+  STANDUP
+  ACTIVITY
+  GAME
+  
+  MOVIE
+
+}
+
+model Users {
+  id          Int      @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  phoneNumber String?
+  email       String   @unique
+  password    String
+  role        Role     @default(USER)
+  status      Status   @default(ACTIVE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+}
+
+model Organizer {
+  id                   Int     @id @default(autoincrement())
+  displayName          String
+  companyName          String
+  alternatePhoneNumber String?
+  addressLine1         String
+  city                 String
+  state                String
+  country              String
+  pincode              Int
+}
+
+// model Venue {
+//   id            Int        @id @default(autoincrement())
+//   venueName     String
+//   addressLine1  String
+//   city          String
+//   state         String
+//   country       String
+//   pincode       Int
+//   subVenueCount Int        @default(1)
+//   subVenues     SubVenue[]
+// }
+
+// model SubVenue {
+//   id             Int            @id @default(autoincrement())
+//   venueId        Int
+//   subVenueName   String?
+//   categoryCount  Int
+//   capacity       Int?
+//   venue          Venue          @relation(fields: [venueId], references: [id])
+//   seatCategories SeatCategory[]
+// }
+
+// model SeatCategory {
+//   id             Int      @id @default(autoincrement())
+//   subVenueId     Int
+//   categoryName   String
+//   categoryDetail String?
+//   seatCount      Int
+//   rowCount       Int?
+//   columnCount    Int?
+//   subVenue       SubVenue @relation(fields: [subVenueId], references: [id])
+// }
+
+// model SeatDetail {
+//   id             Int    @id @default(autoincrement())
+//   seatCategoryId Int
+//   ColumnName     String
+//   ColumnNumber   Int
+//   RowNumber      Int
+// }
+
+// model Event {
+//   id          Int @id @default(autoincrement())
+//   organiserId Int
+//   cayegory
+//   genre
+//   Title String
+
+
+// }
