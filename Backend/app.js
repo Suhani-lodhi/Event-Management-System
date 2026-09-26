@@ -1,6 +1,8 @@
 import express from 'express'
 import 'dotenv/config.js'
 import authRouter from './Routes/auth.js'
+import authenticate from './Middleware/authentication.js';
+import authorize from './Middleware/authorization.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -9,6 +11,12 @@ const port = process.env.PORT || 4000;
 app.use(express.json())
 app.use('/auth', authRouter)
 
+// tested the authorization and authenticated middleware
+// app.get('/home', authenticate, authorize('ORGANIZER'), (req, res)=>{
+//   res.json({
+//     msg: "test successfully the middleware"
+//   })
+// })
 
 
 

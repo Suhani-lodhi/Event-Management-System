@@ -24,7 +24,7 @@ const participantSignup = async (req, res) =>{
         success: false
      })
    }
-   const token = await jwt.sign({id:user.id, email: user.email}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
+   const token = await jwt.sign({id:user.id, email: user.email, role: user.role}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
    
    res.status(StatusCodes.CREATED).json({
     token: token,
@@ -75,7 +75,7 @@ console.log("userData", userData)
     data: organizerData
    })
 
-   const token = await jwt.sign({id: organizer.id, email: userData.email, password:userData.password}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
+   const token = await jwt.sign({id: organizer.id, email: userData.email, role: user.role}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
    
    res.status(StatusCodes.CREATED).json({
     token: token,
@@ -113,7 +113,7 @@ if(!passwordMatch){
     })
 }
 
-   const token = await jwt.sign({id:user.id, email: user.email}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
+   const token = await jwt.sign({id:user.id, email: user.email, role: user.role}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
 
    res.status(StatusCodes.OK).json({
     token,
