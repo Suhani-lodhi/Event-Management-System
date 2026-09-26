@@ -1,130 +1,145 @@
-import {StatusCodes} from 'http-status-codes'
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcrypt'
-import 'dotenv/config.js'
-import prisma from '../index.js'
+import { StatusCodes } from "http-status-codes";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import "dotenv/config.js";
+import prisma from "../index.js";
 
-const participantSignup = async (req, res) =>{
-   const userData =req.body;
+const participantSignup = async (req, res) => {
+  const userData = req.body;
 
-   if(!userData || !userData.firstName || !userData.lastName || !userData.email || !userData.password){
-      return res.status(400).json({
-        msg : "required info not found",
-        success: false
-      })
-   }
+  if (
+    !userData ||
+    !userData.firstName ||
+    !userData.lastName ||
+    !userData.email ||
+    !userData.password
+  ) {
+    return res.status(400).json({
+      msg: "required info not found",
+      success: false,
+    });
+  }
 
-   const salt= await bcrypt.genSalt(10);   
-   userData.password=await bcrypt.hash(userData.password, salt);
+  const salt = await bcrypt.genSalt(10);
+  userData.password = await bcrypt.hash(userData.password, salt);
 
-   const user = await prisma.Users.create({data: userData})
-   if(!user){
-     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        msg: "user not created",
-        success: false
-     })
-   }
-   const token = await jwt.sign({id:user.id, email: user.email}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
-   
-   res.status(StatusCodes.CREATED).json({
+  const user = await prisma.Users.create({ data: userData });
+  if (!user) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "user not created",
+      success: false,
+    });
+  }
+  const token = await jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_LIFETIME },
+  );
+
+  res.status(StatusCodes.CREATED).json({
     token: token,
     msg: "user signed up successfully",
-    success: true
-   })
-}
+    success: true,
+  });
+};
 
-const organizerSignup = async (req, res) =>{
-const data =req.body;
+const organizerSignup = async (req, res) => {
+  const data = req.body;
 
-const userData = {
-   firstName:data.firstName,
-   lastName: data.lastName,
-   email: data.email,
-   password: data.password,
-   phoneNumber: data.phoneNumber? data.phoneNumber: null,
-   role: 'ORGANIZER'
-}
+  const userData = {
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    password: data.password,
+    phoneNumber: data.phoneNumber ? data.phoneNumber : null,
+    role: "ORGANIZER",
+  };
 
+  console.log("userData", userData);
 
-console.log("userData", userData)
+  const salt = await bcrypt.genSalt(10);
+  userData.password = await bcrypt.hash(userData.password, salt);
 
-   const salt= await bcrypt.genSalt(10);   
-   userData.password=await bcrypt.hash(userData.password, salt);
+  const user = await prisma.Users.create({ data: userData });
+  if (!user) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "user not created",
+      success: false,
+    });
+  }
 
-   const user = await prisma.Users.create({data: userData})
-   if(!user){
-     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-        msg: "user not created",
-        success: false
-     })
-   }
-
-   const organizerData={
+  const organizerData = {
     userid: user.id,
     displayName: data.displayName,
     companyName: data.companyName,
-    alternatePhoneNumber: data.alternatePhoneNumber? data.alternatePhoneNumber: null,
+    alternatePhoneNumber: data.alternatePhoneNumber
+      ? data.alternatePhoneNumber
+      : null,
     addressLine1: data.addressLine1,
     city: data.city,
     state: data.state,
     country: data.country,
-    pincode: data.pincode
-   }
+    pincode: data.pincode,
+  };
 
-   const organizer = await prisma.Organizer.create({
-    data: organizerData
-   })
+  const organizer = await prisma.Organizer.create({
+    data: organizerData,
+  });
 
-   const token = await jwt.sign({id: organizer.id, email: userData.email, password:userData.password}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
-   
-   res.status(StatusCodes.CREATED).json({
+  const token = await jwt.sign(
+    { id: organizer.id, email: userData.email, password: userData.password },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_LIFETIME },
+  );
+
+  res.status(StatusCodes.CREATED).json({
     token: token,
     msg: "user signed up successfully",
-    success: true
-   })
-}
+    success: true,
+  });
+};
 
-const login = async (req, res) =>{
-const {email, password} =req.body;
+const login = async (req, res) => {
+  const { email, password } = req.body;
 
-if(!email|| !password){
+  if (!email || !password) {
     return res.status(400).json({
-        message : "required info not found",
-        success: false
-      })
-}
+      message: "required info not found",
+      success: false,
+    });
+  }
 
-const user = await prisma.Users.findUnique({
-    where: {email: email}
-})
+  const user = await prisma.Users.findUnique({
+    where: { email: email },
+  });
 
-if(!user){
+  if (!user) {
     res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "user not found with this email",
-        success: false
-    })
-}
+      msg: "user not found with this email",
+      success: false,
+    });
+  }
 
-const passwordMatch = await bcrypt.compare(password, user.password);
-if(!passwordMatch){
+  const passwordMatch = await bcrypt.compare(password, user.password);
+  if (!passwordMatch) {
     req.status(StatusCodes.BAD_REQUEST).json({
-        msg: "Wrong password",
-        success: false
-    })
-}
+      msg: "Wrong password",
+      success: false,
+    });
+  }
 
-   const token = await jwt.sign({id:user.id, email: user.email}, process.env.JWT_SECRET, {expiresIn: process.env.JWT_LIFETIME})
+  const token = await jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_LIFETIME },
+  );
 
-   res.status(StatusCodes.OK).json({
+  res.status(StatusCodes.OK).json({
     token,
     email: user.email,
     msg: "user loggedin successfully",
-    success: true
-   })
-}
+    success: true,
+  });
+};
 
-export {
-  participantSignup,
-  organizerSignup,
-  login
-}
+export { participantSignup, organizerSignup, login };
