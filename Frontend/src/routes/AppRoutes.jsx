@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import Login from '../pages/Login';
 import ParticipantSignup from '../pages/ParticipantSignup';
 import OrganizerSignup from '../pages/OrganizerSignup';
+import Dashboard from '../pages/Organizer/Dashboard';
+import OrganizerDashboard from '../Components/Organizer/OrganizerDashboard';
+import CreateEvent from '../pages/Organizer/CreateEvent'
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children }) {
@@ -54,10 +57,18 @@ export default function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <div>Dashboard (build this next)</div>
+            <Dashboard />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route index element={<OrganizerDashboard />}/>
+      </Route>
+
+      <Route path="/createEvent" element = {
+        <ProtectedRoute>
+          <CreateEvent />
+        </ProtectedRoute>
+      }/>
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/login" replace />} />
