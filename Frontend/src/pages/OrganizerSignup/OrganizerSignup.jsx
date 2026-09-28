@@ -43,7 +43,7 @@ export default function OrganizerSignup() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // persist progress so a refresh mid-wizard doesn't lose data
+
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
   }, [formData]);

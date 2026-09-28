@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 import Login from '../pages/Login';
 import ParticipantSignup from '../pages/ParticipantSignup';
-import OrganizerSignup from '../pages/OrganizerSignup';
+import OrganizerSignup from '../pages/OrganizerSignup/OrganizerSignup';
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children }) {
@@ -20,7 +20,7 @@ function PublicOnlyRoute({ children }) {
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Root redirect */}
+
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Public-only routes */}
@@ -59,7 +59,6 @@ export default function AppRoutes() {
         }
       />
 
-      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

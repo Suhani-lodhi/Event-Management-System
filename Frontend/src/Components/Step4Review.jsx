@@ -12,6 +12,7 @@ export default function Step4Review({ data, onSubmit, onBack, error, loading }) 
     ['State', data.state],
     ['Country', data.country],
     ['Pincode', data.pincode],
+  
   ];
 
   return (

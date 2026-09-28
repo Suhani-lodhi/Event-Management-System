@@ -61,6 +61,7 @@ export default function Step1AccountInfo({ data, onNext }) {
       {error && <p className="error">{error}</p>}
 
       <div className="wizard-actions">
+        <button type='button' className='hide'></button>
         <button type="submit">Next</button>
       </div>
     </form>

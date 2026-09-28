@@ -17,7 +17,7 @@
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1.4rem;
 }
 
 input {
@@ -47,7 +47,7 @@ button:disabled {
   cursor: not-allowed;
 }
 
-button[type='button'] {
+button[type="button"] {
   background: transparent;
   color: inherit;
   border: 1px solid var(--color-blush-mid);
@@ -64,6 +64,10 @@ button[type='button'] {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.wizard-actions .hide {
+  visibility: hidden;
 }
 
 .step-indicator {
@@ -111,4 +115,9 @@ button[type='button'] {
 .review-row dd {
   margin: 0;
   font-weight: 500;
+}
+
+input {
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
