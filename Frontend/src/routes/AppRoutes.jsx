@@ -6,7 +6,7 @@ import ParticipantSignup from '../pages/ParticipantSignup';
 import OrganizerSignup from '../pages/OrganizerSignup';
 import Dashboard from '../pages/Organizer/Dashboard';
 import OrganizerDashboard from '../Components/Organizer/OrganizerDashboard';
-import CreateEvent from '../pages/Organizer/CreateEvent'
+import CreateEvent from '../Components/Organizer/CreateEvent'
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children }) {
@@ -23,7 +23,7 @@ function PublicOnlyRoute({ children }) {
 export default function AppRoutes() {
   return (
     <Routes>
-      {/* Root redirect */}
+
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* Public-only routes */}
@@ -62,15 +62,12 @@ export default function AppRoutes() {
         }
       >
         <Route index element={<OrganizerDashboard />}/>
+        <Route path="createEvent" element = {<CreateEvent />}/>
+        
       </Route>
 
-      <Route path="/createEvent" element = {
-        <ProtectedRoute>
-          <CreateEvent />
-        </ProtectedRoute>
-      }/>
+      
 
-      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

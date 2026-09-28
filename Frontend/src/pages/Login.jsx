@@ -21,7 +21,8 @@ export default function Login() {
     try {
       const res = await loginUser(form);
       login(res.data.token);
-      navigate('/dashboard');
+      /// idhr apply krna hai role based navigation
+      navigate('/dashboard'); 
     } catch (err) {
       setError(err.response?.data?.msg || 'Login failed. Please try again.');
     } finally {

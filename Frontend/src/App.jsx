@@ -4,11 +4,9 @@ import AppRoutes from './routes/AppRoutes';
 import './App.css';
 
 export default function App() {
-  return (
-    <BrowserRouter>
+  return (  
       <AuthProvider>
         <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+      </AuthProvider>    
   );
 }

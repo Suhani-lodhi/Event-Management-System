@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Step1AccountInfo from '../../Components/Step1AccountInfo';
-import Step2ContactInfo from '../../Components/Step2ContactPage';
-import Step3AddressInfo from '../../Components/Step3AddressInfo';
-import Step4Review from '../../Components/Step4Review';
-import StepIndicator from '../../Components/StepIndicator';
-import { signupOrganizer } from '../../api/auth';
-import { useAuth } from '../../context/AuthContext';
+import Step1AccountInfo from '../Components/Step1AccountInfo';
+import Step2ContactInfo from '../Components/Step2ContactPage';
+import Step3AddressInfo from '../Components/Step3AddressInfo';
+import Step4Review from '../Components/Step4Review';
+import StepIndicator from '../Components/StepIndicator';
+import { signupOrganizer } from '../api/auth';
+import { useAuth } from '../context/AuthContext';
 
 const STORAGE_KEY = 'organizerSignupDraft';
 
@@ -43,7 +43,7 @@ export default function OrganizerSignup() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // persist progress so a refresh mid-wizard doesn't lose data
+
   useEffect(() => {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
   }, [formData]);

@@ -9,6 +9,7 @@
   --color-blush-light: #ffe2e2; /* rgb(255, 226, 226) */
   --color-blush-mid: #f5cbcb; /* rgb(245, 203, 203) */
   --color-lavender: #983edd; /* rgb(152, 62, 221) */
+  --color-lavender-dark: #7f2fc0;
 }
 body {
   min-height: 100vh;
@@ -19,4 +20,100 @@ h1,
 h2,
 h3 {
   color: var(--color-lavender);
+}
+
+
+/* button global css */
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid var(--color-lavender);
+  border-radius: 10px;
+  background: var(--color-lavender);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.05s ease;
+}
+
+button:hover {
+  background: var(--color-lavender-dark);
+  border-color: var(--color-lavender-dark);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-blush-mid);
+}
+
+button:disabled {
+  background: var(--color-blush-light);
+  border-color: var(--color-blush-mid);
+  color: #b39cc4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary: light button with a blush border */
+button.btn-secondary {
+  background: #ffffff;
+  border-color: var(--color-blush-mid);
+  color: #3d3347;
+}
+
+button.btn-secondary:hover {
+  background: var(--color-blush-lightest);
+  border-color: var(--color-blush-mid);
+}
+
+/* Soft: blush background with lavender text */
+button.btn-soft {
+  background: var(--color-blush-light);
+  border-color: var(--color-blush-light);
+  color: var(--color-lavender);
+}
+
+button.btn-soft:hover {
+  background: var(--color-blush-mid);
+  border-color: var(--color-blush-mid);
+}
+
+/* Ghost: no background until hover */
+button.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-lavender);
+}
+
+button.btn-ghost:hover {
+  background: var(--color-blush-lightest);
+}
+
+/* Sizes */
+button.btn-sm {
+  padding: 6px 14px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+button.btn-lg {
+  padding: 14px 26px;
+  font-size: 16px;
+}
+
+/* Full width */
+button.btn-block {
+  width: 100%;
 }

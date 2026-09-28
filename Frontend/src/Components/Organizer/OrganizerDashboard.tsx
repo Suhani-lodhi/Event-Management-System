@@ -4,7 +4,7 @@ export default function OrganizerDashboard(){
     return (
         <>
         <h1>Dashboard</h1>
-        <NavLink to="/createEvent">Create new event</NavLink>
+        <NavLink to="/dashboard/createEvent">Create new event</NavLink>
         </>
     )
 }
