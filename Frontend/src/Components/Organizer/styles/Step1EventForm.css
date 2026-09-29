@@ -1,0 +1,187 @@
+.ce-form-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+}
+
+.ce-form-header {
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.ce-form-header h1 {
+  margin: 0 0 6px;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.ce-form-header p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.ce-field-plain {
+  margin-bottom: 24px;
+}
+
+.ce-field-plain label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.ce-field-plain input {
+  width: 100%;
+  padding: 10px ;
+  border: none;
+  border-bottom: 1px solid var(--color-blush-mid);
+  font-size: 16px;
+  background: transparent;
+}
+
+.ce-field-plain input:focus{
+    outline: none;
+    border-bottom: 1px solid var(--color-lavender);
+}
+
+
+.ce-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.ce-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.ce-card-header-stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.ce-card-header label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+
+
+
+
+.ce-card textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.ce-card textarea:focus{
+    outline: none;
+    border: 1px solid var(--color-lavender);
+}
+
+
+.ce-row {
+  display: flex;
+  gap: 24px;
+}
+
+.ce-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.ce-field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.ce-field-label-row label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+
+.ce-card select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+
+
+.ce-session-card-header label{
+  font-size: 20px;
+}
+
+
+.ce-session-element label{
+  font-size: medium;
+  font-weight:500;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.startDate, .endDate{
+  width: 300px;
+  border: 1px solid var(--color-blush-mid);
+  height: 30px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.subVenue{
+  margin-top: 10px;
+}
+
+select:focus,
+input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: var(--color-lavender);
+
+}
+
+.ce-session-header{
+  display: flex;
+  justify-content: space-between;
+}
+
+.session-icon{
+  margin-right: 2px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .ce-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+}

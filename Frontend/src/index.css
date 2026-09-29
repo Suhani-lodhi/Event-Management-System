@@ -13,7 +13,7 @@
 }
 body {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--color-blush-light) 70%, white 100%);
+  background: linear-gradient(180deg, var( --color-blush-lightest) 70%, white 100%);
   /* background-attachment: fixed; */
 }
 h1,
@@ -78,42 +78,3 @@ button.btn-secondary:hover {
   border-color: var(--color-blush-mid);
 }
 
-/* Soft: blush background with lavender text */
-button.btn-soft {
-  background: var(--color-blush-light);
-  border-color: var(--color-blush-light);
-  color: var(--color-lavender);
-}
-
-button.btn-soft:hover {
-  background: var(--color-blush-mid);
-  border-color: var(--color-blush-mid);
-}
-
-/* Ghost: no background until hover */
-button.btn-ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--color-lavender);
-}
-
-button.btn-ghost:hover {
-  background: var(--color-blush-lightest);
-}
-
-/* Sizes */
-button.btn-sm {
-  padding: 6px 14px;
-  font-size: 12px;
-  border-radius: 8px;
-}
-
-button.btn-lg {
-  padding: 14px 26px;
-  font-size: 16px;
-}
-
-/* Full width */
-button.btn-block {
-  width: 100%;
-}
