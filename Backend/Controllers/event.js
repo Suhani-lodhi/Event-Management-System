@@ -3,7 +3,7 @@ import prisma from "../index.js";
 
 const createEvent = async (req, res) => {
   try {
-    const { category, genre, Title, Description, id } = req.body;
+    const { category, genre, Title, Description } = req.body;
 
     if (!category || !genre || !Title) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -13,8 +13,8 @@ const createEvent = async (req, res) => {
     }
 
     const organizer = await prisma.organizer.findUnique({
-      // where: {userid: req.user.id}
-      where: { userid: id },
+      where: { userid: req.user.id },
+      // where: { userid: id },
     });
 
     if (!organizer) {
@@ -97,11 +97,11 @@ const updateEventById = async (req, res) => {
     const eventId = Number(id);
 
     const { category, genre, Title, Description } = req.body;
-    const { userId } = req.body;
+    // const { userId } = req.body;
 
     const organizer = await prisma.organizer.findUnique({
-      where: { userid: userId },
-      // where: { userid: req.user.id },
+      // where: { userid: userId },
+      where: { userid: req.user.id },
     });
     const event = await prisma.event.findUnique({ where: { id: eventId } });
 
@@ -147,7 +147,8 @@ const deleteEventById = async (req, res) => {
   try {
     const { id } = req.params;
     const eventId = Number(id);
-    const { userId } = req.body;
+    const userId = req.user.id;
+    // const { userId } = req.body;
 
     const organizer = await prisma.organizer.findUnique({
       where: { userid: userId },
