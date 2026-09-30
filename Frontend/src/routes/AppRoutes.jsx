@@ -54,7 +54,7 @@ export default function AppRoutes() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <div>Dashboard (build this next)</div>
+            <div> <form><input type="datetime-local" id="appt" name="appt" required/></form></div>
           </ProtectedRoute>
         }
       />

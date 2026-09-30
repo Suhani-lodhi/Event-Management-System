@@ -54,7 +54,7 @@ model Users {
   status      AccountStatus @default(ACTIVE)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @default(now()) @updatedAt
-  organizers  Organizer?
+  organizer   Organizer?
 }
 
 model Organizer {
@@ -69,13 +69,12 @@ model Organizer {
   country              String
   pincode              Int
   user                 Users   @relation(fields: [userid], references: [id])
-  venues               Venue[]
   events               Event[]
 }
 
 model Venue {
-  id            Int        @id @default(autoincrement())
-  organizerId   Int
+  id Int @id @default(autoincrement())
+
   venueName     String
   addressLine1  String
   city          String
@@ -84,7 +83,6 @@ model Venue {
   pincode       Int
   subVenueCount Int        @default(1)
   subVenues     SubVenue[]
-  organizer     Organizer  @relation(fields: [organizerId], references: [id])
 }
 
 model SubVenue {
@@ -95,6 +93,7 @@ model SubVenue {
   capacity       Int?
   seatCategories SeatCategory[]
   venue          Venue          @relation(fields: [venueId], references: [id])
+  sessions       Session[]
 }
 
 model SeatCategory {
@@ -119,37 +118,29 @@ model SeatDetail {
 }
 
 model Event {
-  id                 Int                @id @default(autoincrement())
-  organizerId        Int
-  category           EventCategory
-  genre              EventGenre
-  Title              String
-  Description        String?
-  startDate          DateTime
-  endDate            DateTime
-  regStartdate       DateTime
-  regEndDate         DateTime
-  sessionCount       Int
-  currentSessionId   Int?
-  currentSession     Int
-  status             EventStatus        @default(DRAFTED)
-  registrationStatus RegistrationStatus @default(CLOSED)
-  organizer          Organizer          @relation(fields: [organizerId], references: [id])
-  sessions           Session[]
+  id               Int           @id @default(autoincrement())
+  organizerId      Int
+  category         EventCategory
+  genre            EventGenre
+  Title            String
+  Description      String?
+  currentSessionId Int?          @unique
+  status           EventStatus?  @default(DRAFTED)
+  organizer        Organizer     @relation(fields: [organizerId], references: [id])
+  sessions         Session[]
+  currentSession   Session?      @relation("CurrentSession", fields: [currentSessionId], references: [id])
 }
 
 model Session {
   id                 Int                @id @default(autoincrement())
   eventId            Int
-  category           EventCategory
-  genre              EventGenre
-  Title              String?
-  Description        String?
-  startDate          DateTime?
-  endDate            DateTime?
-  regStartdate       DateTime?
-  regEndDate         DateTime?
-  status             EventStatus        @default(DRAFTED)
+  subVenueId         Int
+  startDateTime      DateTime
+  endDateTime        DateTime
+  regStartdateTime   DateTime
+  regEndDateTime     DateTime
   registrationStatus RegistrationStatus @default(CLOSED)
+  subVenue           SubVenue           @relation(fields: [subVenueId], references: [id])
+  currentFor         Event?             @relation("CurrentSession")
   event              Event              @relation(fields: [eventId], references: [id])
 }
