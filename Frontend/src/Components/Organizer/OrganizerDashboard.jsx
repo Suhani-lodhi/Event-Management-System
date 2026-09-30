@@ -85,7 +85,7 @@ export default function OrganizerDashboard() {
       ) : (
         <div className="od-event-list">
           {filteredEvents.map((event) => (
-            <div className="od-event-card" key={event.id}>
+            <div className="od-event-card" key={event.id} onClick={() => navigate('/dashboard/event/'+event.id)} >
               <div className="od-event-main">
                 <div className="od-event-top">
                   <h3>{event.Title}</h3>

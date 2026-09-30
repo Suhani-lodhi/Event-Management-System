@@ -7,6 +7,7 @@ import OrganizerSignup from '../pages/OrganizerSignup';
 import Dashboard from '../pages/Organizer/Dashboard';
 import OrganizerDashboard from '../Components/Organizer/OrganizerDashboard';
 import CreateEvent from '../Components/Organizer/CreateEvent'
+import EventDetails from '../Components/Organizer/EventDetails';
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children }) {
@@ -63,7 +64,7 @@ export default function AppRoutes() {
       >
         <Route index element={<OrganizerDashboard />}/>
         <Route path="createEvent" element = {<CreateEvent />}/>
-        
+        <Route path="event/:id" element = {<EventDetails/>}/>
       </Route>
 
       
