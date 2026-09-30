@@ -5,6 +5,7 @@ import "dotenv/config.js";
 import cors from "cors";
 import authRouter from "./Routes/auth.js";
 import eventRouter from "./Routes/event.js";
+import sessionRouter from "./Routes/session.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -18,6 +19,7 @@ app.use(
 app.use(express.json());
 app.use("/auth", authRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), eventRouter);
+app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);
 
 app.listen(port, () => {
   console.log("app is listening on port", port);

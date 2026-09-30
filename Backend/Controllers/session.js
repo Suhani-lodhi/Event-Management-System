@@ -39,6 +39,7 @@ const createSession = async (req, res) => {
 
     const organizer = await prisma.organizer.findUnique({
       where: { userid: req.user.id },
+      //   where: { userid: req.body.id },
     });
     const event = await prisma.event.findUnique({
       where: { id: Number(eventId) },
@@ -53,7 +54,7 @@ const createSession = async (req, res) => {
 
     if (!organizer || event.organizerId !== organizer.id) {
       return res.status(StatusCodes.FORBIDDEN).json({
-        msg: "not authorized to add sessions to this event",
+        msg: `not authorized to add sessions to this event ${organizer}`,
         success: false,
       });
     }
@@ -68,19 +69,15 @@ const createSession = async (req, res) => {
         success: false,
       });
     }
-    const session = await prisma.$transaction(async (tx) => {
-      const created = await tx.session.create({
-        data: {
-          eventId: Number(eventId),
-          subVenueId,
-          startDateTime: start,
-          endDateTime: end,
-          regStartdateTime: regStart,
-          regEndDateTime: regEnd,
-        },
-      });
-      await advanceCurrentSession(Number(eventId), tx);
-      return created;
+    const session = await prisma.session.create({
+      data: {
+        eventId: Number(eventId),
+        subVenueId,
+        startDateTime: start,
+        endDateTime: end,
+        regStartdateTime: regStart,
+        regEndDateTime: regEnd,
+      },
     });
 
     res.status(StatusCodes.CREATED).json({
@@ -88,5 +85,13 @@ const createSession = async (req, res) => {
       msg: "session created successfully",
       success: true,
     });
-  } catch (err) {}
+  } catch (err) {
+    console.error(err);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not create session",
+      success: false,
+    });
+  }
 };
+
+export { createSession };
