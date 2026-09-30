@@ -1,10 +1,10 @@
 import '../Organizer/styles/Step1EventForm.css'
 import ConfirmCreateDialog from './models/ConfirmCreateDialog'
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 export default function Step1EventForm({setStep}){
 
-
+  const formRef = useRef(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   function handlePublishClick() {
@@ -17,10 +17,10 @@ export default function Step1EventForm({setStep}){
   }
 
 
-    function submitEvent(formdata){
+    function submitEvent(){
       console.log("submit event called")
+
         setStep((prev)=> prev+1)
-        //console.log(formdata)
     }
     return (
         <>
@@ -30,7 +30,7 @@ export default function Step1EventForm({setStep}){
     <p>A few quick details stand between you and a published event.</p>
   </div>
 
-  <form action={SubmitEvent}>
+  <form ref={formRef}>
 
 <div className="ce-card">
     <div className="ce-field-plain">

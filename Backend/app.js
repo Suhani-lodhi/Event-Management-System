@@ -1,11 +1,10 @@
-
-import authRouter from './Routes/auth.js'
 import authenticate from './Middleware/authentication.js';
 import authorize from './Middleware/authorization.js';
 import express from "express";
 import "dotenv/config.js";
 import cors from "cors";
-
+import authRouter from "./Routes/auth.js";
+import eventRouter from "./Routes/event.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -18,6 +17,7 @@ app.use(
 );
 app.use(express.json());
 app.use("/auth", authRouter);
+app.use("/organizer", authenticate, authorize('ORGANIZER'), eventRouter);
 
 
 
