@@ -3,7 +3,7 @@ import prisma from "../index.js";
 
 const createEvent = async (req, res) => {
   try {
-    const { category, genre, Title, Description, id } = req.body;
+    const { category, genre, Title, Description } = req.body;
 
     if (!category || !genre || !Title) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -13,8 +13,8 @@ const createEvent = async (req, res) => {
     }
 
     const organizer = await prisma.organizer.findUnique({
-      // where: {userid: req.user.id}
-      where: { userid: id },
+      where: {userid: req.user.id}
+      // where: { userid: id },// Testing
     });
 
     if (!organizer) {

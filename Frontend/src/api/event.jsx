@@ -9,19 +9,39 @@ function getAuthHeaders() {
 }
 
 
-const createEvent = async (data) =>{
-    let res = await fetch(EVENT_URL+"/createEvent",{
+const createEvent = async (eventData) =>{
+    const res = await fetch(EVENT_URL+"/createEvent",{
         method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify(data)
+        body: JSON.stringify(eventData)
     }
     )
-
+    const data = await res.json();
     if (!res.ok) {
-    const error = new Error(data?.msg || 'Login failed');
-    error.response = { data, status: res.status };
+    const error = new Error(data?.msg || 'event creation failed');
+    error.response = { data, status: false};
     throw error;
   }
-    res = await res.json();
-    return { res, status: res.status };
+
+    return { res, status: true };
+}
+
+const getAllEvents = async () =>{
+    const res = await fetch(EVENT_URL+"/getEvents", {
+        method: "GET",
+        headers: getAuthHeaders()
+    })
+
+    if(!res.ok){
+         throw new Error("could not fetch events");
+    }
+
+    const data = await res.json();
+    return data;
+}
+
+
+export {
+    createEvent,
+    getAllEvents
 }
