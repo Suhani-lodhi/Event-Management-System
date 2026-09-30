@@ -1,11 +1,26 @@
 import '../Organizer/styles/Step1EventForm.css'
 import ConfirmCreateDialog from './models/ConfirmCreateDialog'
+import { useState } from 'react';
 
 export default function Step1EventForm({setStep}){
 
-    function SubmitEvent(e){
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  function handlePublishClick() {
+    setConfirmOpen(true); // open dialog instead of submitting right away
+  }
+
+  function handleConfirmPublish() {
+    setConfirmOpen(false);
+    submitEvent(); // your actual submit logic goes here
+  }
+
+
+    function submitEvent(formdata){
       console.log("submit event called")
         setStep((prev)=> prev+1)
+        //console.log(formdata)
     }
     return (
         <>
@@ -87,7 +102,13 @@ export default function Step1EventForm({setStep}){
     </div>
 
     <div>
-            <button>Add Event and move next</button>
+            <button type='button' onClick={handlePublishClick} >Create Event</button>
+
+            <ConfirmCreateDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleConfirmPublish}
+      />
             
         </div>
   </form>
