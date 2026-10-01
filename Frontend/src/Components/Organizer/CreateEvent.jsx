@@ -9,10 +9,10 @@ export default function CreateEvents() {
     const {id} = useParams();
     const isEditMode = Boolean(id);
     const [step, setStep] = useState(1);
-
+    const [eventId, setEventId] = useState(null)
     
 
-    console.log(step);
+  
 
    
 
@@ -26,11 +26,11 @@ export default function CreateEvents() {
       <h4>Step 1</h4>
       <p>Basic Information</p>
     </span>
-    <span className={step === 2 ? "active" : ""} onClick={() => setStep(2)}>
+    <span className={step === 2 ? "active" : ""} onClick={() => eventId && setStep(2)}>
       <h4>Step 2</h4>
       <p>Sessions and Venue</p>
     </span>
-    <span className={step === 3 ? "active" : ""} onClick={() => setStep(3)}>
+    <span className={step === 3 ? "active" : ""} onClick={() => eventId && setStep(3)}>
       <h4>Step 3</h4>
       <p>Settings and Form</p>
     </span>
@@ -40,14 +40,15 @@ export default function CreateEvents() {
 
       <div hidden={step !== 1}>
           <Step1EventForm setStep={setStep}
-          isEditMode
-          id
+           setEventId={setEventId}
           />
       </div>
 
 
       <div hidden={step !== 2}>
-         <Step2Session setStep={setStep} />
+         <Step2Session setStep={setStep} 
+          eventId={eventId}
+         />
       </div>
 
 

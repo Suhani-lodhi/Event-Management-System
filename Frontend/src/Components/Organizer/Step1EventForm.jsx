@@ -3,7 +3,7 @@ import ConfirmCreateDialog from './models/ConfirmCreateDialog'
 import { useRef, useState } from 'react';
 import { createEvent } from '../../api/event';
 
-export default function Step1EventForm({setStep}){
+export default function Step1EventForm({setStep, setEventId}){
 
   const formRef = useRef(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -36,6 +36,8 @@ export default function Step1EventForm({setStep}){
       }
       console.log(eventData)
       const isAdded =await createEvent(eventData);
+      console.log(isAdded.res.data.id)
+      setEventId(isAdded.res.data.id);
       if(isAdded.status){
         alert("event added successfully")
       }

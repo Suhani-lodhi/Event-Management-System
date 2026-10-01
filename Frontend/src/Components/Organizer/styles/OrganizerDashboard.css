@@ -163,10 +163,13 @@
 
 .od-icon{
   display: flex;
+  justify-content: space-between;
+  font-size: 20px;
 }
 
 .od-icon-element {
   margin-right: 5px;
+  color: var(--color-lavender-dark);
 }
 
 .od-event-tags {

@@ -6,7 +6,7 @@ import { getSubVenues, getVenues } from '../../api/event';
 export default function Step2Session(props) {
     
     const [sessions, setSessions] = useState([
-    { id: 1, startDateTime: "", endDateTime: "", venueId: "", subVenueId: "" },
+    { id: 1, startDateTime: "", endDateTime: "",regStartDateTime:"", regEndDateTime:"", venueId: "", subVenueId: "" },
      ]);
 
     const [venues, setVenues] = useState([]);
@@ -22,7 +22,7 @@ export default function Step2Session(props) {
   function addSession() {
     setSessions((prev) => [
       ...prev,
-      { id: Date.now(), startDateTime: "", endDateTime: "", regStartDateTime:"", regEndDateTime:"", venueId: "" },
+      { id: Date.now(), startDateTime: "", endDateTime: "", regStartDateTime:"", regEndDateTime:"", venueId: "", subVenueId: ""},
     ]);
   }
 
@@ -60,12 +60,12 @@ useEffect(()=>{
   getVenue()
 },[])
 
-async function getSubvenue(e){
-    updateSession(session.id, "venueId", e.target.value);
+async function getSubvenue(id,e){
+    updateSession(id, "venueId", e.target.value);
     const data = await getSubVenues(e.target.value);
-    console.log(data);
+    console.log(data.subVenues);
     if(data){
-      setSubVenues()
+      setSubVenues(data.subVenues)
       setLoadingSubVenues(false)
     }
 }
@@ -163,7 +163,7 @@ function submitSession(formdata){
                     type="datetime-local"
                     name="regStartdateTime"
                     id={`regStartDate-${session.id}`}
-                    defaultValue={session.regEndDateTime}
+                    defaultValue={session.regStartDateTime}
                     className='startDate'
                     onChange={(e) =>
                       updateSession(session.id, "regStartDateTime", e.target.value)
@@ -203,7 +203,7 @@ function submitSession(formdata){
                 name="venueId"
                 className='subVenue'
                 defaultValue={session.venueId}
-                onChange={getSubvenue}
+                onChange={(e) => getSubvenue(session.id, e)}
                 required
               >
                 <option value="" disabled>
@@ -241,7 +241,7 @@ function submitSession(formdata){
                   <>
                     {
                       subVenues.map((v)=>{
-                        return <option key={v.id} value={v.id}>{v.venueName}</option>
+                        return <option key={v.id} value={v.id}>{v.subVenueName}</option>
                       })
                     }
                   </>

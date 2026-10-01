@@ -43,6 +43,10 @@ export default function OrganizerDashboard() {
        setFilteredEvents(events.filter((event)=> event.status==e.target.value))
     }
 
+    function deleteEvent(){
+      
+    }
+
 
     if (loading) return <p>Loading events...</p>;
 
@@ -98,7 +102,7 @@ export default function OrganizerDashboard() {
                   </div>
                   <div className='od-icon'>
                     <FontAwesomeIcon icon={faEye} onClick={() => navigate('/dashboard/event/'+event.id)} className='od-icon-element'/>
-                    <FontAwesomeIcon icon={faTrash}  />
+                    <FontAwesomeIcon icon={faTrash} style={{color: "#5d5c5c"}} onClick={deleteEvent}/>
                   </div>
                 </div>
 
