@@ -1,6 +1,6 @@
 import '../Organizer/styles/OrganizerDashboard.css'
 import { useEffect, useState } from "react";
-import { getAllEvents } from "../../api/event";
+import { deleteEventById, getAllEvents } from "../../api/event";
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -43,8 +43,11 @@ export default function OrganizerDashboard() {
        setFilteredEvents(events.filter((event)=> event.status==e.target.value))
     }
 
-    function deleteEvent(){
-      
+   async function deleteEvent(id){
+      const res = await deleteEventById(id);
+      if(res.status){
+        alert("event deleted")
+      }
     }
 
 
@@ -102,7 +105,7 @@ export default function OrganizerDashboard() {
                   </div>
                   <div className='od-icon'>
                     <FontAwesomeIcon icon={faEye} onClick={() => navigate('/dashboard/event/'+event.id)} className='od-icon-element'/>
-                    <FontAwesomeIcon icon={faTrash} style={{color: "#5d5c5c"}} onClick={deleteEvent}/>
+                    <FontAwesomeIcon icon={faTrash} style={{color: "#5d5c5c"}} onClick={() => deleteEvent(event.id)}/>
                   </div>
                 </div>
 

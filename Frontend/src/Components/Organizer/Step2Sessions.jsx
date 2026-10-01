@@ -77,6 +77,7 @@ async function submitSession(){
     const res = await createSession(props.eventId, sessions)
     if(res.status){
       alert("sessions created");
+      props.setStep((prev) => prev+1);
     }
 }
    

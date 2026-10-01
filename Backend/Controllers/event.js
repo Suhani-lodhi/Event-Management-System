@@ -93,8 +93,8 @@ const getEventById = async (req, res) => {
 
 const getEventByOrganizerId = async (req, res) => {
   try {
-    const { id } = req.body;
-    // const { id } = req.user.id;
+    //const { id } = req.body;
+    const { id } = req.user.id;
 
     const event = await prisma.event.findMany({
       where: { organizerId: Number(id) },

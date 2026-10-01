@@ -30,6 +30,17 @@ const getEventDetails = async (id) => {
     }
 };
 
+
+const deleteEventById = async (id) =>{
+    try {
+        const res = await axiosInstance.get(`organizer/deleteEvent/${id}`);
+        return res.data;
+    } catch (err) {
+        throw new Error("could not fetch events");
+    }
+}
+
+
 const createSession = async (id, session) => {
    const sessionData = session.map((s)=>{
     return {
@@ -75,4 +86,4 @@ const getSubVenues = async (id) =>{
     }
 }
 
-export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues };
+export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, deleteEventById };
