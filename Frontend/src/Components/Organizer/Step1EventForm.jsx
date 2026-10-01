@@ -36,8 +36,9 @@ export default function Step1EventForm({setStep, setEventId}){
       }
       console.log(eventData)
       const isAdded =await createEvent(eventData);
-      console.log(isAdded.res.data.id)
-      setEventId(isAdded.res.data.id);
+      console.log(isAdded)
+      console.log(isAdded.res.data.event.id)
+      setEventId(isAdded.res.data.event.id);
       if(isAdded.status){
         alert("event added successfully")
       }

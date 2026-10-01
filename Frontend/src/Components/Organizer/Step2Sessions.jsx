@@ -2,7 +2,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import '../Organizer/styles/Step1EventForm.css'
 import { useEffect, useState } from 'react';
 import { faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { getSubVenues, getVenues } from '../../api/event';
+import { getSubVenues, getVenues, createSession } from '../../api/event';
+
 export default function Step2Session(props) {
     
     const [sessions, setSessions] = useState([
@@ -71,9 +72,12 @@ async function getSubvenue(id,e){
 }
 
 
-function submitSession(formdata){
+async function submitSession(){
     console.log("session formdata")
-   console.log(formdata)
+    const res = await createSession(props.eventId, sessions)
+    if(res.status){
+      alert("sessions created");
+    }
 }
    
 

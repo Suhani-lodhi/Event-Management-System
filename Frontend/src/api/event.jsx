@@ -30,7 +30,16 @@ const getEventDetails = async (id) => {
     }
 };
 
-const createSession = async (sessionData, id) => {
+const createSession = async (id, session) => {
+   const sessionData = session.map((s)=>{
+    return {
+        subVenueId : s.subVenueId,
+        startDateTime : s.startDateTime,
+        endDateTime : s.endDateTime,
+        regStartdateTime : s.regStartDateTime,
+        regEndDateTime : s.regEndDateTime
+    }
+   })
     try {
         const res = await axiosInstance.post(`organizer/createSession/${id}`, sessionData);
         return { res, status: true };

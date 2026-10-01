@@ -6,10 +6,10 @@ import prisma from "../index.js";
 const createSession = async (req, res) => {
   try {
     const { eventId } = req.params;
+    console.log("Req BODY....................>", req.body);
+    const sessionsInput = [...req.body];
 
-    const sessionsInput = Array.isArray(req.body.sessions)
-      ? req.body.sessions
-      : [req.body];
+    console.log("session input------", sessionsInput)
 
     if (sessionsInput.length === 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -51,8 +51,11 @@ const createSession = async (req, res) => {
         regEndDateTime,
       } = sessionsInput[i];
 
+      const subVenueIdNum = Number(subVenueId);
+
       if (
-        !subVenueId ||
+        // !subVenueId ||
+        !Number.isInteger(subVenueIdNum) ||
         !startDateTime ||
         !endDateTime ||
         !regStartdateTime ||
@@ -76,7 +79,7 @@ const createSession = async (req, res) => {
         });
       }
 
-      validated.push({ subVenueId, start, end, regStart, regEnd });
+      validated.push({ subVenueId:subVenueIdNum, start, end, regStart, regEnd });
     }
 
     const subVenueIds = [...new Set(validated.map((v) => v.subVenueId))];
