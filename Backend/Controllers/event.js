@@ -91,6 +91,33 @@ const getEventById = async (req, res) => {
   }
 };
 
+const getEventByOrganizerId = async (req, res) => {
+  try {
+    const { id } = req.body;
+    // const { id } = req.user.id;
+
+    const event = await prisma.event.findMany({
+      where: { organizerId: Number(id) },
+      include: { sessions: true, organizer: true },
+    });
+
+    if (!event) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        msg: "event not found",
+        success: false,
+      });
+    }
+
+    res.status(StatusCodes.OK).json({ event, success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not fetch event",
+      success: false,
+    });
+  }
+};
+
 const updateEventById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -192,6 +219,7 @@ export {
   createEvent,
   getEvents,
   getEventById,
+  getEventByOrganizerId,
   updateEventById,
   deleteEventById,
 };
