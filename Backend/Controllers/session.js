@@ -3,48 +3,24 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../index.js";
 
-function sessionsCheck(){
-  
-}
 const createSession = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const {
-      subVenueId,
-      startDateTime,
-      endDateTime,
-      regStartdateTime,
-      regEndDateTime,
-    } = req.body;
 
-    if (
-      !subVenueId ||
-      !startDateTime ||
-      !endDateTime ||
-      !regStartdateTime ||
-      !regEndDateTime
-    ) {
+    const sessionsInput = Array.isArray(req.body.sessions)
+      ? req.body.sessions
+      : [req.body];
+
+    if (sessionsInput.length === 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "required info not found",
-        success: false,
-      });
-    }
-
-    const start = new Date(startDateTime);
-    const end = new Date(endDateTime);
-    const regStart = new Date(regStartdateTime);
-    const regEnd = new Date(regEndDateTime);
-
-    if (end <= start || regEnd <= regStart || regEnd > start) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "invalid dates: session must end after it starts, and registration must close before the session starts",
+        msg: "at least one session is required",
         success: false,
       });
     }
 
     const organizer = await prisma.organizer.findUnique({
       where: { userid: req.user.id },
-      //   where: { userid: req.body.id },
+      // where: { userid: req.body.id },
     });
     const event = await prisma.event.findUnique({
       where: { id: Number(eventId) },
@@ -58,48 +34,91 @@ const createSession = async (req, res) => {
     }
 
     if (!organizer || event.organizerId !== organizer.id) {
+      console.log("Organizer...........", organizer);
       return res.status(StatusCodes.FORBIDDEN).json({
-        msg: `not authorized to add sessions to this event ${organizer}`,
+        msg: "not authorized to add sessions to this event",
         success: false,
       });
     }
 
-    const subVenue = await prisma.subVenue.findUnique({
-      where: { id: subVenueId },
-    });
-
-    if (!subVenue) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        msg: "invalid subVenue: subVenue not found",
-        success: false,
-      });
-    }
-    
-    const session = await prisma.session.create({
-      data: {
-        eventId: Number(eventId),
+    const validated = [];
+    for (let i = 0; i < sessionsInput.length; i++) {
+      const {
         subVenueId,
-        startDateTime: start,
-        endDateTime: end,
-        regStartdateTime: regStart,
-        regEndDateTime: regEnd,
-      },
+        startDateTime,
+        endDateTime,
+        regStartdateTime,
+        regEndDateTime,
+      } = sessionsInput[i];
+
+      if (
+        !subVenueId ||
+        !startDateTime ||
+        !endDateTime ||
+        !regStartdateTime ||
+        !regEndDateTime
+      ) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: `session ${i}: required info not found`,
+          success: false,
+        });
+      }
+
+      const start = new Date(startDateTime);
+      const end = new Date(endDateTime);
+      const regStart = new Date(regStartdateTime);
+      const regEnd = new Date(regEndDateTime);
+
+      if (end <= start || regEnd <= regStart || regEnd > start) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: `session ${i}: invalid dates — session must end after it starts, and registration must close before the session starts`,
+          success: false,
+        });
+      }
+
+      validated.push({ subVenueId, start, end, regStart, regEnd });
+    }
+
+    const subVenueIds = [...new Set(validated.map((v) => v.subVenueId))];
+    const count = await prisma.subVenue.count({
+      where: { id: { in: subVenueIds } },
     });
+
+    if (count !== subVenueIds.length) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        msg: "one or more subVenues not found",
+        success: false,
+      });
+    }
+
+    const sessions = await prisma.$transaction(
+      validated.map((v) =>
+        prisma.session.create({
+          data: {
+            eventId: Number(eventId),
+            subVenueId: v.subVenueId,
+            startDateTime: v.start,
+            endDateTime: v.end,
+            regStartdateTime: v.regStart,
+            regEndDateTime: v.regEnd,
+          },
+        }),
+      ),
+    );
 
     res.status(StatusCodes.CREATED).json({
-      session,
-      msg: "session created successfully",
+      sessions,
+      msg: `${sessions.length} session(s) created successfully`,
       success: true,
     });
   } catch (err) {
     console.error(err);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "could not create session",
+      msg: "could not create session(s)",
       success: false,
     });
   }
 };
-
 const getSessionsByEventId = async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -229,9 +248,7 @@ const updateSessionById = async (req, res) => {
   }
 };
 
-const deleteSessionById = async (req, res) => {
-
-}
+const deleteSessionById = async (req, res) => {};
 
 export {
   createSession,
