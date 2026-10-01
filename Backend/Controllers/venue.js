@@ -1,6 +1,11 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../index.js";
 
+const createVenues = async (req, res) => {
+  try {
+    const { venueName, addressLine1, city, state, country, pincode } = req.body;
+  } catch (err) {}
+};
 const getVenues = async (req, res) => {
   try {
     const venues = await prisma.venue.findMany();
@@ -16,7 +21,7 @@ const getVenues = async (req, res) => {
 
 const getSubVenuesByVenueId = async (req, res) => {
   try {
-    const { venueId } = req.body;
+    const { venueId } = req.params;
     console.log("venue.......................>>>>>>", venueId);
     const subVenues = await prisma.subVenue.findMany({
       where: { venueId: venueId },
