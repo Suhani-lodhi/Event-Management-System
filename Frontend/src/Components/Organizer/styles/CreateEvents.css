@@ -1,0 +1,80 @@
+.ce-header {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 24px;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.ce-header * {
+  box-sizing: border-box;
+}
+
+
+.ce-header h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: #2b2233;
+}
+
+.ce-steps {
+  display: flex;
+  width: 100%;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 14px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.ce-steps span {
+  flex: 1 1 0;         
+  min-width: 0;        
+  display: block;
+  padding: 12px 16px;
+  border-radius: 10px;
+  box-sizing: border-box;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.ce-steps span:hover {
+  background: var(--color-blush-lightest);
+}
+
+.ce-steps span.active {
+  background: var(--color-blush-light);
+}
+
+.ce-steps h4 {
+  margin: 0 0 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #7a6f85;
+}
+
+.ce-steps p {
+  margin: 0;
+  font-size: 14px;
+  color: #3d3347;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ce-steps span.active h4,
+.ce-steps span.active p {
+  color: var(--color-lavender);
+}
+
+.ce-steps span.active p {
+  font-weight: 500;
+}
