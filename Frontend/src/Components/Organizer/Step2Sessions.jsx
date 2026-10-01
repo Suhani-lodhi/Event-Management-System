@@ -1,12 +1,18 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import '../Organizer/styles/Step1EventForm.css'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { getVenues } from '../../api/event';
 export default function Step2Session(props) {
     
     const [sessions, setSessions] = useState([
-    { id: 1, startDateTime: "", endDateTime: "", venueId: "" },
+    { id: 1, startDateTime: "", endDateTime: "", venueId: "", subVenueId: "" },
      ]);
+
+    const [venues, setVenues] = useState([]);
+    const [subVenues, setSubVenues] = useState([]);
+    const [loadingVenue, setLoadingVenue] = useState(true);
+    const [loadingSubVenues, setLoadingSubVenues] = useState(true);
 
 
  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -42,6 +48,20 @@ export default function Step2Session(props) {
     updated.splice(index + 1, 0, duplicate); // insert right after the original
     return updated;
   });
+}
+
+useEffect(()=>{
+  async function getVenue(){
+       const data = await getVenues();
+       console.log(data.venues);
+       setVenues(data.venues)
+       setLoadingVenue(false)
+  }
+  getVenue()
+},[])
+
+function getSubvenue(e){
+    updateSession(session.id, "regStartDateTime", e.target.value)
 }
 
 
@@ -174,19 +194,59 @@ function submitSession(formdata){
                 <label htmlFor={`subVenue-${session.id}`}>Select Venue</label>
               </div>
               <select
-                name="subVenueId"
+                name="venueId"
                 className='subVenue'
                 defaultValue={session.venueId}
+                onChange={getSubvenue}
+                required
+              >
+                <option value="" disabled>
+                  Select Venue
+                </option>
+                {loadingVenue || venues.length === 0 ? <option>loading venues</option>
+                :
+                  <>
+                    {
+                      venues.map((v)=>{
+                        return <option value={v.id}>{v.venueName}</option>
+                      })
+                    }
+                  </>
+                }
+              </select>
+
+
+
+
+             <select
+                name="subVenueId"
+                className='subVenue'
+                defaultValue={session.subVenueId}
                 onChange={(e) =>
-                  updateSession(session.id, "venueId", e.target.value)
+                  updateSession(session.id, "subVenueId", e.target.value)
                 }
                 required
               >
                 <option value="" disabled>
                   Select Venue
                 </option>
-                <option value="Vista living pg and hostel">Vista living pg and hostel</option>
+                {loadingVenue || venues.length === 0 ? <option>loading venues</option>
+                :
+                  <>
+                    {
+                      venues.map((v)=>{
+                        return <option value={v.id}>{v.venueName}</option>
+                      })
+                    }
+                  </>
+                }
               </select>
+
+
+
+
+
+
             </div>
           ))}
 

@@ -96,9 +96,9 @@ export default function OrganizerDashboard() {
                     {event.status}
                   </span>
                   </div>
-                  <div>
-                    <FontAwesomeIcon icon={faEye} onClick={() => navigate('/dashboard/event/'+event.id)} />
-                  <FontAwesomeIcon icon={faTrash} />
+                  <div className='od-icon'>
+                    <FontAwesomeIcon icon={faEye} onClick={() => navigate('/dashboard/event/'+event.id)} className='od-icon-element'/>
+                    <FontAwesomeIcon icon={faTrash}  />
                   </div>
                 </div>
 

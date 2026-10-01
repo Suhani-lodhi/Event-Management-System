@@ -42,4 +42,18 @@ const createSession = async (sessionData, id) => {
     }
 };
 
-export { createEvent, getAllEvents, getEventDetails, createSession };
+
+
+// venue
+
+const getVenues = async ()=>{
+    try{
+        const res = await axiosInstance.get(`organizer/venues`);
+        return res.data
+    }
+    catch(err){
+         throw new Error("could not fetch venues");
+    }
+}
+
+export { createEvent, getAllEvents, getEventDetails, createSession, getVenues };

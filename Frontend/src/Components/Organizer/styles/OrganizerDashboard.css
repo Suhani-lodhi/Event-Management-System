@@ -115,6 +115,7 @@
 
 .od-event-top {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 12px;
   margin-bottom: 6px;
@@ -158,6 +159,14 @@
 .od-status-cancelled {
   background: #fbe4e4;
   color: #d1435b;
+}
+
+.od-icon{
+  display: flex;
+}
+
+.od-icon-element {
+  margin-right: 5px;
 }
 
 .od-event-tags {
