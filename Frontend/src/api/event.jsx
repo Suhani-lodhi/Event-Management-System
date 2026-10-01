@@ -56,4 +56,14 @@ const getVenues = async ()=>{
     }
 }
 
-export { createEvent, getAllEvents, getEventDetails, createSession, getVenues };
+const getSubVenues = async (id) =>{
+    try{
+        const res = await axiosInstance.get(`organizer/subVenues/${id}`)
+        return res.data;
+    }
+    catch(err){
+         throw new Error("could not fetch sub venues");
+    }
+}
+
+export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues };

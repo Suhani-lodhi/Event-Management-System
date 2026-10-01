@@ -53,7 +53,7 @@ export default function OrganizerDashboard() {
         <div className="od-banner-text">
           <h2>Ready to host your event?</h2>
         </div>
-        <button type="button" className="od-banner-btn" >
+        <button type="button" className="od-banner-btn" onClick={() => navigate('/dashboard/createEvent')}>
           Create Event
         </button>
       </div>

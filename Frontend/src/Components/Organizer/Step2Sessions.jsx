@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import '../Organizer/styles/Step1EventForm.css'
 import { useEffect, useState } from 'react';
 import { faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { getVenues } from '../../api/event';
+import { getSubVenues, getVenues } from '../../api/event';
 export default function Step2Session(props) {
     
     const [sessions, setSessions] = useState([
@@ -60,8 +60,14 @@ useEffect(()=>{
   getVenue()
 },[])
 
-function getSubvenue(e){
-    updateSession(session.id, "regStartDateTime", e.target.value)
+async function getSubvenue(e){
+    updateSession(session.id, "venueId", e.target.value);
+    const data = await getSubVenues(e.target.value);
+    console.log(data);
+    if(data){
+      setSubVenues()
+      setLoadingSubVenues(false)
+    }
 }
 
 
@@ -208,7 +214,7 @@ function submitSession(formdata){
                   <>
                     {
                       venues.map((v)=>{
-                        return <option value={v.id}>{v.venueName}</option>
+                        return <option key={v.id} value={v.id}>{v.venueName}</option>
                       })
                     }
                   </>
@@ -228,14 +234,14 @@ function submitSession(formdata){
                 required
               >
                 <option value="" disabled>
-                  Select Venue
+                  Select Sub Venue
                 </option>
-                {loadingVenue || venues.length === 0 ? <option>loading venues</option>
+                {loadingSubVenues || subVenues.length === 0 ? <option>loading sub venues</option>
                 :
                   <>
                     {
-                      venues.map((v)=>{
-                        return <option value={v.id}>{v.venueName}</option>
+                      subVenues.map((v)=>{
+                        return <option key={v.id} value={v.id}>{v.venueName}</option>
                       })
                     }
                   </>
