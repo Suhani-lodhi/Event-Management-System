@@ -208,10 +208,40 @@ select:focus{
    border: 1px solid var(--color-lavender);
 }
 
-.od-ed-card{
-   width: 100%!important;
+
+/* event detail page */
+
+.ed-container{
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+  box-sizing: border-box;
 }
 
+.ed-card{
+  width: 100%;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 14px;
+  background: #ffffff;
+  margin: auto;
+  margin-top: 10px;
+  padding: 24px;
+}
+
+.ed-header{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.ed-event-top{
+  display: flex;
+  justify-content: space-between;
+
+}
 
 
 @media (max-width: 700px) {

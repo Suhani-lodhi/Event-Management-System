@@ -2,24 +2,24 @@ import { useState } from "react"
 import Step1EventForm from "./Step1EventForm";
 import '../Organizer/styles/CreateEvents.css'
 import Step2Session from "./Step2Sessions";
+import { useParams } from "react-router-dom";
 
 export default function CreateEvents() {
 
+    const {id} = useParams();
+    const isEditMode = Boolean(id);
     const [step, setStep] = useState(1);
-    // const [startDate, setStartDate] = useState("");
-    // const [endDate, setEndDate] = useState("");
-    // const [regStartDate, setRegStartDate] = useState("");
-    // const [regEndDate, setRegEndDate] = useState("");
+
+    
 
     console.log(step);
 
-
+   
 
 
     return (
         <>
             <div className="ce-header">
-  {/* <h1>Create New Event</h1> */}
 
   <div className="ce-steps">
     <span className={step === 1 ? "active" : ""} onClick={() => setStep(1)}>
@@ -39,7 +39,10 @@ export default function CreateEvents() {
 
 
       <div hidden={step !== 1}>
-          <Step1EventForm setStep={setStep}/>
+          <Step1EventForm setStep={setStep}
+          isEditMode
+          id
+          />
       </div>
 
 

@@ -2,6 +2,8 @@ import '../Organizer/styles/OrganizerDashboard.css'
 import { useEffect, useState } from "react";
 import { getAllEvents } from "../../api/event";
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export default function OrganizerDashboard() {
 
@@ -51,7 +53,7 @@ export default function OrganizerDashboard() {
         <div className="od-banner-text">
           <h2>Ready to host your event?</h2>
         </div>
-        <button type="button" className="od-banner-btn" onClick={() => navigate("/dashboard/createEvent")} >
+        <button type="button" className="od-banner-btn" >
           Create Event
         </button>
       </div>
@@ -88,10 +90,16 @@ export default function OrganizerDashboard() {
             <div className="od-event-card" key={event.id} onClick={() => navigate('/dashboard/event/'+event.id)} >
               <div className="od-event-main">
                 <div className="od-event-top">
-                  <h3>{event.Title}</h3>
+                  <div>
+                    <h3>{event.Title}</h3>
                   <span className={`od-status od-status-${event.status?.toLowerCase()}`}>
                     {event.status}
                   </span>
+                  </div>
+                  <div>
+                    <FontAwesomeIcon icon={faEye} onClick={() => navigate('/dashboard/event/'+event.id)} />
+                  <FontAwesomeIcon icon={faTrash} />
+                  </div>
                 </div>
 
                 <p className="od-event-description">{event.Description}</p>

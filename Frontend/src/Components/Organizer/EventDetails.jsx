@@ -23,6 +23,15 @@ export default function EventDetails(){
         }
         getevent();
     },[])
+
+
+    function editEvent(){
+        
+    }
+
+
+
+
     return(
         <>
 
@@ -30,10 +39,35 @@ export default function EventDetails(){
         <p className="od-loading">Loading events...</p>
       ) : (
            
-           <div className="od-event-card od-ed-card-" >
-              
-
+          <div className="ed-container">
+            <div className="ed-header">
+                <h1>Event Details</h1>
+                <p>View your event details here</p>
             </div>
+
+                <div className="ed-card" >
+                    <div className="ed-event-top">
+                  <h1>{event.Title}</h1>
+                  <div >
+                    <span className={`od-status od-status-${event.status?.toLowerCase()}`}>
+                    {event.status}
+                  </span>
+                  <button onClick={editEvent}>Edit event</button>
+                  </div>
+                </div>
+                    <p className="od-event-description">{event.Description}</p>
+                <br />
+                <div className="od-event-tags">
+                  {event.category && (
+                    <span className="od-tag">{event.category}</span>
+                  )}
+                  {event.genre && (
+                    <span className="od-tag">{event.genre}</span>
+                  )}
+                </div>
+                   
+                </div>
+          </div>
       )
     }
         </>
