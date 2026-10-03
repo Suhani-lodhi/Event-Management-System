@@ -15,6 +15,12 @@ export default function Step2Session(props) {
     const [loadingVenue, setLoadingVenue] = useState(true);
     const [loadingSubVenues, setLoadingSubVenues] = useState(true);
 
+    useEffect(()=>{
+      if(props.id){
+        
+      }
+    })
+
 
  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
         .toISOString()

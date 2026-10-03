@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom";
+import {  useNavigate, useParams } from "react-router-dom";
 import { getEventDetails } from "../../api/event";
 import '../Organizer/styles/OrganizerDashboard.css'
+import Table from '../Organizer/models/Table'
 
 export default function EventDetails(){
     const {id}= useParams();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(()=>{
         async function getevent(){
@@ -25,11 +27,13 @@ export default function EventDetails(){
     },[])
 
 
-    function editEvent(){
-        
+    function editEvent(id){
+        console.log(id)
+        navigate(`../editEvent/${id}`);
+
     }
 
-
+    
 
 
     return(
@@ -52,7 +56,7 @@ export default function EventDetails(){
                     <span className={`od-status od-status-${event.status?.toLowerCase()}`}>
                     {event.status}
                   </span>
-                  <button onClick={editEvent}>Edit event</button>
+                  <button onClick={() => editEvent(event.id)}>Edit event</button>
                   </div>
                 </div>
                     <p className="od-event-description">{event.Description}</p>
@@ -67,6 +71,15 @@ export default function EventDetails(){
                 </div>
                    
                 </div>
+
+            <br/>
+
+            <h1 className="ed-session-heading">Sessions</h1>  
+            
+            <br/>
+
+            <Table sessions={event.sessions} />
+               
           </div>
       )
     }

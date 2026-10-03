@@ -40,6 +40,7 @@ export default function CreateEvents() {
 
       <div hidden={step !== 1}>
           <Step1EventForm setStep={setStep}
+           id = {id ? id : null}
            setEventId={setEventId}
           />
       </div>
@@ -48,6 +49,7 @@ export default function CreateEvents() {
       <div hidden={step !== 2}>
          <Step2Session setStep={setStep} 
           eventId={eventId}
+          id = {id ? id : null}
          />
       </div>
 

@@ -1,140 +1,187 @@
 import '../Organizer/styles/Step1EventForm.css'
 import ConfirmCreateDialog from './models/ConfirmCreateDialog'
-import { useRef, useState } from 'react';
-import { createEvent } from '../../api/event';
+import { useEffect, useRef, useState } from 'react';
+import { createEvent, getEventDetails, updateEvent } from '../../api/event';
 
-export default function Step1EventForm({setStep, setEventId}){
-
+export default function Step1EventForm({ setStep, setEventId, id }) {
   const formRef = useRef(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [loading, setLoading] = useState(Boolean(id)); // only show loading if editing
 
-  function handlePublishClick() {
- const form = formRef.current;
+  const [eventData, setEventData] = useState({
+    title: "",
+    description: "",
+    category: "",
+    genre: "",
+  });
 
-  if (!form.reportValidity()) {
-    return; 
+  useEffect(() => {
+    if (!id) return; // create mode — nothing to fetch
+
+    async function getDataForEdit() {
+      try {
+        const data = await getEventDetails(id);
+        setEventData({
+          title: data.event.Title,
+          description: data.event.Description,
+          category: data.event.category,
+          genre: data.event.genre,
+        });
+        setEventId(id);
+      } catch (err) {
+        console.log("could not load event for editing");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    getDataForEdit();
+  }, [id]);
+
+  function updateField(field, value) {
+    setEventData((prev) => ({ ...prev, [field]: value }));
   }
 
-    setConfirmOpen(true); 
+  function handlePublishClick() {
+    const form = formRef.current;
+    if (!form.reportValidity()) {
+      return;
+    }
+    setConfirmOpen(true);
   }
 
   function handleConfirmPublish() {
     setConfirmOpen(false);
-    submitEvent(); 
+    submitEvent();
   }
 
+  async function submitEvent() {
+    const payload = {
+      Title: eventData.title,
+      Description: eventData.description,
+      category: eventData.category,
+      genre: eventData.genre,
+    };
 
-    async function submitEvent(){
-      console.log("submit event called")
-      const formdata = new FormData(formRef.current);
-
-      const eventData = {
-        Title: formdata.get('title'),
-        Description: formdata.get('description'),
-        category: formdata.get('category'),
-        genre: formdata.get('genre')
+    try {
+      if (id) {
+        // edit mode — update the existing event
+        await updateEvent(id, payload);
+        alert("event updated successfully");
+        setEventId(id);
+        console.log("edit called")
+      } else {
+        // create mode — create a new event
+        const isAdded = await createEvent(payload);
+        setEventId(isAdded.res.data.event.id);
+        alert("event added successfully");
       }
-      console.log(eventData)
-      const isAdded =await createEvent(eventData);
-      console.log(isAdded)
-      console.log(isAdded.res.data.event.id)
-      setEventId(isAdded.res.data.event.id);
-      if(isAdded.status){
-        alert("event added successfully")
-      }
-        setStep((prev)=> prev+1)
+      setStep((prev) => prev + 1);
+    } catch (err) {
+      console.error("could not save event");
     }
-    return (
-        <>
-        <div className="ce-form-page">
-  <div className="ce-form-header">
-    <h1>Create an event</h1>
-    <p>A few quick details stand between you and a published event.</p>
-  </div>
+  }
 
-  <form ref={formRef}>
+  if (loading) return <p>Loading event details...</p>;
 
-<div className="ce-card">
-    <div className="ce-field-plain">
-      <label htmlFor="title">Event Title </label>
-      <input
-        id="title"
-        type="text"
-        name="title"
-        placeholder="Add Your event's name"
-        required
-      />
-    </div>
-</div>
-
-    <div className="ce-card">
-      <div className="ce-card-header">
-        <label htmlFor="description">
-          Event Description 
-        </label>
-      </div>
-      <textarea
-        id="description"
-        placeholder="Your event's description"
-        name="description"
-        rows={6}
-        required
-      ></textarea>
-    </div>
-
-
-    <div className="ce-card">
-      <div className="ce-card-header ce-card-header-stack">
-        <label>
-          Event type
-        </label>
-      </div>
-
-      <div className="ce-row">
-        <div className="ce-col">
-          <div className="ce-field-label-row">
-            <label htmlFor="category">
-              Category
-            </label>
-    
-          </div>
-          <select id="category" name="category" defaultValue="" required>
-            <option value="" disabled>Select Category</option>
-            <option value="STANDUP">Standup</option>
-            <option value="ACTIVITY">Activity</option>
-            <option value="GAME">Game</option>
-            <option value="MOVIE">Movie</option>
-          </select>
+  return (
+    <>
+      <div className="ce-form-page">
+        <div className="ce-form-header">
+          <h1>{id ? "Edit Event" : "Create an event"}</h1>
+          <p>A few quick details stand between you and a published event.</p>
         </div>
 
-        <div className="ce-col">
-          <div className="ce-field-label-row">
-            <label htmlFor="genre">Genre</label>
+        <form ref={formRef}>
+          <div className="ce-card">
+            <div className="ce-field-plain">
+              <label htmlFor="title">Event Title</label>
+              <input
+                id="title"
+                type="text"
+                name="title"
+                placeholder="Add Your event's name"
+                value={eventData.title}
+                onChange={(e) => updateField("title", e.target.value)}
+                required
+              />
+            </div>
           </div>
-          <select id="genre" name="genre" defaultValue="" required>
-            <option value="" disabled>Select Genre</option>
-            <option value="COMEDY">Comedy</option>
-            <option value="HORROR">Horror</option>
-            <option value="ACTION">Action</option>
-            <option value="FUN">Fun</option>
-          </select>
-        </div>
 
-      </div>
-    </div>
+          <div className="ce-card">
+            <div className="ce-card-header">
+              <label htmlFor="description">Event Description</label>
+            </div>
+            <textarea
+              id="description"
+              placeholder="Your event's description"
+              name="description"
+              rows={6}
+              value={eventData.description}
+              onChange={(e) => updateField("description", e.target.value)}
+              required
+            ></textarea>
+          </div>
 
-    <div>
-            <button type='button' onClick={handlePublishClick} >Create Event</button>
+          <div className="ce-card">
+            <div className="ce-card-header ce-card-header-stack">
+              <label>Event type</label>
+            </div>
+
+            <div className="ce-row">
+              <div className="ce-col">
+                <div className="ce-field-label-row">
+                  <label htmlFor="category">Category</label>
+                </div>
+                <select
+                  id="category"
+                  name="category"
+                  value={eventData.category}
+                  onChange={(e) => updateField("category", e.target.value)}
+                  required
+                >
+                  <option value="" disabled>Select Category</option>
+                  <option value="STANDUP">Standup</option>
+                  <option value="ACTIVITY">Activity</option>
+                  <option value="GAME">Game</option>
+                  <option value="MOVIE">Movie</option>
+                </select>
+              </div>
+
+              <div className="ce-col">
+                <div className="ce-field-label-row">
+                  <label htmlFor="genre">Genre</label>
+                </div>
+                <select
+                  id="genre"
+                  name="genre"
+                  value={eventData.genre}
+                  onChange={(e) => updateField("genre", e.target.value)}
+                  required
+                >
+                  <option value="" disabled>Select Genre</option>
+                  <option value="COMEDY">Comedy</option>
+                  <option value="HORROR">Horror</option>
+                  <option value="ACTION">Action</option>
+                  <option value="FUN">Fun</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button type="button" onClick={handlePublishClick}>
+              {id ? "Save Changes" : "Create Event"}
+            </button>
 
             <ConfirmCreateDialog
-        open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={handleConfirmPublish}
-      />
-            
-        </div>
-  </form>
-</div>
-        </>
-    )
+              open={confirmOpen}
+              onClose={() => setConfirmOpen(false)}
+              onConfirm={handleConfirmPublish}
+            />
+          </div>
+        </form>
+      </div>
+    </>
+  );
 }

@@ -94,12 +94,17 @@ const getEventById = async (req, res) => {
 const getEventByOrganizerId = async (req, res) => {
   try {
     //const { id } = req.body;
-    const { id } = req.user.id;
+    const { id } = req.user;
+    // console.log(">>>>>>>>>uhjghvghcvfg>>>>>>>>>>>",req.user.id, id)
 
+    const organizer = await prisma.organizer.findUnique({
+      where:{userid: Number(id)},
+    })
     const event = await prisma.event.findMany({
-      where: { organizerId: Number(id) },
+      where: { organizerId: Number(organizer.id) },
       include: { sessions: true, organizer: true },
     });
+    console.log(">>>>>>>event>>>>>", event)
 
     if (!event) {
       return res.status(StatusCodes.NOT_FOUND).json({

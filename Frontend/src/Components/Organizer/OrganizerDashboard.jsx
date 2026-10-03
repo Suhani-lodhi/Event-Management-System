@@ -15,13 +15,12 @@ export default function OrganizerDashboard() {
 
 
 
-    useEffect(() => {
-        async function fetchEvents() {
+
+    async function fetchEvents() {
             try {
                 const data = await getAllEvents();
-                console.log(data.events)
-                setEvents(data.events);
-                setFilteredEvents(data.events)
+                setEvents(data.event? data.event : []);
+                setFilteredEvents(data.event? data.event : [])
             }
             catch (err) {
                 console.log("error occurred in get all events")
@@ -29,6 +28,9 @@ export default function OrganizerDashboard() {
                 setLoading(false);
             }
         }
+
+
+    useEffect(() => {
 
         fetchEvents();
     }, [])
@@ -45,7 +47,9 @@ export default function OrganizerDashboard() {
 
    async function deleteEvent(id){
       const res = await deleteEventById(id);
-      if(res.status){
+      console.log(res)
+      if(res.success){
+        await fetchEvents()
         alert("event deleted")
       }
     }
@@ -94,7 +98,7 @@ export default function OrganizerDashboard() {
       ) : (
         <div className="od-event-list">
           {filteredEvents.map((event) => (
-            <div className="od-event-card" key={event.id} onClick={() => navigate('/dashboard/event/'+event.id)} >
+            <div className="od-event-card" key={event.id}  >
               <div className="od-event-main">
                 <div className="od-event-top">
                   <div>

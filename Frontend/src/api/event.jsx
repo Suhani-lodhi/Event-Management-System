@@ -14,12 +14,14 @@ const createEvent = async (eventData) => {
 
 const getAllEvents = async () => {
     try {
-        const res = await axiosInstance.get("organizer/getEvents");
+        const res = await axiosInstance.get("organizer/getEventsbyOrganizerId");
         return res.data;
     } catch (err) {
         throw new Error("could not fetch events");
     }
 };
+
+
 
 const getEventDetails = async (id) => {
     try {
@@ -33,10 +35,20 @@ const getEventDetails = async (id) => {
 
 const deleteEventById = async (id) =>{
     try {
-        const res = await axiosInstance.get(`organizer/deleteEvent/${id}`);
+        const res = await axiosInstance.delete(`organizer/deleteEvent/${id}`);
         return res.data;
     } catch (err) {
-        throw new Error("could not fetch events");
+        throw new Error("could not delete events");
+    }
+}
+
+const updateEvent = async (id, data) =>{
+    try{
+        const res = await axiosInstance.put('organizer/updateEvent/' + id, data);
+        return res.data;
+    }
+    catch (err) {
+        throw new Error("could not update events");
     }
 }
 
@@ -63,7 +75,6 @@ const createSession = async (id, session) => {
 };
 
 
-
 // venue
 
 const getVenues = async ()=>{
@@ -86,4 +97,4 @@ const getSubVenues = async (id) =>{
     }
 }
 
-export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, deleteEventById };
+export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, deleteEventById, updateEvent };
