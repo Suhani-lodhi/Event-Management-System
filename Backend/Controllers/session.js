@@ -9,7 +9,7 @@ const createSession = async (req, res) => {
     console.log("Req BODY....................>", req.body);
     const sessionsInput = [...req.body];
 
-    console.log("session input------", sessionsInput)
+    console.log("session input------", sessionsInput);
 
     if (sessionsInput.length === 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -79,7 +79,13 @@ const createSession = async (req, res) => {
         });
       }
 
-      validated.push({ subVenueId:subVenueIdNum, start, end, regStart, regEnd });
+      validated.push({
+        subVenueId: subVenueIdNum,
+        start,
+        end,
+        regStart,
+        regEnd,
+      });
     }
 
     const subVenueIds = [...new Set(validated.map((v) => v.subVenueId))];
@@ -179,9 +185,11 @@ const updateSessionById = async (req, res) => {
       regEndDateTime,
       registrationStatus,
     } = req.body;
+    // console.log(">>>>>>>>>>>>.", id, registrationStatus);
 
     const organizer = await prisma.organizer.findUnique({
       where: { userid: req.user.id },
+      // where: { userid: id },
     });
     const session = await prisma.session.findUnique({
       where: { id: Number(sessionId) },
