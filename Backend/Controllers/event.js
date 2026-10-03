@@ -11,7 +11,7 @@ const createEvent = async (req, res) => {
         success: false,
       });
     }
-
+    console.log(req.user.id);
     const organizer = await prisma.organizer.findUnique({
       where: { userid: req.user.id },
       // where: { userid: id },

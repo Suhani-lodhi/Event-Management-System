@@ -126,6 +126,7 @@ const login = async (req, res) => {
   res.status(StatusCodes.OK).json({
     token,
     email: user.email,
+    id:user.id,
     msg: "user loggedin successfully",
     success: true,
   });

@@ -13,7 +13,7 @@ router.post("/createEvent", createEvent);
 router.get("/getEvents", getEvents);
 router.get("/getEvent/:id", getEventById);
 router.get("/getEventsbyOrganizerId", getEventByOrganizerId);
-router.put("/updateEvent/:id", updateEventById);
+router.patch("/updateEvent/:id", updateEventById);
 router.delete("/deleteEvent/:id", deleteEventById);
 
 export default router;
