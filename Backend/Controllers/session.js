@@ -221,7 +221,6 @@ const updateSessionById = async (req, res) => {
       ? new Date(regEndDateTime)
       : session.regEndDateTime;
 
-    //  if (end <= start || regEnd <= regStart || regEnd > start)
     if (
       nextEnd <= nextStart ||
       nextRegEnd <= nextRegStart ||
@@ -259,11 +258,62 @@ const updateSessionById = async (req, res) => {
   }
 };
 
-const deleteSessionById = async (req, res) => {};
+const deleteSessionById = async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    // const { id } = req.body;
+
+    if (!Number.isInteger(sessionId) || sessionId <= 0) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "Invalid session id",
+        success: false,
+      });
+    }
+
+    const organizer = await prisma.organizer.findUnique({
+      where: { userid: req.user.id },
+    });
+
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      include: { event: true },
+    });
+
+    if (!session) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        msg: "session not found",
+        success: false,
+      });
+    }
+
+    if (!organizer || session.event.organizerId !== organizer.id) {
+      return res.status(StatusCodes.FORBIDDEN).json({
+        msg: "not authorized to delete this session",
+        success: false,
+      });
+    }
+
+    await prisma.session.delete({
+      where: { id: sessionId },
+    });
+
+    return res.status(StatusCodes.OK).json({
+      msg: "session deleted successfully",
+      success: true,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not delete session",
+      success: false,
+    });
+  }
+};
 
 export {
   createSession,
   getSessionsByEventId,
   getSessionById,
   updateSessionById,
+  deleteSessionById,
 };
