@@ -80,18 +80,11 @@ const updateVenue = async (req, res) => {
     });
   }
 };
-const deleteSession = async (req, res) => {
+const deleteVenue = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    if (!Number.isInteger(id) || id <= 0) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "Invalid session id",
-        success: false,
-      });
-    }
-
-    await prisma.session.delete({
+    await prisma.venue.delete({
       where: { id },
     });
 
@@ -100,20 +93,6 @@ const deleteSession = async (req, res) => {
       success: true,
     });
   } catch (err) {
-    // P2025 = record to delete not found
-    if (err.code === "P2025") {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        msg: "Session not found",
-        success: false,
-      });
-    }
-    // P2003 = foreign key constraint (other rows still reference this one)
-    if (err.code === "P2003") {
-      return res.status(StatusCodes.CONFLICT).json({
-        msg: "Cannot delete: other records depend on this session",
-        success: false,
-      });
-    }
     console.error(err);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: "could not delete session",
@@ -157,5 +136,34 @@ const getSubVenuesByVenueId = async (req, res) => {
     });
   }
 };
+const getSubVenuesBySubVenueId = async (req, res) => {
+  try {
+    const { subVenueId } = req.params;
+    const subVenues = await prisma.subVenue.findMany({
+      where: { id: Number(subVenueId) },
+      include: { venue: true },
+    });
+    if (!subVenues) {
+      res.status(StatusCodes.NOT_FOUND).json({
+        msg: "Subvenue not found",
+        success: false,
+      });
+    }
+    res.status(StatusCodes.OK).json({ subVenues, success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not fetch subvenues",
+      success: false,
+    });
+  }
+};
 
-export { getVenues, getSubVenuesByVenueId, createVenue, updateVenue };
+export {
+  getVenues,
+  createVenue,
+  updateVenue,
+  deleteVenue,
+  getSubVenuesByVenueId,
+  getSubVenuesBySubVenueId,
+};
