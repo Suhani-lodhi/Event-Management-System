@@ -9,13 +9,15 @@ import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Chip from '@mui/material/Chip';
 import { deleteSessionById } from '../../../api/event';
+import { faDisplay } from '@fortawesome/free-solid-svg-icons';
 
 const columns = [
   { id: 'index', label: '#', minWidth: 50 },
-  { id: 'startDateTime', label: 'Start', minWidth: 170, format: formatDateTime },
-  { id: 'endDateTime', label: 'End', minWidth: 170, format: formatDateTime },
-  { id: 'regStartdateTime', label: 'Reg. Opens', minWidth: 170, format: formatDateTime },
-  { id: 'regEndDateTime', label: 'Reg. Closes', minWidth: 170, format: formatDateTime },
+  { id: 'startDateTime', label: 'Start', minWidth: 150, format: formatDateTime },
+  { id: 'endDateTime', label: 'End', minWidth: 150, format: formatDateTime },
+  { id: 'regStartdateTime', label: 'Reg. Opens', minWidth: 150, format: formatDateTime },
+  { id: 'regEndDateTime', label: 'Reg. Closes', minWidth: 150, format: formatDateTime },
+  { id: 'venueId', label: 'Venue', minWidth: 120},
   { id: 'subVenueId', label: 'Sub-Venue', minWidth: 120 },
   { id: 'registrationStatus', label: 'Registration', minWidth: 130 },
   { id: 'actions', label: 'Actions' , minWidth: 120}
@@ -37,6 +39,8 @@ const statusColor = {
   CLOSED: 'error',
   UPCOMING: 'default',
 };
+
+
 
 export default function SessionsTable({ sessions = [] }) {
   const [Sessions, setSessions] = React.useState(sessions? sessions : [])
@@ -117,7 +121,10 @@ export default function SessionsTable({ sessions = [] }) {
                       if(column.id === 'actions'){
                         return (
                             <TableCell key={column.id}>
-                                <button onClick={() => deleteSession(session.id)}>delete</button>
+                                <div style={{display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                  <button onClick={() => deleteSession(session.id)}>delete</button>
+                                <button>Edit</button>
+                                </div>
                             </TableCell>
                         )
                       }
