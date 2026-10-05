@@ -4,19 +4,19 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContentText from '@mui/material/DialogContentText'
-export default function ConfirmCreateDialog({open, onClose, onConfirm, isEdit}){
+export default function DeleteDialog({open, onClose, onConfirm}){
     return (
         <>
           <Dialog open={open} onClose={onClose}>
-              <DialogTitle>Confirm {isEdit ? "Edit" : "Creation"}</DialogTitle>
+              <DialogTitle>Confirm Delete</DialogTitle>
               <DialogContent>
                  <DialogContentText>
-                    {isEdit ? "Are you sure you want to edit?" : "The event created will be drafted until you publish. You can publish the event by completing all the necessary information. Are you sure you want to create the event? "}
+                    Are you sure you want to delete ?
                   </DialogContentText>
               </DialogContent>
               <DialogActions>
                 <Button onClick={onClose}>Cancel</Button>
-                <Button onClick={onConfirm}>{isEdit ? "edit" : "create"}</Button>
+                <Button onClick={onConfirm}>Delete</Button>
               </DialogActions>
           </Dialog>
         </>

@@ -3,6 +3,7 @@ import '../Organizer/styles/Step1EventForm.css'
 import { useEffect, useState } from 'react';
 import { faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { getSubVenues, getVenues, createSession } from '../../api/event';
+import { toast } from 'react-toastify';
 
 export default function Step2Session(props) {
     
@@ -14,12 +15,7 @@ export default function Step2Session(props) {
     const [subVenues, setSubVenues] = useState([]);
     const [loadingVenue, setLoadingVenue] = useState(true);
     const [loadingSubVenues, setLoadingSubVenues] = useState(true);
-
-    useEffect(()=>{
-      if(props.id){
-        
-      }
-    })
+    
 
 
  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -82,8 +78,11 @@ async function submitSession(){
     console.log("session formdata")
     const res = await createSession(props.eventId, sessions)
     if(res.status){
-      alert("sessions created");
+      toast.success("sessions created successfully")
       props.setStep((prev) => prev+1);
+    }
+    else{
+      toast.error("Something went wrong")
     }
 }
    

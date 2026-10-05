@@ -12,7 +12,7 @@ export default function Sidebar(){
                 <NavLink to="ythuyj">Attendees and Registration</NavLink>
                 <NavLink to="ythjyhu">Analytics</NavLink>
                 <NavLink to="hythy">Settings</NavLink>
-
+                <NavLink to="gfvdfgh">My Profile</NavLink>
             </ul>
         </div>
         </>
