@@ -8,6 +8,7 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Chip from '@mui/material/Chip';
+import { deleteSessionById } from '../../../api/event';
 
 const columns = [
   { id: 'index', label: '#', minWidth: 50 },
@@ -38,6 +39,7 @@ const statusColor = {
 };
 
 export default function SessionsTable({ sessions = [] }) {
+  const [Sessions, setSessions] = React.useState(sessions? sessions : [])
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
@@ -49,6 +51,14 @@ export default function SessionsTable({ sessions = [] }) {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+
+  async function deleteSession(id){
+     const data = await deleteSessionById(id);
+     if(data){
+        alert("session deleted successfully");
+        setSessions((prev) => prev.filter((p)=> p.id !== id));
+     }
+  }
 
   return (
     <Paper sx={{ width: '100%', overflow: 'hidden', borderRadius: 4 }}>
@@ -64,14 +74,14 @@ export default function SessionsTable({ sessions = [] }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {sessions.length === 0 ? (
+            {Sessions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={columns.length} align="center">
                   No sessions added yet
                 </TableCell>
               </TableRow>
             ) : (
-              sessions
+              Sessions
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((session, i) => (
                   <TableRow hover key={session.id}>
@@ -107,7 +117,7 @@ export default function SessionsTable({ sessions = [] }) {
                       if(column.id === 'actions'){
                         return (
                             <TableCell key={column.id}>
-                                <button >delete</button>
+                                <button onClick={() => deleteSession(session.id)}>delete</button>
                             </TableCell>
                         )
                       }

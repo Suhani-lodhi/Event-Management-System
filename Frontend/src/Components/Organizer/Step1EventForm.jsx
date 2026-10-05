@@ -78,6 +78,7 @@ export default function Step1EventForm({ setStep, setEventId, id }) {
       }
       setStep((prev) => prev + 1);
     } catch (err) {
+      console.log(err)
       console.error("could not save event");
     }
   }

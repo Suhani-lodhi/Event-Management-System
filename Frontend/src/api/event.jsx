@@ -44,10 +44,11 @@ const deleteEventById = async (id) =>{
 
 const updateEvent = async (id, data) =>{
     try{
-        const res = await axiosInstance.put('organizer/updateEvent/' + id, data);
+        const res = await axiosInstance.patch('organizer/updateEvent/' + id, data);
         return res.data;
     }
     catch (err) {
+        console.log(err)
         throw new Error("could not update events");
     }
 }
@@ -75,6 +76,18 @@ const createSession = async (id, session) => {
 };
 
 
+const deleteSessionById = async (id) =>{
+    try{
+        const res = await axiosInstance.delete(`organizer/deleteSession/${id}`);
+        return res.data;
+    }
+    catch(err){
+        throw new Error("could not delete session")
+    }
+    
+}
+
+
 // venue
 
 const getVenues = async ()=>{
@@ -97,4 +110,4 @@ const getSubVenues = async (id) =>{
     }
 }
 
-export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, deleteEventById, updateEvent };
+export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, deleteEventById, updateEvent, deleteSessionById };
