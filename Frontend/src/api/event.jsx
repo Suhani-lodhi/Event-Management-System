@@ -75,6 +75,16 @@ const createSession = async (id, session) => {
     }
 };
 
+const updateSessionById = async (id, data) => {
+    try{
+        const res = await axiosInstance.patch(`organizer/updateSession/${id}`, data);
+        return res.data;
+    }
+    catch(err){
+        throw new Error("could not edit session")
+    }
+}
+
 
 const deleteSessionById = async (id) =>{
     try{
@@ -110,4 +120,4 @@ const getSubVenues = async (id) =>{
     }
 }
 
-export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, deleteEventById, updateEvent, deleteSessionById };
+export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, deleteEventById, updateEvent, deleteSessionById, updateSessionById };

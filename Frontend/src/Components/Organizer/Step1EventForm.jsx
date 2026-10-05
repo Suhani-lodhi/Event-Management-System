@@ -179,6 +179,7 @@ export default function Step1EventForm({ setStep, setEventId, id }) {
               open={confirmOpen}
               onClose={() => setConfirmOpen(false)}
               onConfirm={handleConfirmPublish}
+              isEdit = {id ? true : false}
             />
           </div>
         </form>

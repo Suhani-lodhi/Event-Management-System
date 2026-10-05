@@ -8,19 +8,24 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import Chip from '@mui/material/Chip';
-import { deleteSessionById } from '../../../api/event';
-import { faDisplay } from '@fortawesome/free-solid-svg-icons';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+
+import { deleteSessionById, updateSessionById } from '../../../api/event';
+
+
 
 const columns = [
   { id: 'index', label: '#', minWidth: 50 },
-  { id: 'startDateTime', label: 'Start', minWidth: 150, format: formatDateTime },
-  { id: 'endDateTime', label: 'End', minWidth: 150, format: formatDateTime },
-  { id: 'regStartdateTime', label: 'Reg. Opens', minWidth: 150, format: formatDateTime },
-  { id: 'regEndDateTime', label: 'Reg. Closes', minWidth: 150, format: formatDateTime },
-  { id: 'venueId', label: 'Venue', minWidth: 120},
+  { id: 'startDateTime', label: 'Start', minWidth: 200, format: formatDateTime, editType: 'datetime' },
+  { id: 'endDateTime', label: 'End', minWidth: 200, format: formatDateTime, editType: 'datetime' },
+  { id: 'regStartdateTime', label: 'Reg. Opens', minWidth: 200, format: formatDateTime, editType: 'datetime' },
+  { id: 'regEndDateTime', label: 'Reg. Closes', minWidth: 200, format: formatDateTime, editType: 'datetime' },
+  { id: 'venueId', label: 'Venue', minWidth: 120 },
   { id: 'subVenueId', label: 'Sub-Venue', minWidth: 120 },
-  { id: 'registrationStatus', label: 'Registration', minWidth: 130 },
-  { id: 'actions', label: 'Actions' , minWidth: 120}
+  { id: 'registrationStatus', label: 'Registration', minWidth: 140 },
+  { id: 'actions', label: 'Actions', minWidth: 170 },
 ];
 
 function formatDateTime(value) {
@@ -34,34 +39,131 @@ function formatDateTime(value) {
   });
 }
 
+// ISO string -> "YYYY-MM-DDTHH:mm" (local time), the format <input type="datetime-local"> needs
+const pad = (n) => String(n).padStart(2, '0');
+function toInputValue(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// "YYYY-MM-DDTHH:mm" -> ISO string for the API
+function toISO(value) {
+  return value ? new Date(value).toISOString() : null;
+}
+
 const statusColor = {
   OPEN: 'success',
   CLOSED: 'error',
   UPCOMING: 'default',
 };
 
-
-
 export default function SessionsTable({ sessions = [] }) {
-  const [Sessions, setSessions] = React.useState(sessions? sessions : [])
+  const [Sessions, setSessions] = React.useState(sessions);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [editingId, setEditingId] = React.useState(null);
+  const [draft, setDraft] = React.useState({});
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  const handleChangePage = (event, newPage) => setPage(newPage);
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
 
-  async function deleteSession(id){
-     const data = await deleteSessionById(id);
-     if(data){
-        alert("session deleted successfully");
-        setSessions((prev) => prev.filter((p)=> p.id !== id));
-     }
+  async function deleteSession(id) {
+    const data = await deleteSessionById(id);
+    if (data) {
+      alert('session deleted successfully');
+      setSessions((prev) => prev.filter((p) => p.id !== id));
+    }
+  }
+
+  function startEdit(session) {
+    setEditingId(session.id);
+    setDraft({
+      startDateTime: toInputValue(session.startDateTime),
+      endDateTime: toInputValue(session.endDateTime),
+      regStartdateTime: toInputValue(session.regStartdateTime),
+      regEndDateTime: toInputValue(session.regEndDateTime),
+    });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setDraft({});
+  }
+
+  const handleDraftChange = (field) => (e) =>
+    setDraft((prev) => ({ ...prev, [field]: e.target.value }));
+
+  async function saveEdit() {
+    if (
+      draft.startDateTime &&
+      draft.endDateTime &&
+      new Date(draft.endDateTime) <= new Date(draft.startDateTime)
+    ) {
+      alert('End time must be after start time');
+      return;
+    }
+
+    const payload = {
+      startDateTime: toISO(draft.startDateTime),
+      endDateTime: toISO(draft.endDateTime),
+      regStartdateTime: toISO(draft.regStartdateTime),
+      regEndDateTime: toISO(draft.regEndDateTime)
+    };
+
+    const updated = await updateSessionById(editingId, payload);
+    if (updated) {
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === editingId
+            ? { ...s, ...payload, ...(typeof updated === 'object' ? updated : {}) }
+            : s
+        )
+      );
+      alert("session updated")
+      cancelEdit();
+    }
+  }
+
+  function renderEditor(column) {
+    const common = {
+      size: 'small',
+      fullWidth: true,
+      value: draft[column.id] ?? '',
+      onChange: handleDraftChange(column.id),
+    };
+
+    if (column.editType === 'datetime') {
+      return <TextField {...common} type="datetime-local" />;
+    }
+    if (column.editType === 'status') {
+      return (
+        <TextField {...common} select>
+          {STATUSES.map((s) => (
+            <MenuItem key={s} value={s}>
+              {s}
+            </MenuItem>
+          ))}
+        </TextField>
+      );
+    }
+    return null;
+  }
+
+  function getRegistrationStatus(session) {
+    const { regStartdateTime, regEndDateTime, registrationStatus } = session;
+
+    // If dates are missing, fall back to whatever the backend sent
+    if (!regStartdateTime || !regEndDateTime) return registrationStatus;
+
+    const now = new Date();
+    if (now < new Date(regStartdateTime)) return 'UPCOMING';
+    if (now > new Date(regEndDateTime)) return 'CLOSED';
+    return 'OPEN';
   }
 
   return (
@@ -85,59 +187,105 @@ export default function SessionsTable({ sessions = [] }) {
                 </TableCell>
               </TableRow>
             ) : (
-              Sessions
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((session, i) => (
-                  <TableRow hover key={session.id}>
-                    {columns.map((column) => {
-                      if (column.id === 'index') {
-                        return (
-                          <TableCell key={column.id}>
-                            {page * rowsPerPage + i + 1}
-                          </TableCell>
-                        );
-                      }
+              Sessions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
+                (session, i) => {
+                  const isEditing = editingId === session.id;
 
-                      if (column.id === 'registrationStatus') {
-                        return (
-                          <TableCell key={column.id}>
-                            <Chip
-                              label={session.registrationStatus}
-                              size="small"
-                              color={statusColor[session.registrationStatus] || 'default'}
-                            />
-                          </TableCell>
-                        );
-                      }
-
-                      if (column.id === 'subVenueId') {
-                        return (
-                          <TableCell key={column.id}>
-                            {session.subVenueName || `#${session.subVenueId}`}
-                          </TableCell>
-                        );
-                      }
-
-                      if(column.id === 'actions'){
-                        return (
+                  return (
+                    <TableRow hover key={session.id}>
+                      {columns.map((column) => {
+                        if (column.id === 'index') {
+                          return (
                             <TableCell key={column.id}>
-                                <div style={{display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  <button onClick={() => deleteSession(session.id)}>delete</button>
-                                <button>Edit</button>
-                                </div>
+                              {page * rowsPerPage + i + 1}
                             </TableCell>
-                        )
-                      }
+                          );
+                        }
 
-                      const value = session[column.id];
-                      return (
-                        <TableCell key={column.id}>
-                          {column.format ? column.format(value) : value ?? '—'}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))
+                        // Edit mode: show an input for editable columns
+                        if (isEditing && column.editType) {
+                          return (
+                            <TableCell key={column.id}>{renderEditor(column)}</TableCell>
+                          );
+                        }
+
+                        if (column.id === 'registrationStatus') {
+                          const status = getRegistrationStatus(session);
+                          return (
+                            <TableCell key={column.id}>
+                              <Chip
+                                label={status}
+                                size="small"
+                                color={statusColor[status] || 'default'}
+                              />
+                            </TableCell>
+                          );
+                        }
+
+                        if (column.id === 'venueId') {
+                          return (
+                            <TableCell key={column.id}>
+                              {session.subVenue?.venue?.venueName || `#${session.venueId ?? '—'}`}
+                            </TableCell>
+                          );
+                        }
+
+                        if (column.id === 'subVenueId') {
+                          return (
+                            <TableCell key={column.id}>
+                              {session.subVenue?.subVenueName || `#${session.subVenueId}`}
+                            </TableCell>
+                          );
+                        }
+
+                        if (column.id === 'actions') {
+                          return (
+                            <TableCell key={column.id}>
+                              <Stack direction="row" spacing={1}>
+                                {isEditing ? (
+                                  <>
+                                    <Button size="small" variant="contained" onClick={saveEdit}>
+                                      Save
+                                    </Button>
+                                    <Button size="small" variant="outlined" onClick={cancelEdit}>
+                                      Cancel
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      size="small"
+                                      variant="outlined"
+                                      onClick={() => startEdit(session)}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      variant="outlined"
+                                      color="error"
+                                      onClick={() => deleteSession(session.id)}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </>
+                                )}
+                              </Stack>
+                            </TableCell>
+                          );
+                        }
+
+                        const value = session[column.id];
+                        return (
+                          <TableCell key={column.id}>
+                            {column.format ? column.format(value) : value ?? '—'}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                }
+              )
             )}
           </TableBody>
         </Table>
@@ -145,7 +293,7 @@ export default function SessionsTable({ sessions = [] }) {
       <TablePagination
         rowsPerPageOptions={[5, 10, 15]}
         component="div"
-        count={sessions.length}
+        count={Sessions.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
