@@ -158,6 +158,18 @@ const getSubVenuesBySubVenueId = async (req, res) => {
     });
   }
 };
+const createSubVenue = async (req, res) => {
+  const { venueId } = req.params;
+  const { subVenueName, categoryCount, capacity } = req.body;
+
+  if (!venueId || !subVenueName || !categoryCount || !capacity) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      msg: "Some values are missing",
+      success: false,
+    });
+  }
+  
+};
 
 export {
   getVenues,
