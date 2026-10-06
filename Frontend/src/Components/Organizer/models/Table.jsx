@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -11,13 +11,11 @@ import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import DeleteDialog from './DeleteDialog';
-
-import { deleteSessionById, updateSessionById } from '../../../api/event';
+import { deleteSessionById, updateSessionById, getVenues, getSubVenues } from '../../../api/event';
 import ConfirmCreateDialog from './ConfirmCreateDialog';
 import { toast } from 'react-toastify';
-
-
 
 const columns = [
   { id: 'index', label: '#', minWidth: 50 },
@@ -25,8 +23,8 @@ const columns = [
   { id: 'endDateTime', label: 'End', minWidth: 200, format: formatDateTime, editType: 'datetime' },
   { id: 'regStartdateTime', label: 'Reg. Opens', minWidth: 200, format: formatDateTime, editType: 'datetime' },
   { id: 'regEndDateTime', label: 'Reg. Closes', minWidth: 200, format: formatDateTime, editType: 'datetime' },
-  { id: 'venueId', label: 'Venue', minWidth: 120 },
-  { id: 'subVenueId', label: 'Sub-Venue', minWidth: 120 },
+  { id: 'venueId', label: 'Venue', minWidth: 160, editType: 'venueSelect' },
+  { id: 'subVenueId', label: 'Sub-Venue', minWidth: 160, editType: 'subVenueSelect' },
   { id: 'registrationStatus', label: 'Registration', minWidth: 140 },
   { id: 'actions', label: 'Actions', minWidth: 170 },
 ];
@@ -42,7 +40,6 @@ function formatDateTime(value) {
   });
 }
 
-// ISO string -> "YYYY-MM-DDTHH:mm" (local time), the format <input type="datetime-local"> needs
 const pad = (n) => String(n).padStart(2, '0');
 function toInputValue(value) {
   if (!value) return '';
@@ -50,7 +47,6 @@ function toInputValue(value) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// "YYYY-MM-DDTHH:mm" -> ISO string for the API
 function toISO(value) {
   return value ? new Date(value).toISOString() : null;
 }
@@ -67,10 +63,18 @@ export default function SessionsTable({ sessions = [] }) {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [editingId, setEditingId] = useState(null);
   const [draft, setDraft] = useState({});
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState(null);
   const [sessionToEdit, setSessionToEdit] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+
+  const [venues, setVenues] = useState([]);
+  const [loadingVenue, setLoadingVenue] = useState(true);
+
+
+  const [editSubVenues, setEditSubVenues] = useState([]);
+  const [loadingEditSubVenues, setLoadingEditSubVenues] = useState(false);
 
   const handleChangePage = (event, newPage) => setPage(newPage);
 
@@ -79,34 +83,83 @@ export default function SessionsTable({ sessions = [] }) {
     setPage(0);
   };
 
+  useEffect(() => {
+    async function fetchVenues() {
+      try {
+        const data = await getVenues();
+        setVenues(data.venues);
+      } catch (err) {
+        toast.error("Could not load venues");
+      } finally {
+        setLoadingVenue(false);
+      }
+    }
+    fetchVenues();
+  }, []);
+
+
+
+  async function fetchSubVenuesForVenue(venueId) {
+    if (!venueId) {
+      setEditSubVenues([]);
+      return;
+    }
+    setLoadingEditSubVenues(true);
+    try {
+      const data = await getSubVenues(venueId);
+      setEditSubVenues(data.subVenues);
+    } catch (err) {
+      toast.error("Could not load sub-venues");
+      setEditSubVenues([]);
+    } finally {
+      setLoadingEditSubVenues(false);
+    }
+  }
+
   async function deleteSession(id) {
     const data = await deleteSessionById(id);
     if (data) {
       toast.success("Session deleted successfully.");
       setSessions((prev) => prev.filter((p) => p.id !== id));
-    }
-    else{
-      toast.error("Something went wrong")
+    } else {
+      toast.error("Something went wrong");
     }
   }
 
-  function startEdit(session) {
+  async function startEdit(session) {
+    const currentVenueId = session.subVenue?.venue?.id ?? session.venueId ?? '';
+
     setEditingId(session.id);
     setDraft({
       startDateTime: toInputValue(session.startDateTime),
       endDateTime: toInputValue(session.endDateTime),
       regStartdateTime: toInputValue(session.regStartdateTime),
       regEndDateTime: toInputValue(session.regEndDateTime),
+      venueId: currentVenueId,
+      subVenueId: session.subVenueId ?? '',
     });
+
+  
+  
+    await fetchSubVenuesForVenue(currentVenueId);
   }
 
   function cancelEdit() {
     setEditingId(null);
     setDraft({});
+    setEditSubVenues([]);
   }
 
   const handleDraftChange = (field) => (e) =>
     setDraft((prev) => ({ ...prev, [field]: e.target.value }));
+
+
+
+  async function handleVenueDraftChange(e) {
+    const newVenueId = e.target.value;
+    setDraft((prev) => ({ ...prev, venueId: newVenueId, subVenueId: '' }));
+    await fetchSubVenuesForVenue(newVenueId);
+  }
 
   async function saveEdit() {
     if (
@@ -114,7 +167,12 @@ export default function SessionsTable({ sessions = [] }) {
       draft.endDateTime &&
       new Date(draft.endDateTime) <= new Date(draft.startDateTime)
     ) {
-      toast.info("End time must be after start time")
+      toast.info("End time must be after start time");
+      return;
+    }
+
+    if (!draft.subVenueId) {
+      toast.info("Please select a sub-venue");
       return;
     }
 
@@ -122,7 +180,8 @@ export default function SessionsTable({ sessions = [] }) {
       startDateTime: toISO(draft.startDateTime),
       endDateTime: toISO(draft.endDateTime),
       regStartdateTime: toISO(draft.regStartdateTime),
-      regEndDateTime: toISO(draft.regEndDateTime)
+      regEndDateTime: toISO(draft.regEndDateTime),
+      subVenueId: draft.subVenueId,
     };
 
     const updated = await updateSessionById(editingId, payload);
@@ -134,11 +193,10 @@ export default function SessionsTable({ sessions = [] }) {
             : s
         )
       );
-      toast.success("Session Updated Successfully.")
+      toast.success("Session Updated Successfully.");
       cancelEdit();
-    }
-    else{
-      toast.error("Something went wrong.")
+    } else {
+      toast.error("Something went wrong.");
     }
   }
 
@@ -147,30 +205,68 @@ export default function SessionsTable({ sessions = [] }) {
       size: 'small',
       fullWidth: true,
       value: draft[column.id] ?? '',
-      onChange: handleDraftChange(column.id),
     };
 
     if (column.editType === 'datetime') {
-      return <TextField {...common} type="datetime-local" />;
-    }
-    if (column.editType === 'status') {
       return (
-        <TextField {...common} select>
-          {STATUSES.map((s) => (
-            <MenuItem key={s} value={s}>
-              {s}
+        <TextField
+          {...common}
+          type="datetime-local"
+          onChange={handleDraftChange(column.id)}
+        />
+      );
+    }
+
+    if (column.editType === 'venueSelect') {
+      return (
+        <TextField
+          {...common}
+          select
+          onChange={handleVenueDraftChange}
+          disabled={loadingVenue}
+        >
+          <MenuItem value="" disabled>
+            {loadingVenue ? 'Loading venues...' : 'Select Venue'}
+          </MenuItem>
+          {venues.map((v) => (
+            <MenuItem key={v.id} value={v.id}>
+              {v.venueName}
             </MenuItem>
           ))}
         </TextField>
       );
     }
+
+    if (column.editType === 'subVenueSelect') {
+      const venueChosen = Boolean(draft.venueId);
+      return (
+        <TextField
+          {...common}
+          select
+          onChange={handleDraftChange(column.id)}
+          disabled={!venueChosen || loadingEditSubVenues}
+        >
+          <MenuItem value="" disabled>
+            {!venueChosen
+              ? 'Select a venue first'
+              : loadingEditSubVenues
+              ? 'Loading sub-venues...'
+              : 'Select Sub-Venue'}
+          </MenuItem>
+          {editSubVenues.map((sv) => (
+            <MenuItem key={sv.id} value={sv.id}>
+              {sv.subVenueName}
+            </MenuItem>
+          ))}
+        </TextField>
+      );
+    }
+
     return null;
   }
 
   function getRegistrationStatus(session) {
     const { regStartdateTime, regEndDateTime, registrationStatus } = session;
-
-    // If dates are missing, fall back to whatever the backend sent
     if (!regStartdateTime || !regEndDateTime) return registrationStatus;
 
     const now = new Date();
@@ -178,7 +274,6 @@ export default function SessionsTable({ sessions = [] }) {
     if (now > new Date(regEndDateTime)) return 'CLOSED';
     return 'OPEN';
   }
-
 
   function handleDeleteClick(id) {
     setSessionToDelete(id);
@@ -196,23 +291,21 @@ export default function SessionsTable({ sessions = [] }) {
     setSessionToDelete(null);
   }
 
-
   function handleEditClick(id) {
     setSessionToEdit(id);
     setEditDialogOpen(true);
   }
+
   function handleConfirmEdit() {
     setEditDialogOpen(false);
     saveEdit();
     setSessionToEdit(null);
   }
+
   function handleCloseEditDialog() {
     setEditDialogOpen(false);
     setSessionToEdit(null);
   }
-
-
-
 
   return (
     <>
@@ -251,7 +344,6 @@ export default function SessionsTable({ sessions = [] }) {
                             );
                           }
 
-                          // Edit mode: show an input for editable columns
                           if (isEditing && column.editType) {
                             return (
                               <TableCell key={column.id}>{renderEditor(column)}</TableCell>
@@ -360,9 +452,8 @@ export default function SessionsTable({ sessions = [] }) {
         open={editDialogOpen}
         onClose={handleCloseEditDialog}
         onConfirm={handleConfirmEdit}
-        isEdit= {true}
+        isEdit={true}
       />
-
     </>
   );
 }

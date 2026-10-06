@@ -24,7 +24,6 @@ export default function Navbar() {
   function handleLogout(){
     handleClose();
     logout();
-    navigate("/login");
   }
 
   return (

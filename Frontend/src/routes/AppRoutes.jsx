@@ -8,11 +8,29 @@ import Dashboard from '../pages/Organizer/Dashboard';
 import OrganizerDashboard from '../Components/Organizer/OrganizerDashboard';
 import CreateEvent from '../Components/Organizer/CreateEvent'
 import EventDetails from '../Components/Organizer/EventDetails';
+import OrganizerProfile from '../Components/Organizer/OrganizerProfile';
+import { toast } from 'react-toastify';
+import { useEffect } from 'react';
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
-function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+function ProtectedRoute({ children, allowedRoles }) {
+  const { isAuthenticated, user } = useAuth();
+  // return isAuthenticated ? children : <Navigate to="/login" replace />;
+
+
+
+  if(!isAuthenticated){
+    
+    return <Navigate to="/login" replace />
+  }
+
+  if(allowedRoles&& !allowedRoles.includes(user.role)){
+   
+    return <Navigate to="/login" replace/>
+  }
+  
+
+  return children;
 }
 
 // Keeps logged-in users out of login/signup pages
@@ -57,7 +75,7 @@ export default function AppRoutes() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["ORGANIZER"]}>
             <Dashboard />
           </ProtectedRoute>
         }
@@ -66,6 +84,7 @@ export default function AppRoutes() {
         <Route path="createEvent" element = {<CreateEvent />}/>
         <Route path="event/:id" element = {<EventDetails/>}/>
         <Route path="editEvent/:id" element = {<CreateEvent />} />
+        <Route path="me" element = {<OrganizerProfile />} />
       </Route>
 
       
