@@ -34,6 +34,12 @@ const participantSignup = async (req, res) => {
    
    res.status(StatusCodes.CREATED).json({
     token: token,
+    userData: {
+      email: user.email,
+    id:user.id,
+    name : user.firstName+" "+user.lastName,
+    role : user.role
+    },
     msg: "user signed up successfully",
     success: true,
   });
@@ -87,6 +93,12 @@ const organizerSignup = async (req, res) => {
    
    res.status(StatusCodes.CREATED).json({
     token: token,
+    userData: {
+       email: user.email,
+    id:user.id,
+    name : organizer.displayName,
+    role : user.role
+    },
     msg: "user signed up successfully",
     success: true,
   });
@@ -106,6 +118,7 @@ const login = async (req, res) => {
     where: { email: email },
   });
 
+  console.log(user);
   if (!user) {
     res.status(StatusCodes.BAD_REQUEST).json({
       msg: "user not found with this email",
@@ -125,8 +138,12 @@ const login = async (req, res) => {
 
   res.status(StatusCodes.OK).json({
     token,
-    email: user.email,
+    userData: {
+      email: user.email,
     id:user.id,
+    name : user.firstName+" "+user.lastName,
+    role: user.role
+    },
     msg: "user loggedin successfully",
     success: true,
   });

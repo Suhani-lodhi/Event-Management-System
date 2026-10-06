@@ -58,7 +58,7 @@ export default function OrganizerSignup() {
     try {
       const payload = { ...formData, pincode: parseInt(formData.pincode, 10) };
       const res = await signupOrganizer(payload);
-      login(res.data.token);
+      login(res.data.token, res.data.userData);
       sessionStorage.removeItem(STORAGE_KEY);
       navigate('/dashboard');
     } catch (err) {
