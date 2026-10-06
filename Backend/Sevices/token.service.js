@@ -10,9 +10,8 @@ const httpError = (statusCode, message) => {
   return err;
 };
 
-const hashToken = (token) => {
+const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
-};
 
 const {
   JWT_ACCESS_SECRET,

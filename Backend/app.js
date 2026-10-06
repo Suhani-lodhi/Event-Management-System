@@ -18,6 +18,22 @@ app.use(
   }),
 );
 app.use(express.json());
+
+// app.use((err, req, res, next) => {
+
+//   if (err.type === "entity.parse.failed") {
+//     console.log("Bad JSON body received:", err.body);
+//     console.log(
+//       "First chars:",
+//       [...err.body.slice(0, 8)].map((c) => c.charCodeAt(0)),
+//     );
+//   }
+//   console.error(err);
+//   return res.status(err.statusCode || 500).json({
+//     success: false,
+//     message: err.statusCode ? err.message : "Internal server error",
+//   });
+// });
 app.use("/auth", authRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), eventRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);
