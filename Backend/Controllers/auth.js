@@ -6,7 +6,7 @@ import prisma from "../index.js";
 
 const participantSignup = async (req, res) => {
   const userData = req.body;
-
+  console.log(userData);
   if (
     !userData ||
     !userData.firstName ||

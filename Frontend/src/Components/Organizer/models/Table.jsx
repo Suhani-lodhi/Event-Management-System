@@ -139,8 +139,8 @@ export default function SessionsTable({ sessions = [] }) {
       subVenueId: session.subVenueId ?? '',
     });
 
-  
-  
+
+
     await fetchSubVenuesForVenue(currentVenueId);
   }
 
@@ -185,16 +185,39 @@ export default function SessionsTable({ sessions = [] }) {
     };
 
     const updated = await updateSessionById(editingId, payload);
+    console.log(Sessions)
+  
     if (updated) {
       setSessions((prev) =>
         prev.map((s) =>
           s.id === editingId
             ? { ...s, ...payload, ...(typeof updated === 'object' ? updated : {}) }
             : s
+
         )
       );
+
+      // setSessions((prev) =>
+      //   prev.map((s) =>
+      //     s.id === editingId
+      //       ? {
+      //         ...s,
+      //         ...payload,
+      //         ...(typeof updated === 'object' ? updated : {}),
+      //         venueId: draft.venueId,
+      //         subVenue: {
+      //           ...selectedSubVenue,
+      //           venue: selectedVenue,
+      //         },
+      //       }
+      //       : s
+      //   )
+      // );
+
+
       toast.success("Session Updated Successfully.");
       cancelEdit();
+      window.location.reload();
     } else {
       toast.error("Something went wrong.");
     }
@@ -250,8 +273,8 @@ export default function SessionsTable({ sessions = [] }) {
             {!venueChosen
               ? 'Select a venue first'
               : loadingEditSubVenues
-              ? 'Loading sub-venues...'
-              : 'Select Sub-Venue'}
+                ? 'Loading sub-venues...'
+                : 'Select Sub-Venue'}
           </MenuItem>
           {editSubVenues.map((sv) => (
             <MenuItem key={sv.id} value={sv.id}>
