@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState } from 'react';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -11,8 +11,11 @@ import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import DeleteDialog from './DeleteDialog';
 
 import { deleteSessionById, updateSessionById } from '../../../api/event';
+import ConfirmCreateDialog from './ConfirmCreateDialog';
+import { toast } from 'react-toastify';
 
 
 
@@ -59,11 +62,15 @@ const statusColor = {
 };
 
 export default function SessionsTable({ sessions = [] }) {
-  const [Sessions, setSessions] = React.useState(sessions);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [editingId, setEditingId] = React.useState(null);
-  const [draft, setDraft] = React.useState({});
+  const [Sessions, setSessions] = useState(sessions);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [editingId, setEditingId] = useState(null);
+  const [draft, setDraft] = useState({});
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [sessionToDelete, setSessionToDelete] = useState(null);
+  const [sessionToEdit, setSessionToEdit] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const handleChangePage = (event, newPage) => setPage(newPage);
 
@@ -75,8 +82,11 @@ export default function SessionsTable({ sessions = [] }) {
   async function deleteSession(id) {
     const data = await deleteSessionById(id);
     if (data) {
-      alert('session deleted successfully');
+      toast.success("Session deleted successfully.");
       setSessions((prev) => prev.filter((p) => p.id !== id));
+    }
+    else{
+      toast.error("Something went wrong")
     }
   }
 
@@ -104,7 +114,7 @@ export default function SessionsTable({ sessions = [] }) {
       draft.endDateTime &&
       new Date(draft.endDateTime) <= new Date(draft.startDateTime)
     ) {
-      alert('End time must be after start time');
+      toast.info("End time must be after start time")
       return;
     }
 
@@ -124,8 +134,11 @@ export default function SessionsTable({ sessions = [] }) {
             : s
         )
       );
-      alert("session updated")
+      toast.success("Session Updated Successfully.")
       cancelEdit();
+    }
+    else{
+      toast.error("Something went wrong.")
     }
   }
 
@@ -166,139 +179,190 @@ export default function SessionsTable({ sessions = [] }) {
     return 'OPEN';
   }
 
+
+  function handleDeleteClick(id) {
+    setSessionToDelete(id);
+    setDialogOpen(true);
+  }
+
+  function handleConfirmDelete() {
+    setDialogOpen(false);
+    deleteSession(sessionToDelete);
+    setSessionToDelete(null);
+  }
+
+  function handleCloseDialog() {
+    setDialogOpen(false);
+    setSessionToDelete(null);
+  }
+
+
+  function handleEditClick(id) {
+    setSessionToEdit(id);
+    setEditDialogOpen(true);
+  }
+  function handleConfirmEdit() {
+    setEditDialogOpen(false);
+    saveEdit();
+    setSessionToEdit(null);
+  }
+  function handleCloseEditDialog() {
+    setEditDialogOpen(false);
+    setSessionToEdit(null);
+  }
+
+
+
+
   return (
-    <Paper sx={{ width: '100%', overflow: 'hidden', borderRadius: 4 }}>
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sessions table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell key={column.id} style={{ minWidth: column.minWidth }}>
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {Sessions.length === 0 ? (
+    <>
+      <Paper sx={{ width: '100%', overflow: 'hidden', borderRadius: 4 }}>
+        <TableContainer sx={{ maxHeight: 440 }}>
+          <Table stickyHeader aria-label="sessions table">
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={columns.length} align="center">
-                  No sessions added yet
-                </TableCell>
+                {columns.map((column) => (
+                  <TableCell key={column.id} style={{ minWidth: column.minWidth }}>
+                    {column.label}
+                  </TableCell>
+                ))}
               </TableRow>
-            ) : (
-              Sessions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
-                (session, i) => {
-                  const isEditing = editingId === session.id;
+            </TableHead>
+            <TableBody>
+              {Sessions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={columns.length} align="center">
+                    No sessions added yet
+                  </TableCell>
+                </TableRow>
+              ) : (
+                Sessions.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(
+                  (session, i) => {
+                    const isEditing = editingId === session.id;
 
-                  return (
-                    <TableRow hover key={session.id}>
-                      {columns.map((column) => {
-                        if (column.id === 'index') {
+                    return (
+                      <TableRow hover key={session.id}>
+                        {columns.map((column) => {
+                          if (column.id === 'index') {
+                            return (
+                              <TableCell key={column.id}>
+                                {page * rowsPerPage + i + 1}
+                              </TableCell>
+                            );
+                          }
+
+                          // Edit mode: show an input for editable columns
+                          if (isEditing && column.editType) {
+                            return (
+                              <TableCell key={column.id}>{renderEditor(column)}</TableCell>
+                            );
+                          }
+
+                          if (column.id === 'registrationStatus') {
+                            const status = getRegistrationStatus(session);
+                            return (
+                              <TableCell key={column.id}>
+                                <Chip
+                                  label={status}
+                                  size="small"
+                                  color={statusColor[status] || 'default'}
+                                />
+                              </TableCell>
+                            );
+                          }
+
+                          if (column.id === 'venueId') {
+                            return (
+                              <TableCell key={column.id}>
+                                {session.subVenue?.venue?.venueName || `#${session.venueId ?? '—'}`}
+                              </TableCell>
+                            );
+                          }
+
+                          if (column.id === 'subVenueId') {
+                            return (
+                              <TableCell key={column.id}>
+                                {session.subVenue?.subVenueName || `#${session.subVenueId}`}
+                              </TableCell>
+                            );
+                          }
+
+                          if (column.id === 'actions') {
+                            return (
+                              <TableCell key={column.id}>
+                                <Stack direction="row" spacing={1}>
+                                  {isEditing ? (
+                                    <>
+                                      <Button size="small" variant="contained" onClick={handleEditClick}>
+                                        Save
+                                      </Button>
+                                      <Button size="small" variant="outlined" onClick={cancelEdit}>
+                                        Cancel
+                                      </Button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Button
+                                        size="small"
+                                        variant="outlined"
+                                        onClick={() => startEdit(session)}
+                                      >
+                                        Edit
+                                      </Button>
+                                      <Button
+                                        size="small"
+                                        variant="outlined"
+                                        color="error"
+                                        onClick={() => handleDeleteClick(session.id)}
+                                      >
+                                        Delete
+                                      </Button>
+                                    </>
+                                  )}
+                                </Stack>
+                              </TableCell>
+                            );
+                          }
+
+                          const value = session[column.id];
                           return (
                             <TableCell key={column.id}>
-                              {page * rowsPerPage + i + 1}
+                              {column.format ? column.format(value) : value ?? '—'}
                             </TableCell>
                           );
-                        }
+                        })}
+                      </TableRow>
+                    );
+                  }
+                )
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 15]}
+          component="div"
+          count={Sessions.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
 
-                        // Edit mode: show an input for editable columns
-                        if (isEditing && column.editType) {
-                          return (
-                            <TableCell key={column.id}>{renderEditor(column)}</TableCell>
-                          );
-                        }
-
-                        if (column.id === 'registrationStatus') {
-                          const status = getRegistrationStatus(session);
-                          return (
-                            <TableCell key={column.id}>
-                              <Chip
-                                label={status}
-                                size="small"
-                                color={statusColor[status] || 'default'}
-                              />
-                            </TableCell>
-                          );
-                        }
-
-                        if (column.id === 'venueId') {
-                          return (
-                            <TableCell key={column.id}>
-                              {session.subVenue?.venue?.venueName || `#${session.venueId ?? '—'}`}
-                            </TableCell>
-                          );
-                        }
-
-                        if (column.id === 'subVenueId') {
-                          return (
-                            <TableCell key={column.id}>
-                              {session.subVenue?.subVenueName || `#${session.subVenueId}`}
-                            </TableCell>
-                          );
-                        }
-
-                        if (column.id === 'actions') {
-                          return (
-                            <TableCell key={column.id}>
-                              <Stack direction="row" spacing={1}>
-                                {isEditing ? (
-                                  <>
-                                    <Button size="small" variant="contained" onClick={saveEdit}>
-                                      Save
-                                    </Button>
-                                    <Button size="small" variant="outlined" onClick={cancelEdit}>
-                                      Cancel
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Button
-                                      size="small"
-                                      variant="outlined"
-                                      onClick={() => startEdit(session)}
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button
-                                      size="small"
-                                      variant="outlined"
-                                      color="error"
-                                      onClick={() => deleteSession(session.id)}
-                                    >
-                                      Delete
-                                    </Button>
-                                  </>
-                                )}
-                              </Stack>
-                            </TableCell>
-                          );
-                        }
-
-                        const value = session[column.id];
-                        return (
-                          <TableCell key={column.id}>
-                            {column.format ? column.format(value) : value ?? '—'}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                }
-              )
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 15]}
-        component="div"
-        count={Sessions.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
+      <DeleteDialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        onConfirm={handleConfirmDelete}
       />
-    </Paper>
+
+      <ConfirmCreateDialog
+        open={editDialogOpen}
+        onClose={handleCloseEditDialog}
+        onConfirm={handleConfirmEdit}
+        isEdit= {true}
+      />
+
+    </>
   );
 }

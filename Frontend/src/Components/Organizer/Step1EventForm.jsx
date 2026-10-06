@@ -2,6 +2,7 @@ import '../Organizer/styles/Step1EventForm.css'
 import ConfirmCreateDialog from './models/ConfirmCreateDialog'
 import { useEffect, useRef, useState } from 'react';
 import { createEvent, getEventDetails, updateEvent } from '../../api/event';
+import { toast } from 'react-toastify';
 
 export default function Step1EventForm({ setStep, setEventId, id }) {
   const formRef = useRef(null);
@@ -67,18 +68,19 @@ export default function Step1EventForm({ setStep, setEventId, id }) {
       if (id) {
         // edit mode — update the existing event
         await updateEvent(id, payload);
-        alert("event updated successfully");
+        toast.success("Event edited successfully")
         setEventId(id);
         console.log("edit called")
       } else {
         // create mode — create a new event
         const isAdded = await createEvent(payload);
         setEventId(isAdded.res.data.event.id);
-        alert("event added successfully");
+        toast.success("Event created Successfully")
       }
       setStep((prev) => prev + 1);
     } catch (err) {
       console.log(err)
+      toast.error("Could not save event")
       console.error("could not save event");
     }
   }

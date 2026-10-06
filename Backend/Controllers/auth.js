@@ -65,4 +65,3 @@ const refresh = async (req, res) => {
   }
 };
 export { participantSignup, organizerSignup, login, refresh };
-

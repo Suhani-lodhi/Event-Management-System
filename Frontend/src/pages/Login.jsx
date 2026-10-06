@@ -20,7 +20,8 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await loginUser(form);
-      login(res.data.token);
+      console.log(res)
+      login(res.data.token, res.data.userData);
       /// idhr apply krna hai role based navigation
       navigate('/dashboard'); 
     } catch (err) {
