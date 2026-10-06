@@ -44,17 +44,18 @@ enum RegistrationStatus {
 }
 
 model Users {
-  id          Int           @id @default(autoincrement())
-  firstName   String
-  lastName    String
-  phoneNumber String?
-  email       String        @unique
-  password    String
-  role        Role          @default(USER)
-  status      AccountStatus @default(ACTIVE)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @default(now()) @updatedAt
-  organizer   Organizer?
+  id           Int           @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  phoneNumber  String?
+  email        String        @unique
+  password     String
+  refreshToken String?
+  role         Role          @default(USER)
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  organizer    Organizer?
 }
 
 model Organizer {
