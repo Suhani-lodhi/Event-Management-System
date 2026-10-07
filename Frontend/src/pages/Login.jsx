@@ -20,8 +20,12 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await loginUser(form);
-      console.log(res)
-      login(res.data.token, res.data.userData);
+      //  console.log("Login component API response:", res);`
+      login({ 
+        accessToken: res.data.accessToken, 
+        refreshToken: res.data.refreshToken, 
+        user: res.data.user 
+      });
       /// idhr apply krna hai role based navigation
       navigate('/dashboard'); 
     } catch (err) {

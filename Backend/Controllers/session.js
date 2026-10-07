@@ -6,10 +6,10 @@ import prisma from "../index.js";
 const createSession = async (req, res) => {
   try {
     const { eventId } = req.params;
-    console.log("Req BODY....................>", req.body);
+    // console.log("Req BODY....................>", req.body);
     const sessionsInput = [...req.body];
 
-    console.log("session input------", sessionsInput);
+    // console.log("session input------", sessionsInput);
 
     if (sessionsInput.length === 0) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -34,7 +34,7 @@ const createSession = async (req, res) => {
     }
 
     if (!organizer || event.organizerId !== organizer.id) {
-      console.log("Organizer...........", organizer);
+      // console.log("Organizer...........", organizer);
       return res.status(StatusCodes.FORBIDDEN).json({
         msg: "not authorized to add sessions to this event",
         success: false,

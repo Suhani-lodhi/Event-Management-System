@@ -54,6 +54,7 @@ const login = async (req, res) => {
 };
 const refresh = async (req, res) => {
   try {
+    console.log("Refresh token Called..........");
     const result = await refreshService(req.body?.refreshToken);
     return res.status(StatusCodes.OK).json({
       success: true,

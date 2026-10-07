@@ -15,6 +15,7 @@ const createEvent = async (eventData) => {
 const getAllEvents = async () => {
     try {
         const res = await axiosInstance.get("organizer/getEventsbyOrganizerId");
+        
         return res.data;
     } catch (err) {
         throw new Error("could not fetch events");

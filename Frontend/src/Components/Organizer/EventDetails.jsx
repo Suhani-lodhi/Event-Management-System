@@ -14,7 +14,7 @@ export default function EventDetails(){
         async function getevent(){
            try {
                 const data = await getEventDetails(id);
-                console.log(data.event);
+                // console.log(data.event);
                 setEvent(data.event);
             }
             catch (err) {
@@ -28,7 +28,7 @@ export default function EventDetails(){
 
 
     function editEvent(id){
-        console.log(id)
+        // console.log(id)
         navigate(`../editEvent/${id}`);
 
     }

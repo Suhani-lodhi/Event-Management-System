@@ -56,7 +56,7 @@ export default function Step2Session(props) {
 useEffect(()=>{
   async function getVenue(){
        const data = await getVenues();
-       console.log(data.venues);
+      //  console.log(data.venues);
        setVenues(data.venues)
        setLoadingVenue(false)
   }
@@ -66,7 +66,7 @@ useEffect(()=>{
 async function getSubvenue(id,e){
     updateSession(id, "venueId", e.target.value);
     const data = await getSubVenues(e.target.value);
-    console.log(data.subVenues);
+    // console.log(data.subVenues);
     if(data){
       setSubVenues(data.subVenues)
       setLoadingSubVenues(false)
@@ -75,7 +75,7 @@ async function getSubvenue(id,e){
 
 
 async function submitSession(){
-    console.log("session formdata")
+    // console.log("session formdata")
     const res = await createSession(props.eventId, sessions)
     if(res.status){
       toast.success("sessions created successfully")

@@ -2,21 +2,22 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faCircleQuestion, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ FIXED 1: Added missing import
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 
-
-
 export default function Navbar() {
-  const { user , logout } = useAuth();
-  //const initials = user.name.split(" ").map((n) => n[0]).join("");
+  const { user, logout } = useAuth();
+  const navigate = useNavigate(); // ✅ FIXED 2: Initialized navigate hook
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+  
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -26,10 +27,18 @@ export default function Navbar() {
     logout();
   }
 
+  const getInitials = () => {
+    // console.log(user.firstName)
+    if (!user?.firstName) return "?";
+    return user.firstName
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
   return (
     <>
-
-
       <nav className="navbar">
         <h1>Occasia</h1>
         <form className="search" role="search">
@@ -59,10 +68,9 @@ export default function Navbar() {
           </li>
 
           <li className="user">
-
             <div className="user-info">
-              <div className="user-name">{user?.name}</div>
-              <div className="user-role">{user?.role}</div>
+              <div className="user-name">{user?.firstName || "Loading..."}</div>
+              <div className="user-role">{user?.role || ""}</div>
             </div>
 
             <div>
@@ -74,7 +82,8 @@ export default function Navbar() {
                 aria-expanded={open}
                 onClick={handleClick}
               >
-                {user?.name.split(" ").map((n) => n[0]).join("").toUpperCase()}
+                {/* ✅ FIXED 4: Using the safe initials handler */}
+                {getInitials()} 
               </div>
               <Menu
                 id="demo-positioned-menu"
@@ -108,7 +117,6 @@ export default function Navbar() {
                 >Logout</MenuItem>
               </Menu>
             </div>
-
           </li>
         </ul>
       </nav>

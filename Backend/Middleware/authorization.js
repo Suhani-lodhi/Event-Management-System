@@ -1,15 +1,18 @@
-const authorize = (...allowedRoles) =>{
-  return (req, res, next) =>{
-    if(!req.user){
-        return res.status(401).json({ msg: "Not authenticated" });
+const authorize = (...allowedRoles) => {
+  return (req, res, next) => {
+    // console.log("--------authorization middleware", req.user)
+    if (!req.user) {
+      return res.status(401).json({ msg: "Not authenticated" });
     }
 
-    if(!allowedRoles.includes(req.user.role)){
-      return res.status(403).json({ msg: "Access denied: insufficient permissions" });
+    if (!allowedRoles.includes(req.user.role)) {
+      return res
+        .status(403)
+        .json({ msg: "Access denied: insufficient permissions" });
     }
 
     next();
-  }
-}
+  };
+};
 
 export default authorize;
