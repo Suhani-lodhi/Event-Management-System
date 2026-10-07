@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ORGANIZER
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum EventCategory {
+  STANDUP
+  ACTIVITY
+  GAME
+  MOVIE
+}
+
+enum EventGenre {
+  COMEDY
+  HORROR
+  ACTION
+  FUN
+}
+
+enum EventStatus {
+  DRAFTED
+  COMING_SOON
+  ACTIVE
+  CLOSED
+}
+
+enum RegistrationStatus {
+  OPEN
+  CLOSED
+}
+
+model Users {
+  id           Int           @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  phoneNumber  String?
+  email        String        @unique
+  password     String
+  refreshToken String?
+  role         Role          @default(USER)
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @default(now()) @updatedAt
+  organizer    Organizer?
+}
+
+model Organizer {
+  id                   Int     @id @default(autoincrement())
+  userid               Int     @unique
+  displayName          String
+  companyName          String
+  alternatePhoneNumber String?
+  addressLine1         String
+  city                 String
+  state                String
+  country              String
+  pincode              Int
+  user                 Users   @relation(fields: [userid], references: [id])
+  events               Event[]
+}
+
+model Venue {
+  id Int @id @default(autoincrement())
+
+  venueName     String
+  addressLine1  String
+  city          String
+  state         String
+  country       String
+  pincode       Int
+  subVenueCount Int        @default(1)
+  subVenues     SubVenue[]
+}
+
+model SubVenue {
+  id             Int            @id @default(autoincrement())
+  venueId        Int
+  subVenueName   String?
+  categoryCount  Int
+  capacity       Int?
+  seatCategories SeatCategory[]
+  venue          Venue          @relation(fields: [venueId], references: [id])
+  sessions       Session[]
+}
+
+model SeatCategory {
+  id             Int          @id @default(autoincrement())
+  subVenueId     Int
+  categoryName   String
+  categoryDetail String?
+  seatCount      Int
+  rowCount       Int?
+  columnCount    Int?
+  subVenue       SubVenue     @relation(fields: [subVenueId], references: [id])
+  seatDetails    SeatDetail[]
+}
+
+model SeatDetail {
+  id             Int          @id @default(autoincrement())
+  seatCategoryId Int
+  columnName     String
+  columnNumber   Int
+  rowNumber      Int
+  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id])
+}
+
+model Event {
+  id               Int           @id @default(autoincrement())
+  organizerId      Int
+  category         EventCategory
+  genre            EventGenre
+  Title            String
+  Description      String?
+  currentSessionId Int?          @unique
+  status           EventStatus?  @default(DRAFTED)
+  organizer        Organizer     @relation(fields: [organizerId], references: [id])
+  sessions         Session[]
+  currentSession   Session?      @relation("CurrentSession", fields: [currentSessionId], references: [id])
+}
+
+model Session {
+  id                 Int                @id @default(autoincrement())
+  eventId            Int
+  subVenueId         Int
+  startDateTime      DateTime
+  endDateTime        DateTime
+  regStartdateTime   DateTime
+  regEndDateTime     DateTime
+  registrationStatus RegistrationStatus @default(CLOSED)
+  subVenue           SubVenue           @relation(fields: [subVenueId], references: [id])
+  currentFor         Event?             @relation("CurrentSession")
+  event              Event              @relation(fields: [eventId], references: [id])
+}
