@@ -176,12 +176,22 @@ export default function SessionsTable({ sessions = [] }) {
       return;
     }
 
+    const venueDetails = venues.filter((v)=> v.id===draft.venueId);
+      const subVenueDetails = editSubVenues.filter((sv)=> sv.id===draft.subVenueId);
+
+      console.log("venuesss----->", venueDetails);
+      console.log("sub venues--------->", subVenueDetails)
+
+      subVenueDetails[0].venue=venueDetails;
+      console.log(subVenueDetails);
+
     const payload = {
       startDateTime: toISO(draft.startDateTime),
       endDateTime: toISO(draft.endDateTime),
       regStartdateTime: toISO(draft.regStartdateTime),
       regEndDateTime: toISO(draft.regEndDateTime),
       subVenueId: draft.subVenueId,
+      subVenue: subVenueDetails
     };
 
     const updated = await updateSessionById(editingId, payload);
@@ -197,27 +207,9 @@ export default function SessionsTable({ sessions = [] }) {
         )
       );
 
-      // setSessions((prev) =>
-      //   prev.map((s) =>
-      //     s.id === editingId
-      //       ? {
-      //         ...s,
-      //         ...payload,
-      //         ...(typeof updated === 'object' ? updated : {}),
-      //         venueId: draft.venueId,
-      //         subVenue: {
-      //           ...selectedSubVenue,
-      //           venue: selectedVenue,
-      //         },
-      //       }
-      //       : s
-      //   )
-      // );
-
-
       toast.success("Session Updated Successfully.");
       cancelEdit();
-      window.location.reload();
+      //window.location.reload();
     } else {
       toast.error("Something went wrong.");
     }

@@ -120,7 +120,7 @@ const getSubVenuesByVenueId = async (req, res) => {
     const subVenues = await prisma.subVenue.findMany({
       where: { venueId: venueId },
     });
-    // console.log(subVenues);
+    console.log(subVenues);
     if (!subVenues) {
       res.status(StatusCodes.NOT_FOUND).json({
         msg: "Subvenue not found",

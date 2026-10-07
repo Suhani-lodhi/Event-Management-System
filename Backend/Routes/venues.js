@@ -12,7 +12,7 @@ const router = express.Router();
 router.get("/venues", getVenues);
 router.post("/createVenue", createVenue);
 router.patch("/updateVenue/:id", updateVenue);
-router.patch("/deleteVenue/:id", deleteVenue);
+router.delete("/deleteVenue/:id", deleteVenue);
 router.get("/subVenues/:id", getSubVenuesByVenueId);
 router.get("/subVenue/:subVenueId", getSubVenuesBySubVenueId);
 

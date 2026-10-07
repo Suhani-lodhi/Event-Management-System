@@ -112,7 +112,9 @@ const getVenues = async ()=>{
 
 const getSubVenues = async (id) =>{
     try{
+        console.log(id)
         const res = await axiosInstance.get(`organizer/subVenues/${id}`)
+        console.log(res.data)
         return res.data;
     }
     catch(err){
