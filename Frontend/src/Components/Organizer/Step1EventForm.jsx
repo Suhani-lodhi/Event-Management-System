@@ -4,10 +4,10 @@ import { useEffect, useRef, useState } from 'react';
 import { createEvent, getEventDetails, updateEvent } from '../../api/event';
 import { toast } from 'react-toastify';
 
-export default function Step1EventForm({ setStep, setEventId, id }) {
+export default function Step1EventForm({ setStep, setEventId, id, createEvent }) {
   const formRef = useRef(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [loading, setLoading] = useState(Boolean(id)); // only show loading if editing
+  const [loading, setLoading] = useState(Boolean(id)); 
 
   const [eventData, setEventData] = useState({
     title: "",
@@ -17,9 +17,8 @@ export default function Step1EventForm({ setStep, setEventId, id }) {
   });
 
   useEffect(() => {
-    if (!id) return; // create mode — nothing to fetch
-
-    async function getDataForEdit() {
+    if (id){
+        async function getDataForEdit() {
       try {
         const data = await getEventDetails(id);
         setEventData({
@@ -37,6 +36,18 @@ export default function Step1EventForm({ setStep, setEventId, id }) {
     }
 
     getDataForEdit();
+    }
+    else{
+      setEventData({
+      title: "",
+      description: "",
+      category: "",
+      genre: "",
+    });
+    setLoading(false);
+    }
+
+   
   }, [id]);
 
   function updateField(field, value) {

@@ -66,7 +66,6 @@ useEffect(()=>{
 async function getSubvenue(id,e){
     updateSession(id, "venueId", e.target.value);
     const data = await getSubVenues(e.target.value);
-    // console.log(data.subVenues);
     if(data){
       setSubVenues(data.subVenues)
       setLoadingSubVenues(false)
@@ -75,7 +74,6 @@ async function getSubvenue(id,e){
 
 
 async function submitSession(){
-    // console.log("session formdata")
     const res = await createSession(props.eventId, sessions)
     if(res.status){
       toast.success("sessions created successfully")
@@ -84,6 +82,10 @@ async function submitSession(){
     else{
       toast.error("Something went wrong")
     }
+}
+
+function addVenue(){
+  console.log("add venue called")
 }
    
 
@@ -229,6 +231,8 @@ async function submitSession(){
                     }
                   </>
                 }
+
+                <option onClick={addVenue} value="">Add your Venue</option>
               </select>
 
 
@@ -246,7 +250,8 @@ async function submitSession(){
                 <option value="" disabled>
                   Select Sub Venue
                 </option>
-                {loadingSubVenues || subVenues.length === 0 ? <option>loading sub venues</option>
+                {loadingSubVenues ? <option disabled>loading sub venues</option> :
+                 subVenues.length === 0 ? <option disabled>No subVenues available yet</option>
                 :
                   <>
                     {

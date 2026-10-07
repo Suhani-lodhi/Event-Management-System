@@ -25,6 +25,7 @@ const getAllEvents = async () => {
 
 
 const getEventDetails = async (id) => {
+    console.log("get event -----> ", id)
     try {
         const res = await axiosInstance.get(`organizer/getEvent/${id}`);
         return res.data;

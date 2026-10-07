@@ -81,9 +81,10 @@ export default function AppRoutes() {
         }
       >
         <Route index element={<OrganizerDashboard />}/>
-        <Route path="createEvent" element = {<CreateEvent />}/>
+        <Route path="createEvent" element = {<CreateEvent CreateEvent={true} />}/>
         <Route path="event/:id" element = {<EventDetails/>}/>
         <Route path="editEvent/:id" element = {<CreateEvent />} />
+        <Route path="addSessions/:id"  element = {<CreateEvent addSession={true}/>} />
         <Route path="me" element = {<OrganizerProfile />} />
       </Route>
 

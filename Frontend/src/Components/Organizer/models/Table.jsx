@@ -182,21 +182,23 @@ export default function SessionsTable({ sessions = [] }) {
       console.log("venuesss----->", venueDetails);
       console.log("sub venues--------->", subVenueDetails)
 
-      subVenueDetails[0].venue=venueDetails;
+      subVenueDetails[0].venue=venueDetails[0];
       console.log(subVenueDetails);
 
-    const payload = {
+    let payload = {
       startDateTime: toISO(draft.startDateTime),
       endDateTime: toISO(draft.endDateTime),
       regStartdateTime: toISO(draft.regStartdateTime),
       regEndDateTime: toISO(draft.regEndDateTime),
       subVenueId: draft.subVenueId,
-      subVenue: subVenueDetails
     };
+
 
     const updated = await updateSessionById(editingId, payload);
     console.log(Sessions)
-  
+
+    payload = {... payload, subVenue: subVenueDetails[0]}
+    console.log("payload---->", payload)    
     if (updated) {
       setSessions((prev) =>
         prev.map((s) =>

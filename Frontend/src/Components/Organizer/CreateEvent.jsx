@@ -4,11 +4,11 @@ import '../Organizer/styles/CreateEvents.css'
 import Step2Session from "./Step2Sessions";
 import { useParams } from "react-router-dom";
 
-export default function CreateEvents() {
+export default function CreateEvents({addSession, createEvent}) {
 
-    const {id} = useParams();
+    const {id} = createEvent ? null :useParams();
     const isEditMode = Boolean(id);
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(addSession? 2 : 1);
     const [eventId, setEventId] = useState(null)
     
 
@@ -41,6 +41,7 @@ export default function CreateEvents() {
       <div hidden={step !== 1}>
           <Step1EventForm setStep={setStep}
            id = {id ? id : null}
+           createEvent={createEvent}
            setEventId={setEventId}
           />
       </div>

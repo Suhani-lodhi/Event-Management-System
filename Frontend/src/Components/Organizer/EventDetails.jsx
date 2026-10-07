@@ -74,7 +74,10 @@ export default function EventDetails(){
 
             <br/>
 
-            <h1 className="ed-session-heading">Sessions</h1>  
+            <div className="ed-sessions">
+                <h1 className="ed-session-heading">Sessions</h1>  
+            <button onClick={() => navigate("/dashboard/addSessions/"+id)} >Add Session</button>
+            </div>
             
             <br/>
 
