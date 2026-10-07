@@ -118,7 +118,7 @@ const getSubVenuesByVenueId = async (req, res) => {
     const { venueId } = req.params;
     console.log("venue.......................>>>>>>", venueId);
     const subVenues = await prisma.subVenue.findMany({
-      where: { venueId: venueId },
+      where: { venueId: Number(venueId) },
     });
     console.log(subVenues);
     if (!subVenues) {
@@ -168,7 +168,6 @@ const createSubVenue = async (req, res) => {
       success: false,
     });
   }
-  
 };
 
 export {

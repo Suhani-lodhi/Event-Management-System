@@ -12,6 +12,7 @@ const authenticate = (req, res, next) => {
     decoded = verifyAccessToken(authHeader.split(" ")[1]);
     console.log(decoded);
   } catch (err) {
+    console.log(">>>>>>>>> Token Expired");
     if (err.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,
