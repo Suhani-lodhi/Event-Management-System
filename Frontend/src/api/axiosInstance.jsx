@@ -21,15 +21,18 @@ axiosInstance.interceptors.request.use((config) => {
   return config;
 });
 
+let refreshPromise = null 
 const refreshTokens = () => {
   if (!refreshPromise) {
-    // plain axios (not axiosInstance) so this call skips these interceptors
+    console.log("Access Token Expire")
+
     refreshPromise = axios
       .post(`${import.meta.env.VITE_API_URL}/auth/refresh`, { refreshToken: getRefreshToken() })
-      .then((res) => saveTokens(res.data)) // backend rotates BOTH tokens
+      .then((res) => saveTokens(res.data)) 
       .finally(() => {
         refreshPromise = null;
       });
+    console.log("Tokens imported and new tokens saved")
   }
   return refreshPromise;
 };
@@ -38,16 +41,19 @@ axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
- 
+    console.log(original)
     if (
       error.response?.status === 401 &&
       error.response?.data?.code === "TOKEN_EXPIRED" &&
       !original._retry
+
     ) {
+      console.log("Inside if ..")
       original._retry = true;
  
       try {
         await refreshTokens();
+        console.log("refresh Tokens")
       } catch {
         clearSession();
         window.dispatchEvent(new Event("auth:logout")); 
