@@ -27,7 +27,9 @@ export default function ParticipantSignup() {
     setLoading(true);
     try {
       const res = await signupParticipant(form);
-      login(res.data.token, res.data.userData);
+      // login(res.data.token, res.data.userData);
+      login(res.data.accessToken,res.data.refreshToken, res.data.user);
+
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.msg || 'Signup failed. Please try again.');

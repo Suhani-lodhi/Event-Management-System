@@ -40,7 +40,7 @@ export default function OrganizerDashboard() {
   }, [])
 
   function getfilteredEvents(e) {
-    console.log("onchange called", e.target.value)
+    // console.log("onchange called", e.target.value)
 
     if (e.target.value == "all") {
       setFilteredEvents(events)
@@ -51,7 +51,7 @@ export default function OrganizerDashboard() {
 
   async function deleteEvent(id) {
     const res = await deleteEventById(id);
-    console.log(res)
+    // console.log(res)
     if (res.success) {
       await fetchEvents()
       toast.success("Event deleted successfully");

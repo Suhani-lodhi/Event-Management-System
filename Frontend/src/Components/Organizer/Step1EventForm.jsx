@@ -70,7 +70,7 @@ export default function Step1EventForm({ setStep, setEventId, id }) {
         await updateEvent(id, payload);
         toast.success("Event edited successfully")
         setEventId(id);
-        console.log("edit called")
+        // console.log("edit called")
       } else {
         // create mode — create a new event
         const isAdded = await createEvent(payload);

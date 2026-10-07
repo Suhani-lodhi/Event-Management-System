@@ -1,34 +1,42 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState,useCallback } from "react";
+import {
+  getAccessToken,
+  getUser,
+  saveTokens,
+  saveUser,
+  clearSession,
+} from "../api/tokenStorage";
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({children}){
-    const [token,setToken] = useState(localStorage.getItem('token'))
-    const [user, setUser] = useState(()=>{
-        const stored = localStorage.getItem('user');
-        return stored ? JSON.parse(stored) : null;
-    })
-
-    const login = (newToken, userData) => {
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setToken(newToken);
+    const [user, setUser] = useState(()=> getUser())
+    const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken());
+    // console.log(isAuthenticated)
+    
+  const login = ({ accessToken, refreshToken, user: userData }) => {
+    saveTokens({ accessToken, refreshToken });
+    saveUser(userData);
     setUser(userData);
+    setIsAuthenticated(true);
   };
 
-    const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
+  const logout = useCallback(() => {
+    clearSession();
     setUser(null);
-  };
+    setIsAuthenticated(false);
+  }, []);
 
+ useEffect(() => {
+    window.addEventListener("auth:logout", logout);
+    return () => window.removeEventListener("auth:logout", logout);
+  }, [logout]);
       
-    return (
-    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated: !!token }}>
+  return (
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
-    )
+  );
 }
 
 export const useAuth = () => useContext(AuthContext);
