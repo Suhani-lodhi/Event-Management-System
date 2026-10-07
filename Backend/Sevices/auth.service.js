@@ -1,16 +1,23 @@
 import { StatusCodes } from "http-status-codes";
-import { generateToken, hashToken, httpError } from "./token.service";
+import {
+  generateToken,
+  hashToken,
+  httpError,
+  verifyRefreshToken,
+} from "./token.service.js";
 import prisma from "../index.js";
 import bcrypt from "bcrypt";
 
-const issueSession = async (user) => {
-  const { accessToken, refreshToken } = generateToken;
+const sanitizeUser = ({ password, refreshToken, ...safe }) => safe;
 
-  const user = await prisma.users.update({
+const issueSession = async (user) => {
+  const { accessToken, refreshToken } = generateToken(user);
+
+  const myUser = await prisma.users.update({
     where: { id: user.id },
     data: { refreshToken: hashToken(refreshToken) },
   });
-  return { accessToken, refreshToken };
+  return { user: sanitizeUser(user), accessToken, refreshToken };
 };
 
 const hashPassword = (password) => bcrypt.hash(password, 10);
@@ -140,119 +147,13 @@ const loginService = async (data) => {
 
   return issueSession(user);
 };
-export { participantSignupService, organizerSignupService, loginService };
-
-// const participantSignup = async (data) => {
-//   if (!data?.firstName || !data?.lastName || !data?.email || !data?.password) {
-//     throw httpError(StatusCodes.BAD_REQUEST, "Required info not found");
-//   }
-
-//   const salt = await bcrypt.genSalt(10);
-//   const hashedPassword = await bcrypt.hash(data.password, salt);
-//   let user;
-//   try {
-//     user = await prisma.Users.create({
-//       data: {
-//         firstName: data.firstName,
-//         lastName: data.lastName,
-//         email: data.email.trim().toLowerCase(),
-//         password: hashedPassword,
-//         phoneNumber: data.phoneNumber ? data.phoneNumber : null,
-//       },
-//     });
-//   } catch (err) {
-//     throw err;
-//   }
-//   return issueSession(user);
-// };
-// export { participantSignup };
-// const organizerSignup = async (data) => {
-//   try {
-//     const userData = {
-//       firstName: data.firstName,
-//       lastName: data.lastName,
-//       email: data.email,
-//       password: data.password,
-//       phoneNumber: data.phoneNumber ? data.phoneNumber : null,
-//       role: "ORGANIZER",
-//     };
-
-//     const salt = await bcrypt.genSalt(10);
-//     userData.password = await bcrypt.hash(userData.password, salt);
-
-//     const user = await prisma.Users.create({ data: userData });
-//     if (!user) {
-//       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-//         msg: "user not created",
-//         success: false,
-//       });
-//     }
-
-//     const organizerData = {
-//       userid: user.id,
-//       displayName: data.displayName,
-//       companyName: data.companyName,
-//       alternatePhoneNumber: data.alternatePhoneNumber
-//         ? data.alternatePhoneNumber
-//         : null,
-//       addressLine1: data.addressLine1,
-//       city: data.city,
-//       state: data.state,
-//       country: data.country,
-//       pincode: data.pincode,
-//     };
-
-//     const organizer = await prisma.Organizer.create({
-//       data: organizerData,
-//     });
-//   } catch (err) {
-//     return err;
-//   }
-//   return issueSession(user);
-// };
-
-// const login = async (req, res) => {
-//   const { email, password } = req.body;
-
-//   if (!email || !password) {
-//     return res.status(400).json({
-//       message: "required info not found",
-//       success: false,
-//     });
-//   }
-
-//   const user = await prisma.Users.findUnique({
-//     where: { email: email },
-//   });
-
-//   if (!user) {
-//     return res.status(StatusCodes.BAD_REQUEST).json({
-//       msg: "user not found with this email",
-//       success: false,
-//     });
-//   }
-
-//   const passwordMatch = await bcrypt.compare(password, user.password);
-//   if (!passwordMatch) {
-//     res.status(StatusCodes.BAD_REQUEST).json({
-//       msg: "Wrong password",
-//       success: false,
-//     });
-//   }
-
-//   const token = await jwt.sign(
-//     { id: user.id, email: user.email, role: user.role },
-//     process.env.JWT_SECRET,
-//     { expiresIn: process.env.JWT_LIFETIME },
-//   );
-
-//   res.status(StatusCodes.OK).json({
-//     token,
-//     email: user.email,
-//     id: user.id,
-//     msg: "user logged in successfully",
-//     success: true,
-//   });
-// };
-
-// export { participantSignup, organizerSignup, login };
+const refreshService = async (refreshToken) => {
+  const user = await verifyRefreshToken(refreshToken);
+  return issueSession(user);
+};
+export {
+  participantSignupService,
+  organizerSignupService,
+  loginService,
+  refreshService,
+};

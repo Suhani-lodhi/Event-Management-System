@@ -1,25 +1,30 @@
-import 'dotenv/config.js'
-import jwt from 'jsonwebtoken'
+import { verifyAccessToken } from "../Sevices/token.service.js"
 
-const authenticate = async (req, res, next) =>{
-    const authHeader = req.headers.authorization;
+const authenticate = (req, res, next) => {
+  const authHeader = req.headers.authorization;
 
-    if(!authHeader || !authHeader.startsWith('Bearer ')){
-        res.status(401).json({msg: "Token not sent"})
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ success: false, message: "Token not sent" });
+  }
+
+  let decoded;
+  try {
+    decoded = verifyAccessToken(authHeader.split(" ")[1]);
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Token expired",
+          code: "TOKEN_EXPIRED",
+        });
     }
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
 
-    const token= authHeader.split(' ')[1];
-
-    try{
-       const decoded= jwt.verify(token, process.env.JWT_SECRET);
-       console.log("decoded ----> " ,decoded);
-       req.user = decoded;
-       next();
-    }
-    catch{
-       return res.status(401).json({ msg: "Invalid or expired token" });
-    }
-
-}
+  req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
+  next();
+};
 
 export default authenticate;
