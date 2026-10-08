@@ -1,6 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
-const createEvent = async (eventData) => {
+const CreateEvent = async (eventData) => {
     try {
         const res = await axiosInstance.post("organizer/createEvent", eventData);
         return { res, status: true };
@@ -125,4 +125,19 @@ const getSubVenues = async (id) =>{
     }
 }
 
-export { createEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, deleteEventById, updateEvent, deleteSessionById, updateSessionById };
+const createVenue = async (data)=>{
+    try{
+       const res = await axiosInstance.post(`organizer/createVenue`, data);
+       console.log(res.data);
+       return res.data
+    }
+    catch{
+       throw new Error("could not create venue")
+    }
+}
+
+export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
+    deleteEventById, updateEvent, deleteSessionById, updateSessionById,
+    createVenue 
+
+};

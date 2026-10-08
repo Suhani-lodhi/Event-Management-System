@@ -1,7 +1,7 @@
 import '../Organizer/styles/Step1EventForm.css'
 import ConfirmCreateDialog from './models/ConfirmCreateDialog'
 import { useEffect, useRef, useState } from 'react';
-import { createEvent, getEventDetails, updateEvent } from '../../api/event';
+import { CreateEvent, getEventDetails, updateEvent } from '../../api/event';
 import { toast } from 'react-toastify';
 
 export default function Step1EventForm({ setStep, setEventId, id, createEvent }) {
@@ -82,7 +82,7 @@ export default function Step1EventForm({ setStep, setEventId, id, createEvent })
         toast.success("Event edited successfully")
         setEventId(id);
       } else {
-        const isAdded = await createEvent(payload);
+        const isAdded = await CreateEvent(payload);
         setEventId(isAdded.res.data.event.id);
         toast.success("Event created Successfully")
       }

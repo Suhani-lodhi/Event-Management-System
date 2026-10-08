@@ -3,7 +3,7 @@ import prisma from "../index.js";
 
 const createVenue = async (req, res) => {
   try {
-    const { venueName, addressLine1, city, state, country, pincode } = req.body;
+    const { venueName, addressLine1, city, state, country, pincode, subVenues } = req.body;
 
     if (
       !venueName ||
@@ -19,6 +19,19 @@ const createVenue = async (req, res) => {
       });
     }
 
+    if (!Array.isArray(subVenues) || subVenues.length === 0) {
+  return res.status(StatusCodes.BAD_REQUEST).json({
+    msg: "At least one sub-venue is required",
+    success: false,
+  });
+}
+
+const subVenueData = subVenues.map((sv) => ({
+  subVenueName: sv.subVenueName || null,
+  categoryCount: Number(sv.categoryCount),
+  capacity: sv.capacity == null || sv.capacity === "" ? null : Number(sv.capacity),
+}));
+
     const venue = await prisma.venue.create({
       data: {
         venueName: venueName,
@@ -27,7 +40,12 @@ const createVenue = async (req, res) => {
         state,
         country,
         pincode: Number(pincode),
+        subVenueCount: subVenues.length,
+    subVenues: {
+      create: subVenueData,
+    },
       },
+      include: { subVenues: true },
     });
 
     return res.status(StatusCodes.CREATED).json({
@@ -160,14 +178,49 @@ const getSubVenuesBySubVenueId = async (req, res) => {
 };
 const createSubVenue = async (req, res) => {
   const { venueId } = req.params;
-  const { subVenueName, categoryCount, capacity } = req.body;
+  const subVenues = [...req.body];
+  
+   if (subVenues.length === 0) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "at least one subvenue is required",
+        success: false,
+      });
+    }
+     
+  const subVenueData = subVenues.map((sv)=>{
+    return {
+      ...sv,
+      venueId : venueId
+    }
+  })
+   
 
-  if (!venueId || !subVenueName || !categoryCount || !capacity) {
+  console.log(subVenueData);
+
+  for(let i=0; i<subVenueData.length; i++){
+
+    if (!subVenueData.venueId || !subVenueData.subVenueName || !subVenueData.categoryCount || !subVenueData.capacity) {
     res.status(StatusCodes.BAD_REQUEST).json({
       msg: "Some values are missing",
       success: false,
     });
   }
+
+  }
+
+  try{
+    const result = await prisma.SubVenue.createMany({subVenueData, skipDuplicates: true,})
+    res.status(StatusCodes.OK).json({ result, success: true });
+    
+  }
+ catch(err){
+    console.error(err);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not add subvenues",
+      success: false,
+    });
+ }
+  
 };
 
 export {
