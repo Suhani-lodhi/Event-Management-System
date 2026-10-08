@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Step1EventForm from "./Step1EventForm";
 import '../Organizer/styles/CreateEvents.css'
 import Step2Session from "./Step2Sessions";
@@ -6,14 +6,17 @@ import { useParams } from "react-router-dom";
 
 export default function CreateEvents({addSession, createEvent}) {
 
-    const {id} = createEvent ? null :useParams();
+    const {id} = useParams();
     const isEditMode = Boolean(id);
-    const [step, setStep] = useState(addSession? 2 : 1);
+    const [step, setStep] = useState(addSession && !createEvent ? 2 : 1);
     const [eventId, setEventId] = useState(null)
     
 
-  
-
+    useEffect(()=>{
+      if(createEvent){
+        console.log("create event called");
+      }
+    }, [createEvent])
    
 
 
@@ -50,7 +53,8 @@ export default function CreateEvents({addSession, createEvent}) {
       <div hidden={step !== 2}>
          <Step2Session setStep={setStep} 
           eventId={eventId}
-          id = {id ? id : null}
+          id = {id? id : null}
+          createEvent={createEvent}
          />
       </div>
 

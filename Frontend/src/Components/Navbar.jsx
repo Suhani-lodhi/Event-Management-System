@@ -41,7 +41,7 @@ export default function Navbar() {
     <>
       <nav className="navbar">
         <h1>Occasia</h1>
-        <form className="search" role="search">
+        {/* <form className="search" role="search">
           <span className="search-icon">
             <FontAwesomeIcon icon={faSearch} />
           </span>
@@ -51,10 +51,10 @@ export default function Navbar() {
             placeholder="Search events, attendees, venues..."
             aria-label="Search"
           />
-        </form>
+        </form> */}
 
         <ul className="nav-right">
-          <li>
+          {/* <li>
             <a href="" className="nav-link" aria-label="Notifications">
               <FontAwesomeIcon icon={faBell} />
             </a>
@@ -65,7 +65,7 @@ export default function Navbar() {
               <FontAwesomeIcon icon={faCircleQuestion} />
               <span>Help &amp; Docs</span>
             </a>
-          </li>
+          </li> */}
 
           <li className="user">
             <div className="user-info">

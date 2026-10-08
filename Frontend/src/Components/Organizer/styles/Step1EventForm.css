@@ -140,6 +140,11 @@
   font-size: 20px;
 }
 
+.ce-session-element{
+  display: flex;
+  justify-content: space-between;
+}
+
 
 .ce-session-element label{
   font-size: medium;

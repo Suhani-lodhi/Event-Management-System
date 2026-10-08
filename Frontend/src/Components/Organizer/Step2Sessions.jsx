@@ -61,7 +61,16 @@ useEffect(()=>{
        setLoadingVenue(false)
   }
   getVenue()
+
 },[])
+
+useEffect(()=>{
+  console.log("create event called")
+  if(props.createEvent){
+    console.log("vapas create event kar do")
+    props.setStep(1);
+  }
+},[props.createEvent])
 
 async function getSubvenue(id,e){
     updateSession(id, "venueId", e.target.value);
@@ -210,6 +219,7 @@ function addVenue(){
 
               <div className="ce-session-element">
                 <label htmlFor={`subVenue-${session.id}`}>Select Venue</label>
+                <button title="Add your venue if not listed" onClick={addVenue} type='button'>Add your Venue</button>
               </div>
               <select
                 name="venueId"
@@ -231,10 +241,9 @@ function addVenue(){
                     }
                   </>
                 }
-
-                <option onClick={addVenue} value="">Add your Venue</option>
               </select>
 
+            
 
 
 

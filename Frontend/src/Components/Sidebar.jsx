@@ -8,7 +8,7 @@ export default function Sidebar(){
             <ul>
                 <button onClick={()=> navigate("/dashboard/createEvent")}>Create new Event</button>
                 <NavLink to="/dashboard" end>Dashboard</NavLink>
-                <NavLink to="hhytj">Events</NavLink>
+                <NavLink to="/dashboard/myVenues">My Venues</NavLink>
                 <NavLink to="ythuyj">Attendees and Registration</NavLink>
                 <NavLink to="ythjyhu">Analytics</NavLink>
                 <NavLink to="hythy">Settings</NavLink>

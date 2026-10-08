@@ -44,6 +44,7 @@ export default function Step1EventForm({ setStep, setEventId, id, createEvent })
       category: "",
       genre: "",
     });
+    setEventId(null)
     setLoading(false);
     }
 
@@ -77,13 +78,10 @@ export default function Step1EventForm({ setStep, setEventId, id, createEvent })
 
     try {
       if (id) {
-        // edit mode — update the existing event
         await updateEvent(id, payload);
         toast.success("Event edited successfully")
         setEventId(id);
-        // console.log("edit called")
       } else {
-        // create mode — create a new event
         const isAdded = await createEvent(payload);
         setEventId(isAdded.res.data.event.id);
         toast.success("Event created Successfully")
