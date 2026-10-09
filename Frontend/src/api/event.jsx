@@ -112,6 +112,16 @@ const getVenues = async ()=>{
     }
 }
 
+const getVenuesOfOrganizer = async () =>{
+    try{
+        const res = await axiosInstance.get(`organizer/venuesByOrganizerId`)
+        return res.data;
+    }
+    catch(err){
+        throw new Error("could not get venues by organizer id")
+    }
+}
+
 const getSubVenues = async (id) =>{
     try{
         console.log("Id............",id)
@@ -138,6 +148,6 @@ const createVenue = async (data)=>{
 
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue 
+    createVenue , getVenuesOfOrganizer
 
 };

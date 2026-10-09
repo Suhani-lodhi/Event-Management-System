@@ -78,3 +78,12 @@
 .ce-steps span.active p {
   font-weight: 500;
 }
+
+.v-header{
+  display: flex;
+  justify-content: space-between;
+}
+
+.av-button{
+  height: 50px;
+}

@@ -41,6 +41,7 @@ const subVenueData = subVenues.map((sv) => ({
         country,
         pincode: Number(pincode),
         subVenueCount: subVenues.length,
+        userId:req.user.id,
     subVenues: {
       create: subVenueData,
     },
@@ -130,6 +131,25 @@ const getVenues = async (req, res) => {
     });
   }
 };
+
+const getVenuesByOrganizerId = async (req, res)=>{
+  try {
+    console.log(req.user.id)
+    const venues = await prisma.Venue.findMany({
+      where: { userId: req.user.id },
+      include: { subVenues: true },
+      orderBy: { id: "desc" },
+    });
+
+    return res.status(StatusCodes.OK).json({ venues, success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not fetch venues",
+      success: false,
+    });
+  }
+}
 
 const getSubVenuesByVenueId = async (req, res) => {
   try {
@@ -230,4 +250,5 @@ export {
   deleteVenue,
   getSubVenuesByVenueId,
   getSubVenuesBySubVenueId,
+  getVenuesByOrganizerId
 };

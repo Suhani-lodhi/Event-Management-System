@@ -11,7 +11,7 @@ import EventDetails from '../Components/Organizer/EventDetails';
 import OrganizerProfile from '../Components/Organizer/OrganizerProfile';
 import { toast } from 'react-toastify';
 import { useEffect } from 'react';
-import MyVenue from '../Components/Organizer/MyVenue';
+import Venues from '../Components/Organizer/Venues';
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {
@@ -87,7 +87,7 @@ export default function AppRoutes() {
         <Route path="editEvent/:id" element = {<CreateEvent />} />
         <Route path="addSessions/:id"  element = {<CreateEvent addSession={true} />} />
         <Route path="me" element = {<OrganizerProfile />} />
-        <Route path="myVenues" element={<MyVenue/>}/>
+        <Route path="myVenues" element={<Venues/>}/>
       </Route>
 
       
