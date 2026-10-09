@@ -5,6 +5,7 @@ import '../Organizer/styles/Step1EventForm.css'
 import { toast } from "react-toastify";
 import ConfirmCreateDialog from "./models/ConfirmCreateDialog";
 import CreateVenue from "./models/CreateVenue";
+import { useNavigate } from "react-router-dom";
 
 const emptySubVenue = () => ({
   subVenueName: "",
@@ -13,10 +14,11 @@ const emptySubVenue = () => ({
   // category:{}
 });
 
-export default function AddVenue() {
+export default function AddVenue({setAddVenue}) {
   const [openDialog, setOpenDialog] = useState(false);
   const formRef = useRef(null);
   const [subVenues, setSubVenues] = useState([emptySubVenue()]);
+  const navigate = useNavigate();
 
   const [venue, setVenue] = useState({
     venueName: "",
@@ -84,7 +86,7 @@ export default function AddVenue() {
 
     if (res.success) {
       toast.success("created the venue");
-      resetForm();
+      setAddVenue(false);
     }
     else {
       toast.error("Cannot create Venue. Something went wrong.")

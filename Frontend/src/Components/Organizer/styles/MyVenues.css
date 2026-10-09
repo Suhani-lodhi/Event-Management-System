@@ -1,0 +1,63 @@
+.mv-page {
+  padding: 20px;
+}
+
+/* Flex container: wraps cards into rows */
+.mv-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 16px;
+}
+
+/* 3 cards per row: (100% - 2 gaps) / 3 */
+.mv-card {
+  flex: 0 0 calc((100% - 40px) / 3);
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.mv-title {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.mv-address {
+  margin: 2px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.mv-count {
+  margin: 10px 0 6px;
+  font-size: 14px;
+}
+
+.mv-subvenues {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #444;
+}
+
+.mv-subvenues li {
+  margin-bottom: 4px;
+}
+
+/* Tablet: 2 per row */
+@media (max-width: 900px) {
+  .mv-card {
+    flex: 0 0 calc((100% - 20px) / 2);
+  }
+}
+
+/* Mobile: 1 per row */
+@media (max-width: 600px) {
+  .mv-card {
+    flex: 0 0 100%;
+  }
+}

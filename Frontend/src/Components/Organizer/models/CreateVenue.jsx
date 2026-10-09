@@ -11,7 +11,7 @@ export default function CreateVenue({open, onClose, onConfirm}){
               <DialogTitle>Confirm Creation</DialogTitle>
               <DialogContent>
                  <DialogContentText>
-                    "Are you sure you want to create this venue" 
+                    Are you sure you want to create this venue 
                   </DialogContentText>
               </DialogContent>
               <DialogActions>

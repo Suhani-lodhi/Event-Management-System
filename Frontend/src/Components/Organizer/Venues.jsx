@@ -14,11 +14,11 @@ export default function Venues(){
         <button onClick={()=> setAddVenue(true)} className='av-button'>Add new Venue</button>
       </div>
       
-      {addVenue ? <AddVenue/>
-      :
-      <MyVenue/>
+      {addVenue && <AddVenue setAddVenue={setAddVenue}/>}
       
-      }
+     {!addVenue &&  <MyVenue/>}
+      
+      
       
         </>
     )
