@@ -4,7 +4,9 @@ import {
   organizerSignupService,
   loginService,
   refreshService,
+  meService,
 } from "../Sevices/auth.service.js";
+import { clearAuthCookies, setAuthCookies } from "../Sevices/cookie.service.js";
 
 const sendError = (res, err) => {
   const status = err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
@@ -17,23 +19,25 @@ const sendError = (res, err) => {
 
 const participantSignup = async (req, res) => {
   try {
-    const result = await participantSignupService(req.body);
+    const { user } = await participantSignupService(req.body);
     return res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Signed up successfully",
-      ...result, // user, accessToken, refreshToken
+      user,
     });
   } catch (err) {
     return sendError(res, err);
   }
 };
+
 const organizerSignup = async (req, res) => {
   try {
-    const result = await organizerSignupService(req.body);
+    const { user, organizer } = await organizerSignupService(req.body);
     return res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Signed up successfully",
-      ...result,
+      user,
+      organizer,
     });
   } catch (err) {
     return sendError(res, err);
@@ -42,27 +46,48 @@ const organizerSignup = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const result = await loginService(req.body);
+    const { user, accessToken, refreshToken } = await loginService(req.body);
+    setAuthCookies(res, accessToken, refreshToken); // tokens go in HttpOnly cookies only
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "Logged in successfully",
-      ...result,
+      user, // no tokens in the body
     });
   } catch (err) {
     return sendError(res, err);
   }
 };
+
 const refresh = async (req, res) => {
   try {
-    console.log("Refresh token Called..........");
-    const result = await refreshService(req.body?.refreshToken);
+    const { accessToken, refreshToken } = await refreshService(
+      req.cookies?.refreshToken,
+    );
+    setAuthCookies(res, accessToken, refreshToken);
     return res.status(StatusCodes.OK).json({
       success: true,
       message: "Token refreshed",
-      ...result,
     });
+  } catch (err) {
+    clearAuthCookies(res);
+    return sendError(res, err);
+  }
+};
+
+const logout = (req, res) => {
+  clearAuthCookies(res);
+  return res
+    .status(StatusCodes.OK)
+    .json({ success: true, message: "Logged out" });
+};
+
+const me = async (req, res) => {
+  try {
+    const user = await meService(req.user.id);
+    return res.status(StatusCodes.OK).json({ success: true, user });
   } catch (err) {
     return sendError(res, err);
   }
 };
-export { participantSignup, organizerSignup, login, refresh };
+
+export { participantSignup, organizerSignup, login, refresh, logout, me };

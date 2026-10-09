@@ -57,19 +57,12 @@ const verifyRefreshToken = async (token) => {
   const user = await prisma.users.findUnique({
     where: { id: decoded.id },
   });
-  if (!user || !user.refreshToken) {
-    throw httpError(StatusCodes.FORBIDDEN, "Session already Revoked");
-  }
-  if (user.refreshToken != hashToken(token)) {
-    await prisma.users.update({
-      where: { id: user.id },
-      data: { refreshToken: null },
-    });
-
-    throw httpError(StatusCodes.FORBIDDEN, "Refresh Token resuse detected");
+  if (!user) {
+    throw httpError(StatusCodes.NOT_FOUND, "No User Found");
   }
   return user;
 };
+
 export {
   generateToken,
   verifyRefreshToken,

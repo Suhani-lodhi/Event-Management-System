@@ -20,16 +20,17 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await loginUser(form);
-      //  console.log("Login component API response:", res);`
-      login({ 
-        accessToken: res.data.accessToken, 
-        refreshToken: res.data.refreshToken, 
-        user: res.data.user 
-      });
-      /// idhr apply krna hai role based navigation
-      navigate('/dashboard'); 
+      const user = res.data.user;
+      login(user); 
+
+      navigate(user.role === 'ORGANIZER' ? '/organizer' : '/dashboard', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.msg || 'Login failed. Please try again.');
+      setError(
+        err.response?.data?.message ||
+        err.response?.data?.msg ||
+        err.message ||
+        'Login failed. Please try again.'
+      );
     } finally {
       setLoading(false);
     }

@@ -6,6 +6,7 @@ import {
   verifyRefreshToken,
 } from "./token.service.js";
 import prisma from "../index.js";
+import "dotenv/config.js";
 import bcrypt from "bcrypt";
 
 const sanitizeUser = ({ password, refreshToken, ...safe }) => safe;
@@ -13,10 +14,6 @@ const sanitizeUser = ({ password, refreshToken, ...safe }) => safe;
 const issueSession = async (user) => {
   const { accessToken, refreshToken } = generateToken(user);
 
-  const myUser = await prisma.users.update({
-    where: { id: user.id },
-    data: { refreshToken: hashToken(refreshToken) },
-  });
   return { user: sanitizeUser(user), accessToken, refreshToken };
 };
 
@@ -147,13 +144,21 @@ const loginService = async (data) => {
 
   return issueSession(user);
 };
+
 const refreshService = async (refreshToken) => {
   const user = await verifyRefreshToken(refreshToken);
-  return issueSession(user);
+  return generateToken(user);
+};
+
+const meService = async (id) => {
+  const user = await prisma.users.findUnique({ where: { id } });
+  if (!user) throw httpError(StatusCodes.UNAUTHORIZED, "User not found");
+  return sanitizeUser(user);
 };
 export {
   participantSignupService,
   organizerSignupService,
   loginService,
   refreshService,
+  meService,
 };
