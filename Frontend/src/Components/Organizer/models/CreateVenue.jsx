@@ -4,19 +4,19 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContentText from '@mui/material/DialogContentText'
-export default function ConfirmCreateDialog({open, onClose, onConfirm, isEdit, createVenue}){
+export default function CreateVenue({open, onClose, onConfirm}){
     return (
         <>
           <Dialog open={open} onClose={onClose}>
-              <DialogTitle>Confirm {isEdit ? "Edit" : "Creation"}</DialogTitle>
+              <DialogTitle>Confirm Creation</DialogTitle>
               <DialogContent>
                  <DialogContentText>
-                    {isEdit ? "Are you sure you want to edit?" : createVenue? "Are you sure you want to create this venue" : "The event created will be drafted until you publish. You can publish the event by completing all the necessary information. Are you sure you want to create the event? "}
+                    "Are you sure you want to create this venue" 
                   </DialogContentText>
               </DialogContent>
               <DialogActions>
                 <Button onClick={onClose}>Cancel</Button>
-                <Button onClick={onConfirm}>{isEdit ? "edit" : "create"}</Button>
+                <Button onClick={onConfirm}>create</Button>
               </DialogActions>
           </Dialog>
         </>

@@ -184,6 +184,44 @@ input[type="datetime-local"]:focus {
   cursor: pointer;
 }
 
+
+/* venue css*/
+
+.v-elements{
+  display: flex;
+  justify-content: space-between;
+}
+.v-elements div{
+  width: 45%;
+}
+
+.sv-elements{
+  display: flex;
+  justify-content: space-between;
+}
+
+.v-form-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.v-header{
+  margin: 10px 50px;
+  padding: 10px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.v-header p{
+  color: #000000;
+  padding: 5px;
+}
+
+
 @media (max-width: 600px) {
   .ce-row {
     flex-direction: column;
