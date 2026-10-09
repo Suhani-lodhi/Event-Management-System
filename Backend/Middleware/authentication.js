@@ -1,15 +1,19 @@
 import { verifyAccessToken } from "../Sevices/token.service.js";
 
 const authenticate = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const { accessToken } = req.cookies;
   // console.log("start authenticate", authHeader)
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ success: false, message: "Token not sent" });
+  if (!accessToken) {
+    return res.status(401).json({
+      success: false,
+      message: "Token not sent",
+      code: "TOKEN_MISSING",
+    });
   }
 
   let decoded;
   try {
-    decoded = verifyAccessToken(authHeader.split(" ")[1]);
+    decoded = verifyAccessToken(accessToken);
     console.log(decoded);
   } catch (err) {
     console.log(">>>>>>>>> Token Expired");
@@ -20,7 +24,11 @@ const authenticate = (req, res, next) => {
         code: "TOKEN_EXPIRED",
       });
     }
-    return res.status(401).json({ success: false, message: "Invalid token" });
+    return res.status(401).json({
+      success: false,
+      message: "Invalid token",
+      code: "Token_INVALID",
+    });
   }
 
   req.user = { id: decoded.id, email: decoded.email, role: decoded.role };

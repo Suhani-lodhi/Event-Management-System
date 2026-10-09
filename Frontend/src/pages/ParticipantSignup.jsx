@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { signupParticipant } from '../api/auth';
-import { useAuth } from '../context/AuthContext';
 
 const initialForm = {
   firstName: '',
@@ -14,7 +13,6 @@ export default function ParticipantSignup() {
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {

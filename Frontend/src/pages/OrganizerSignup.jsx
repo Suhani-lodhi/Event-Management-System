@@ -6,7 +6,7 @@ import Step3AddressInfo from '../Components/Step3AddressInfo';
 import Step4Review from '../Components/Step4Review';
 import StepIndicator from '../Components/StepIndicator';
 import { signupOrganizer } from '../api/auth';
-import { useAuth } from '../context/AuthContext';
+
 
 const STORAGE_KEY = 'organizerSignupDraft';
 
@@ -40,7 +40,6 @@ export default function OrganizerSignup() {
   const [formData, setFormData] = useState(loadDraft);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
 
 
