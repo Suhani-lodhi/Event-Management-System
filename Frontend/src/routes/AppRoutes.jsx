@@ -88,6 +88,7 @@ export default function AppRoutes() {
         <Route path="me" element = {<OrganizerProfile />} />
         <Route path="myVenues" element={<Venues/>}/>
         <Route path="venue/:id" element ={<ViewVenue/>} />
+        <Route path="editVenue/:id" element={<Venues/>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

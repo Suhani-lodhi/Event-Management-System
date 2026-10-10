@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom";
-import { getVenueDetails } from "../../api/event";
+import { getVenueDetails, deleteSubVenue } from "../../api/event";
 import '../Organizer/styles/MyVenues.css'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { toast } from "react-toastify";
 
 
 export default function ViewVenue(){
@@ -28,10 +29,23 @@ export default function ViewVenue(){
     },[id])
 
 
-    async function deleteSubVenue(id){
-        
+    async function handleDeleteSubVenue(id){
+        const res = await deleteSubVenue(id);
+        if(res.success){
+            toast.success("SubVenue deleted successfully");
+            setVenue((prev) => ({
+  ...prev,
+  subVenues: prev.subVenues.filter((sv) => sv.id !== id),
+}));
+        }
+        else{
+            toast.error("Something went wrong. Can't delete Sub Venue")
+        }
     }
 
+    function editVenue(id){
+        
+    }
 
      if (loading) return <p>Loading venue...</p>;
   if (!venue) return <p>Venue not found.</p>;
@@ -44,9 +58,9 @@ export default function ViewVenue(){
 
       {/* Venue card */}
       <div className="vd-card">
-        <div>
+        <div className="vd-elements">
             <h2 className="vd-title">{venue.venueName}</h2>
-        <button>Edit Venue</button>
+        <button onClick={() => editVenue(venue.id)}>Edit Venue</button>
         </div>
 
         <div className="vd-info">
@@ -78,9 +92,9 @@ export default function ViewVenue(){
         <div className="vd-grid">
           {venue.subVenues.map((sv) => (
             <div className="vd-subcard" key={sv.id}>
-              <div>
+              <div className="vd-elements">
                 <h3>{sv.subVenueName || "Unnamed sub-venue"}</h3>
-                <FontAwesomeIcon icon={faTrash} onClick={() => deleteSubVenue(sv.id)} />
+                <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteSubVenue(sv.id)} />
               </div>
               <p>
                 <strong>Categories:</strong> {sv.categoryCount}

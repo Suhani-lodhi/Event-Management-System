@@ -168,7 +168,18 @@ const getVenueDetails = async (id) =>{
     }
 }
 
+const deleteSubVenue = async (id) => {
+     try{
+       const res = await axiosInstance.delete(`organizer/deleteSubVenue/${id}`);
+       console.log(res.data);
+       return res.data
+    }
+    catch{
+       throw new Error("could not delete sub venue")
+    }
+}
+
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails
+    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue
 };

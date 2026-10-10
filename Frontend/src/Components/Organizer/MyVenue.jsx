@@ -71,7 +71,7 @@ export default function MyVenue() {
               </p>
 
               <p className="mv-count">
-                <strong>Sub-venues:</strong> {v.subVenueCount}
+                <strong>Sub-venues:</strong> {v.subVenues.length}
               </p>
 
               {v.subVenues?.length > 0 && (

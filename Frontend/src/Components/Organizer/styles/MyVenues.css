@@ -122,6 +122,11 @@
   color: #555;
 }
 
+.vd-elements{
+  display: flex;
+  justify-content: space-between;
+}
+
 @media (max-width: 900px) {
   .vd-subcard {
     flex: 0 0 calc((100% - 16px) / 2);
