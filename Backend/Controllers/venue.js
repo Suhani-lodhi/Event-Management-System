@@ -84,9 +84,10 @@ const deleteVenue = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    await prisma.venue.delete({
-      where: { id },
-    });
+    await prisma.$transaction([
+      prisma.subVenue.deleteMany({ where: { venueId: id } }),
+      prisma.venue.delete({ where: { id } }),
+    ]);
 
     return res.status(StatusCodes.OK).json({
       msg: "session deleted successfully",
