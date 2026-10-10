@@ -48,14 +48,24 @@
   margin-bottom: 4px;
 }
 
-/* Tablet: 2 per row */
+.mv-header{
+  display: flex;
+  justify-content: space-between;
+}
+
+.mv-header .icon{
+  cursor: pointer;
+}
+
+
+
 @media (max-width: 900px) {
   .mv-card {
     flex: 0 0 calc((100% - 20px) / 2);
   }
 }
 
-/* Mobile: 1 per row */
+
 @media (max-width: 600px) {
   .mv-card {
     flex: 0 0 100%;

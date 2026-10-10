@@ -2,8 +2,10 @@ import { useState } from 'react'
 import '../Organizer/styles/CreateEvents.css'
 import AddVenue from './AddVenue'
 import MyVenue from './MyVenue'
+import ViewVenue from './ViewVenue'
 export default function Venues(){
     const [addVenue, setAddVenue] = useState(false)
+    const [viewVenue, setViewVenue] = useState(false)
     return (
         <>
           <div className="v-header">
@@ -14,10 +16,11 @@ export default function Venues(){
         <button onClick={()=> setAddVenue(true)} className='av-button'>Add new Venue</button>
       </div>
       
-      {addVenue && <AddVenue setAddVenue={setAddVenue}/>}
+      {addVenue && !viewVenue && <AddVenue setAddVenue={setAddVenue}/>}
       
-     {!addVenue &&  <MyVenue/>}
+     {!addVenue && !viewVenue &&  <MyVenue setViewVenue={setViewVenue}/>}
       
+      {!addVenue && viewVenue && <viewVenue/> }
       
       
         </>

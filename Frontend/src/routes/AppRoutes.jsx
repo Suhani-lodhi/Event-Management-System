@@ -12,6 +12,7 @@ import OrganizerProfile from '../Components/Organizer/OrganizerProfile';
 import { toast } from 'react-toastify';
 import { useEffect } from 'react';
 import Venues from '../Components/Organizer/Venues';
+import ViewVenue from '../Components/Organizer/ViewVenue';
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {

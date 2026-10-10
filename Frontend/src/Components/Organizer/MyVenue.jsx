@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import "../Organizer/styles/OrganizerDashboard.css";
 import "../Organizer/styles/MyVenues.css";
-import { getVenuesOfOrganizer } from "../../api/event";
+import { deleteVenueById, getVenuesOfOrganizer } from "../../api/event";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate } from "react-router-dom";
 
 export default function MyVenue() {
   const [venues, setVenues] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function getVenues() {
@@ -19,6 +23,21 @@ export default function MyVenue() {
     getVenues();
   }, []);
 
+  async function deleteVenue(id){
+  console.log("deleted venue", id);
+  try{
+    const data = await deleteVenueById(id);
+    console.log(data);
+  }
+  catch(err){
+    console.log(err);
+  }
+  }
+
+  async function viewVenue(id){
+    
+  }
+
   return (
     <div className="mv-page">
 
@@ -28,7 +47,14 @@ export default function MyVenue() {
         <div className="mv-grid">
           {venues.map((v) => (
             <div className="mv-card" key={v.id}>
-              <h3 className="mv-title">{v.venueName}</h3>
+              <div className="mv-header">
+                  
+                  <h3 className="mv-title">{v.venueName}</h3>
+                  <div>
+                    <FontAwesomeIcon icon={faTrash} className="icon" onClick={() => deleteVenue(v.id)}/>
+                    <FontAwesomeIcon icon={faEye} className="icon" onClick={() => viewVenue(v)}/>
+                  </div>
+              </div>
 
               <p className="mv-address">{v.addressLine1}</p>
               <p className="mv-address">
