@@ -44,6 +44,32 @@ const createVenue = async (req, res) => {
   }
 };
 
+const getVenueById = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    const venue = await prisma.venue.findUnique({
+      where: { id },
+      include: { subVenues: true },
+    });
+
+    if (!venue) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        msg: "Venue not found",
+        success: false,
+      });
+    }
+
+    return res.status(StatusCodes.OK).json({ venue, success: true });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not fetch venue",
+      success: false,
+    });
+  }
+};
+
 const updateVenue = async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -173,6 +199,7 @@ const createSubVenue = async (req, res) => {
 
 export {
   getVenues,
+  getVenueById,
   createVenue,
   updateVenue,
   deleteVenue,

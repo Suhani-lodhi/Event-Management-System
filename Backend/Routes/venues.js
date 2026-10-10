@@ -4,6 +4,7 @@ import {
   deleteVenue,
   getSubVenuesBySubVenueId,
   getSubVenuesByVenueId,
+  getVenueById,
   getVenues,
   updateVenue,
 } from "../Controllers/venue.js";
@@ -15,5 +16,6 @@ router.patch("/updateVenue/:id", updateVenue);
 router.delete("/deleteVenue/:id", deleteVenue);
 router.get("/subVenues/:venueId", getSubVenuesByVenueId);
 router.get("/subVenue/:subVenueId", getSubVenuesBySubVenueId);
+router.get("/venue/:id", getVenueById);
 
 export default router;
