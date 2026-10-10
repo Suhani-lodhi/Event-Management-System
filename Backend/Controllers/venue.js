@@ -196,6 +196,68 @@ const createSubVenue = async (req, res) => {
     });
   }
 };
+const updateSubVenue = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (Number.isNaN(id)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "Invalid subvenue id",
+        success: false,
+      });
+    }
+
+    const { subVenueName, categoryCount, capacity } = req.body;
+
+    const subVenue = await prisma.subVenue.update({
+      where: { id },
+      data: {
+        subVenueName,
+        categoryCount:
+          categoryCount !== undefined ? Number(categoryCount) : undefined,
+        capacity: capacity !== undefined ? Number(capacity) : undefined,
+      },
+    });
+
+    return res.status(StatusCodes.OK).json({
+      subVenue,
+      msg: "subvenue updated successfully",
+      success: true,
+    });
+  } catch (err) {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not update subvenue",
+      success: false,
+    });
+  }
+};
+const deleteSubVenue = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    if (Number.isNaN(id)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "Invalid subvenue id",
+        success: false,
+      });
+    }
+
+    await prisma.subVenue.delete({
+      where: { id },
+    });
+
+    return res.status(StatusCodes.OK).json({
+      msg: "subvenue deleted successfully",
+      success: true,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not delete subvenue",
+      success: false,
+    });
+  }
+};
 
 export {
   getVenues,
@@ -205,4 +267,6 @@ export {
   deleteVenue,
   getSubVenuesByVenueId,
   getSubVenuesBySubVenueId,
+  updateSubVenue,
+  deleteSubVenue,
 };
