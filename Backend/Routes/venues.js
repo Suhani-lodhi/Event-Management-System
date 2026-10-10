@@ -1,11 +1,13 @@
 import express from "express";
 import {
   createVenue,
+  deleteSubVenue,
   deleteVenue,
   getSubVenuesBySubVenueId,
   getSubVenuesByVenueId,
   getVenueById,
   getVenues,
+  updateSubVenue,
   updateVenue,
   getVenuesByOrganizerId
 } from "../Controllers/venue.js";
@@ -19,5 +21,7 @@ router.get("/venuesByOrganizerId", getVenuesByOrganizerId)
 router.get("/subVenues/:venueId", getSubVenuesByVenueId);
 router.get("/subVenue/:subVenueId", getSubVenuesBySubVenueId);
 router.get("/venue/:id", getVenueById);
+router.patch("/updateSubVenue/:id", updateSubVenue);
+router.delete("/deleteSubVenue/:id", deleteSubVenue);
 
 export default router;
