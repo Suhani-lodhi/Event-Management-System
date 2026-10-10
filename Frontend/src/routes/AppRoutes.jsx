@@ -87,6 +87,7 @@ export default function AppRoutes() {
         <Route path="addSessions/:id"  element = {<CreateEvent addSession={true} />} />
         <Route path="me" element = {<OrganizerProfile />} />
         <Route path="myVenues" element={<Venues/>}/>
+        <Route path="venue/:id" element ={<ViewVenue/>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

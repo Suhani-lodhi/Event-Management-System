@@ -57,6 +57,82 @@
   cursor: pointer;
 }
 
+/* venue details css */
+
+.vd-page {
+  padding: 20px;
+}
+
+/* Main venue card */
+.vd-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.vd-title {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.vd-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 40px;
+}
+
+.vd-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.vd-section-title {
+  margin: 24px 0 12px;
+  font-size: 18px;
+}
+
+/* Sub-venue small cards */
+.vd-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.vd-subcard {
+  flex: 0 0 calc((100% - 32px) / 3);
+  box-sizing: border-box;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+.vd-subcard h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.vd-subcard p {
+  margin: 3px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+@media (max-width: 900px) {
+  .vd-subcard {
+    flex: 0 0 calc((100% - 16px) / 2);
+  }
+}
+
+@media (max-width: 600px) {
+  .vd-subcard {
+    flex: 0 0 100%;
+  }
+}
 
 
 @media (max-width: 900px) {

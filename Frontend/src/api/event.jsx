@@ -157,7 +157,18 @@ const deleteVenueById = async (id) =>{
     }
 }
 
+const getVenueDetails = async (id) =>{
+    try{
+       const res = await axiosInstance.get(`organizer/venue/${id}`)
+       console.log(res.data);
+       return res.data;
+    }
+    catch(err){
+       throw new Error("could not fetch venue details")
+    }
+}
+
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue , getVenuesOfOrganizer, deleteVenueById
+    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails
 };

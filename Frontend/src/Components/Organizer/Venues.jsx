@@ -5,7 +5,6 @@ import MyVenue from './MyVenue'
 import ViewVenue from './ViewVenue'
 export default function Venues(){
     const [addVenue, setAddVenue] = useState(false)
-    const [viewVenue, setViewVenue] = useState(false)
     return (
         <>
           <div className="v-header">
@@ -16,11 +15,11 @@ export default function Venues(){
         <button onClick={()=> setAddVenue(true)} className='av-button'>Add new Venue</button>
       </div>
       
-      {addVenue && !viewVenue && <AddVenue setAddVenue={setAddVenue}/>}
+      {addVenue && <AddVenue setAddVenue={setAddVenue}/>}
       
-     {!addVenue && !viewVenue &&  <MyVenue setViewVenue={setViewVenue}/>}
+     {!addVenue &&  <MyVenue/>}
       
-      {!addVenue && viewVenue && <viewVenue/> }
+  
       
       
         </>

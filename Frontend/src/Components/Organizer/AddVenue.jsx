@@ -261,7 +261,7 @@ export default function AddVenue({setAddVenue}) {
           ))}
 
           <button onClick={handleDialogOpen} type="button">Create Venue</button>
-
+          <button onClick={() => setAddVenue(false)} type="button">Back</button>
         </form>
       </div>
 
