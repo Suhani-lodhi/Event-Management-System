@@ -15,12 +15,13 @@ export default function EditSubVenueDialog({ open, subVenue, onClose, onSave }) 
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!subVenue) return;
+    if (subVenue){
     setForm({
       subVenueName: subVenue.subVenueName ?? "",
       categoryCount: subVenue.categoryCount ?? "",
       capacity: subVenue.capacity ?? "",
     });
+}
   }, [subVenue]);
 
   const handleChange = (e) => {
@@ -39,6 +40,17 @@ export default function EditSubVenueDialog({ open, subVenue, onClose, onSave }) 
       categoryCount: Number(form.categoryCount),
       capacity: form.capacity === "" ? null : Number(form.capacity),
     });
+    setSaving(false);
+  }
+
+  async function addSubVenue(){
+    if (categoryInvalid) return;
+     setSaving(true);
+     await onSave({
+      subVenueName: form.subVenueName.trim() || null,
+      categoryCount: Number(form.categoryCount),
+      capacity: form.capacity === "" ? null : Number(form.capacity),
+    })
     setSaving(false);
   }
 
@@ -84,9 +96,11 @@ export default function EditSubVenueDialog({ open, subVenue, onClose, onSave }) 
         <Button onClick={onClose} disabled={saving}>
           Cancel
         </Button>
+        {!subVenue ? <Button onClick={addSubVenue} disabled={saving || categoryInvalid}>{saving ? "Saving..." : "Add SubVenue"}</Button>:
         <Button onClick={handleSave} disabled={saving || categoryInvalid}>
           {saving ? "Saving..." : "Save"}
-        </Button>
+        </Button>}
+        
       </DialogActions>
     </Dialog>
   );

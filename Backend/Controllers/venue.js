@@ -89,7 +89,8 @@ const createVenue = async (req, res) => {
 };
 const createSubVenue = async (req, res) => {
   try {
-    const venueId = Number(req.params.venueId);
+    const venueId = Number(req.params.id);
+    console.log("venueId------>", venueId)
     const { subVenueName, categoryCount, capacity } = req.body;
 
     if (Number.isNaN(venueId)) {
@@ -118,7 +119,7 @@ const createSubVenue = async (req, res) => {
     }
 
     const [subVenue] = await prisma.$transaction([
-      prisma.subVenue.create({ data: { ...data, venueId } }),
+      prisma.subVenue.create({ data: { ...req.body, venueId } }),
       prisma.venue.update({
         where: { id: venueId },
         data: { subVenueCount: { increment: 1 } },

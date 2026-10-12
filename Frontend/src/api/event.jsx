@@ -203,7 +203,19 @@ const editSubVenueById = async (id, data) =>{
 
 }
 
+const createSubVenue = async (id, data) =>{
+    try{
+       const res = await axiosInstance.post(`organizer/createSubVenue/${id}`, data);
+       console.log(res.data);
+       return res.data
+    }
+    catch{
+       throw new Error("could not edit Sub venue")
+    }
+}
+
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, editSubVenueById
+    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, editSubVenueById,
+    createSubVenue
 };

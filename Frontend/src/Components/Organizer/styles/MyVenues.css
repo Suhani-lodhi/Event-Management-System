@@ -91,7 +91,7 @@
 
 .vd-section-title {
   margin: 24px 0 12px;
-  font-size: 18px;
+  /* font-size: 18px; */
 }
 
 /* Sub-venue small cards */
@@ -99,6 +99,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
+  margin-top: 10px;
 }
 
 .vd-subcard {
@@ -125,6 +126,14 @@
 .vd-elements{
   display: flex;
   justify-content: space-between;
+}
+
+.vd-addsvButton{
+  margin-top: 13px;
+}
+
+.vd-elements .icon{
+  cursor: pointer;
 }
 
 @media (max-width: 900px) {

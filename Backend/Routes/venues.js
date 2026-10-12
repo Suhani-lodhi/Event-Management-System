@@ -20,7 +20,7 @@ router.patch("/updateVenue/:id", updateVenue);
 router.delete("/deleteVenue/:id", deleteVenue);
 router.get("/venuesByOrganizerId", getVenuesByOrganizerId);
 router.get("/subVenues/:venueId", getSubVenuesByVenueId);
-router.get("/createSubVenue/:id", createSubVenue);
+router.post("/createSubVenue/:id", createSubVenue);
 router.get("/subVenue/:subVenueId", getSubVenuesBySubVenueId);
 router.get("/venue/:id", getVenueById);
 router.patch("/updateSubVenue/:id", updateSubVenue);

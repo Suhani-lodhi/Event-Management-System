@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom";
-import { getVenueDetails, deleteSubVenue, editSubVenueById} from "../../api/event";
+import { getVenueDetails, deleteSubVenue, editSubVenueById, createSubVenue} from "../../api/event";
 import '../Organizer/styles/MyVenues.css'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -17,6 +17,7 @@ export default function ViewVenue(){
     const [editingSubVenue, setEditingSubVenue] = useState(null);
     const [deleteDialog, setDeleteDialog] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+    const [addSubVenue, setAddSubvenue] = useState(false)
 
     useEffect(()=>{
         async function getVenue(){
@@ -35,9 +36,9 @@ export default function ViewVenue(){
     },[id])
 
 
-    function handleDeleteSubVenue(id){
+    function handleDeleteSubVenue(deleteid){
          setDeleteDialog(true);
-         setDeleteId(id);
+         setDeleteId(deleteid);
     }
 
     function confirmDelete(){
@@ -69,6 +70,7 @@ export default function ViewVenue(){
         setEditingSubVenue(subVenue);
     }
 
+
     async function handleSaveSubVenue(subVenueId, data) {
   try {
     const res = await editSubVenueById(subVenueId, data);
@@ -93,6 +95,32 @@ export default function ViewVenue(){
   }
 }
 
+function handleAddSubVenue(){
+  setAddSubvenue(true)
+}
+
+async function confirmAddSubVenue(data){
+      setAddSubvenue(false)
+      try{
+        const res = await createSubVenue(venue.id, data);
+        if(res.success){
+          toast.success("Sub Venue added successfully");
+          setVenue((prev) => ({
+        ...prev,
+         subVenues: [...prev.subVenues, res.subVenue]
+      }));
+
+        }
+        else{
+          toast.error("Something went wrong. Can't add subVenue");
+        }
+      }
+      catch(err){
+        toast.error("Something went wrong. Can't add subVenue");
+      }
+    }
+
+
 
      if (loading) return <p>Loading venue...</p>;
   if (!venue) return <p>Venue not found.</p>;
@@ -102,14 +130,13 @@ export default function ViewVenue(){
            <div className="vd-page">
 
       <h1>Venue Details</h1>
-
+      <br/>
       {/* Venue card */}
       <div className="vd-card">
         <div className="vd-elements">
             <h2 className="vd-title">{venue.venueName}</h2>
         <button onClick={() => editVenue(venue.id)}>Edit Venue</button>
         </div>
-
         <div className="vd-info">
           <p>
             <strong>Address:</strong> {venue.addressLine1}
@@ -133,8 +160,12 @@ export default function ViewVenue(){
         </div>
       </div>
 
+<br/>
       {/* Sub-venue cards */}
-      <h2 className="vd-section-title">Sub-Venues</h2>
+      <div className="vd-elements">
+        <h2 className="vd-section-title">Sub-Venues</h2>
+      <div className="vd-addsvButton"><button onClick={handleAddSubVenue}>Add +</button></div>
+      </div>
 
       {venue.subVenues?.length > 0 ? (
         <div className="vd-grid">
@@ -143,8 +174,8 @@ export default function ViewVenue(){
               <div className="vd-elements">
                 <h3>{sv.subVenueName || "Unnamed sub-venue"}</h3>
                 <div>
-                 <FontAwesomeIcon icon={faEdit} onClick={() => handleEditSubVenue(sv)}/>
-                {venue.subVenues.length > 1 && <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteSubVenue(sv.id)} />}
+                 <FontAwesomeIcon icon={faEdit} className="icon" onClick={() => handleEditSubVenue(sv)}/>
+                {venue.subVenues.length > 1 && <FontAwesomeIcon icon={faTrash} className="icon" onClick={() => handleDeleteSubVenue(sv.id)} />}
                 </div>
               </div>
               <p>
@@ -155,6 +186,7 @@ export default function ViewVenue(){
               </p>
             </div>
           ))}
+
         </div>
       ) : (
         <p>No sub-venues added.</p>
@@ -167,6 +199,14 @@ export default function ViewVenue(){
   onClose={() => setEditingSubVenue(null)}
   onSave={handleSaveSubVenue}
     />
+
+   <EditSubVenueDialog
+    open={addSubVenue}
+  onClose={() => setAddSubvenue(false)}
+  onSave={confirmAddSubVenue}
+    />
+
+
     <DeleteDialog
           open={deleteDialog}
           onClose ={() => {
