@@ -3,7 +3,15 @@ import prisma from "../index.js";
 
 const createVenue = async (req, res) => {
   try {
-    const { venueName, addressLine1, city, state, country, pincode, subVenues } = req.body;
+    const {
+      venueName,
+      addressLine1,
+      city,
+      state,
+      country,
+      pincode,
+      subVenues,
+    } = req.body;
 
     if (
       !venueName ||
@@ -20,17 +28,34 @@ const createVenue = async (req, res) => {
     }
 
     if (!Array.isArray(subVenues) || subVenues.length === 0) {
-  return res.status(StatusCodes.BAD_REQUEST).json({
-    msg: "At least one sub-venue is required",
-    success: false,
-  });
-}
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "At least one sub-venue is required",
+        success: false,
+      });
+    }
+    const invalidSubVenue = subVenues.some(
+      (sv) =>
+        !sv ||
+        sv.categoryCount === undefined ||
+        sv.categoryCount === "" ||
+        Number.isNaN(Number(sv.categoryCount)) ||
+        (sv.capacity != null &&
+          sv.capacity !== "" &&
+          Number.isNaN(Number(sv.capacity))),
+    );
 
-const subVenueData = subVenues.map((sv) => ({
-  subVenueName: sv.subVenueName || null,
-  categoryCount: Number(sv.categoryCount),
-  capacity: sv.capacity == null || sv.capacity === "" ? null : Number(sv.capacity),
-}));
+    if (invalidSubVenue) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "Each sub-venue needs a numeric categoryCount, and capacity must be a number if provided",
+        success: false,
+      });
+    }
+    const subVenueData = subVenues.map((sv) => ({
+      subVenueName: sv.subVenueName || null,
+      categoryCount: Number(sv.categoryCount),
+      capacity:
+        sv.capacity == null || sv.capacity === "" ? null : Number(sv.capacity),
+    }));
 
     const venue = await prisma.venue.create({
       data: {
@@ -41,10 +66,10 @@ const subVenueData = subVenues.map((sv) => ({
         country,
         pincode: Number(pincode),
         subVenueCount: subVenues.length,
-        userId:req.user.id,
-    subVenues: {
-      create: subVenueData,
-    },
+        userId: req.user.id,
+        subVenues: {
+          create: subVenueData,
+        },
       },
       include: { subVenues: true },
     });
@@ -58,6 +83,57 @@ const subVenueData = subVenues.map((sv) => ({
     console.error(err);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: "could not create venue",
+      success: false,
+    });
+  }
+};
+const createSubVenue = async (req, res) => {
+  try {
+    const venueId = Number(req.params.venueId);
+    const { subVenueName, categoryCount, capacity } = req.body;
+
+    if (Number.isNaN(venueId)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "Invalid venue id",
+        success: false,
+      });
+    }
+
+    if (
+      !subVenueName ||
+      categoryCount === undefined ||
+      capacity === undefined
+    ) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "Some values are missing",
+        success: false,
+      });
+    }
+
+    if (Number.isNaN(Number(categoryCount)) || Number.isNaN(Number(capacity))) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        msg: "categoryCount and capacity must be numbers",
+        success: false,
+      });
+    }
+
+    const [subVenue] = await prisma.$transaction([
+      prisma.subVenue.create({ data: { ...data, venueId } }),
+      prisma.venue.update({
+        where: { id: venueId },
+        data: { subVenueCount: { increment: 1 } },
+      }),
+    ]);
+
+    return res.status(StatusCodes.CREATED).json({
+      subVenue,
+      msg: "subvenue created successfully",
+      success: true,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      msg: "could not create subvenue",
       success: false,
     });
   }
@@ -159,9 +235,9 @@ const getVenues = async (req, res) => {
   }
 };
 
-const getVenuesByOrganizerId = async (req, res)=>{
+const getVenuesByOrganizerId = async (req, res) => {
   try {
-    console.log(req.user.id)
+    console.log(req.user.id);
     const venues = await prisma.Venue.findMany({
       where: { userId: req.user.id },
       include: { subVenues: true },
@@ -176,7 +252,7 @@ const getVenuesByOrganizerId = async (req, res)=>{
       success: false,
     });
   }
-}
+};
 
 const getSubVenuesByVenueId = async (req, res) => {
   try {
@@ -223,52 +299,7 @@ const getSubVenuesBySubVenueId = async (req, res) => {
     });
   }
 };
-const createSubVenue = async (req, res) => {
-  const { venueId } = req.params;
-  const subVenues = [...req.body];
-  
-   if (subVenues.length === 0) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "at least one subvenue is required",
-        success: false,
-      });
-    }
-     
-  const subVenueData = subVenues.map((sv)=>{
-    return {
-      ...sv,
-      venueId : venueId
-    }
-  })
-   
 
-  console.log(subVenueData);
-
-  for(let i=0; i<subVenueData.length; i++){
-
-    if (!subVenueData.venueId || !subVenueData.subVenueName || !subVenueData.categoryCount || !subVenueData.capacity) {
-    res.status(StatusCodes.BAD_REQUEST).json({
-      msg: "Some values are missing",
-      success: false,
-    });
-  }
-
-  }
-
-  try{
-    const result = await prisma.SubVenue.createMany({subVenueData, skipDuplicates: true,})
-    res.status(StatusCodes.OK).json({ result, success: true });
-    
-  }
- catch(err){
-    console.error(err);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "could not add subvenues",
-      success: false,
-    });
- }
-  
-};
 const updateSubVenue = async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -338,6 +369,7 @@ export {
   createVenue,
   updateVenue,
   deleteVenue,
+  createSubVenue,
   getSubVenuesByVenueId,
   getSubVenuesBySubVenueId,
   getVenuesByOrganizerId,
