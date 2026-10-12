@@ -1,11 +1,11 @@
 import { text } from "@fortawesome/fontawesome-svg-core";
-import { useRef, useState } from "react"
-import { createVenue } from "../../api/event";
+import { useEffect, useRef, useState } from "react"
+import { createVenue, getVenueDetails } from "../../api/event";
 import '../Organizer/styles/Step1EventForm.css'
 import { toast } from "react-toastify";
 import ConfirmCreateDialog from "./models/ConfirmCreateDialog";
 import CreateVenue from "./models/CreateVenue";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const emptySubVenue = () => ({
   subVenueName: "",
@@ -15,6 +15,7 @@ const emptySubVenue = () => ({
 });
 
 export default function AddVenue({setAddVenue}) {
+  const {id} = useParams();
   const [openDialog, setOpenDialog] = useState(false);
   const formRef = useRef(null);
   const [subVenues, setSubVenues] = useState([emptySubVenue()]);
@@ -28,6 +29,16 @@ export default function AddVenue({setAddVenue}) {
     country: "",
     pincode: "",
   });
+
+  useEffect(()=>{
+    async function getVenue(){
+      const data = await getVenueDetails(id);
+      console.log(data.venue);
+      setVenue(data.venue);
+      setSubVenues(data.venue.subVenues)
+    }
+    getVenue();
+  },[])
 
   const handleVenueChange = (e) => {
     const { name, value } = e.target;
@@ -91,6 +102,10 @@ export default function AddVenue({setAddVenue}) {
     else {
       toast.error("Cannot create Venue. Something went wrong.")
     }
+
+  }
+
+  async function editSubVenue(id){
 
   }
 
@@ -217,7 +232,7 @@ export default function AddVenue({setAddVenue}) {
           {subVenues.map((sv, index) => (
             <div key={`subvenue-${index}`}>
               <h3>Session {index + 1}</h3>
-
+              {id &&<button type="button" onClick={() => editSubVenue(sv.id)}>Edit subVenue</button>}
               <div className="sv-elements ce-card" >
                 <div className="ce-field-plain">
                   <label htmlFor={`subVenueName-${index}`}>Sub-Venue Name</label>
@@ -260,7 +275,9 @@ export default function AddVenue({setAddVenue}) {
             </div>
           ))}
 
-          <button onClick={handleDialogOpen} type="button">Create Venue</button>
+         {id ?
+          <button onClick={handleDialogOpen} type="button">Edit Venue</button>
+        : <button onClick={handleDialogOpen} type="button">Create Venue</button>}
           <button onClick={() => setAddVenue(false)} type="button">Back</button>
         </form>
       </div>

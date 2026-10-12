@@ -179,7 +179,19 @@ const deleteSubVenue = async (id) => {
     }
 }
 
+const editVenue = async (id)=>{
+        try{
+       const res = await axiosInstance.delete(`organizer/updateVenue/${id}`);
+       console.log(res.data);
+       return res.data
+    }
+    catch{
+       throw new Error("could not edit venue")
+    }
+
+}
+
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue
+    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenue
 };

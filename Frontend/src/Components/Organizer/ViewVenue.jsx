@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { getVenueDetails, deleteSubVenue } from "../../api/event";
 import '../Organizer/styles/MyVenues.css'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,6 +11,7 @@ export default function ViewVenue(){
     const {id} = useParams();
     const [venue, setVenue] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(()=>{
         async function getVenue(){
@@ -44,7 +45,8 @@ export default function ViewVenue(){
     }
 
     function editVenue(id){
-        
+        console.log("edit venue");
+        navigate('/dashboard/editVenue/'+id)
     }
 
      if (loading) return <p>Loading venue...</p>;
@@ -73,6 +75,7 @@ export default function ViewVenue(){
           <p>
             <strong>State:</strong> {venue.state}
           </p>
+          
           <p>
             <strong>Country:</strong> {venue.country}
           </p>
