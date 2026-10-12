@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom";
-import { getVenueDetails, deleteSubVenue } from "../../api/event";
+import { getVenueDetails, deleteSubVenue, editSubVenueById} from "../../api/event";
 import '../Organizer/styles/MyVenues.css'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { toast } from "react-toastify";
+import EditSubVenueDialog from "./models/EditSubVenue";
+import DeleteDialog from "./models/DeleteDialog";
 
 
 export default function ViewVenue(){
@@ -12,6 +14,9 @@ export default function ViewVenue(){
     const [venue, setVenue] = useState(null);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const [editingSubVenue, setEditingSubVenue] = useState(null);
+    const [deleteDialog, setDeleteDialog] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     useEffect(()=>{
         async function getVenue(){
@@ -30,7 +35,17 @@ export default function ViewVenue(){
     },[id])
 
 
-    async function handleDeleteSubVenue(id){
+    function handleDeleteSubVenue(id){
+         setDeleteDialog(true);
+         setDeleteId(id);
+    }
+
+    function confirmDelete(){
+       DeleteSubVenue(deleteId);
+       setDeleteDialog(false);
+    }
+
+    async function DeleteSubVenue(id){
         const res = await deleteSubVenue(id);
         if(res.success){
             toast.success("SubVenue deleted successfully");
@@ -48,6 +63,36 @@ export default function ViewVenue(){
         console.log("edit venue");
         navigate('/dashboard/editVenue/'+id)
     }
+
+
+    function handleEditSubVenue(subVenue){
+        setEditingSubVenue(subVenue);
+    }
+
+    async function handleSaveSubVenue(subVenueId, data) {
+  try {
+    const res = await editSubVenueById(subVenueId, data);
+
+    if (res.success) {
+      toast.success("SubVenue edited successfully");
+
+      setVenue((prev) => ({
+        ...prev,
+        subVenues: prev.subVenues.map((sv) =>
+          sv.id === subVenueId ? res.subVenue : sv
+        ),
+      }));
+
+      setEditingSubVenue(null); // close the dialog
+    } else {
+      toast.error("Something went wrong. Can't edit sub venue");
+    }
+  } catch (err) {
+    console.log(err);
+    toast.error("Something went wrong. Can't edit sub venue");
+  }
+}
+
 
      if (loading) return <p>Loading venue...</p>;
   if (!venue) return <p>Venue not found.</p>;
@@ -97,7 +142,10 @@ export default function ViewVenue(){
             <div className="vd-subcard" key={sv.id}>
               <div className="vd-elements">
                 <h3>{sv.subVenueName || "Unnamed sub-venue"}</h3>
-                <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteSubVenue(sv.id)} />
+                <div>
+                 <FontAwesomeIcon icon={faEdit} onClick={() => handleEditSubVenue(sv)}/>
+                {venue.subVenues.length > 1 && <FontAwesomeIcon icon={faTrash} onClick={() => handleDeleteSubVenue(sv.id)} />}
+                </div>
               </div>
               <p>
                 <strong>Categories:</strong> {sv.categoryCount}
@@ -112,6 +160,21 @@ export default function ViewVenue(){
         <p>No sub-venues added.</p>
       )}
     </div>
+
+    <EditSubVenueDialog
+    open={Boolean(editingSubVenue)}
+  subVenue={editingSubVenue}
+  onClose={() => setEditingSubVenue(null)}
+  onSave={handleSaveSubVenue}
+    />
+    <DeleteDialog
+          open={deleteDialog}
+          onClose ={() => {
+            setDeleteId(null)
+            setDeleteDialog(false)}
+          }
+          onConfirm = {confirmDelete}
+          />
         </>
     )
 }

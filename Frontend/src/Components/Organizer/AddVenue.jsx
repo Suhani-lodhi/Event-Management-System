@@ -1,11 +1,12 @@
 import { text } from "@fortawesome/fontawesome-svg-core";
 import { useEffect, useRef, useState } from "react"
-import { createVenue, getVenueDetails } from "../../api/event";
+import { createVenue, editVenueById, getVenueDetails } from "../../api/event";
 import '../Organizer/styles/Step1EventForm.css'
 import { toast } from "react-toastify";
 import ConfirmCreateDialog from "./models/ConfirmCreateDialog";
 import CreateVenue from "./models/CreateVenue";
 import { useNavigate, useParams } from "react-router-dom";
+import ConfirmCreationDialog from './models/ConfirmCreateDialog'
 
 const emptySubVenue = () => ({
   subVenueName: "",
@@ -20,6 +21,8 @@ export default function AddVenue({setAddVenue}) {
   const formRef = useRef(null);
   const [subVenues, setSubVenues] = useState([emptySubVenue()]);
   const navigate = useNavigate();
+  const [editDialog, setEditDialog] = useState(false);
+
 
   const [venue, setVenue] = useState({
     venueName: "",
@@ -35,7 +38,6 @@ export default function AddVenue({setAddVenue}) {
       const data = await getVenueDetails(id);
       console.log(data.venue);
       setVenue(data.venue);
-      setSubVenues(data.venue.subVenues)
     }
     getVenue();
   },[])
@@ -105,21 +107,37 @@ export default function AddVenue({setAddVenue}) {
 
   }
 
-  async function editSubVenue(id){
-
+  function handleEditVenue(){
+    setEditDialog(true);
   }
+  function confirmEdit(){
+    setEditDialog(false);
+    editVenue();
+  }
+
+  async function editVenue(){
+    try{
+      const data = await editVenueById(id, venue);
+      if(data.success){
+        toast.success("Venue Edited Successfully");
+        navigate(-1)
+      }
+      else{
+        toast.error("Something went wrong. Can't edit venue");
+      }
+    }
+    catch(err){
+        toast.error("Something went wrong. Can't edit venue");
+    }
+  }
+
+
 
   return (
     <>
-
-      {/* <div className="v-header">
-        <h1>My Venues</h1>
-        <p>Add your venues and their sub-venues here to use them when creating events.</p>
-      </div> */}
-      {/* <button onClick={addVenue}>Add Your Venue</button> */}
       <div className="ce-form-page">
         <div className="ce-form-header v-form-header">
-          <h2>Add Venue</h2>
+          <h2>{id ? "Edit" : "Add"} Venue</h2>
         </div>
         <form ref={formRef}>
           <div className="ce-card">
@@ -210,7 +228,7 @@ export default function AddVenue({setAddVenue}) {
             </div>
 
             <br />
-            <div className="ce-field-plain">
+            {!id && <div className="ce-field-plain">
               <label htmlFor="subVenueCount">Number of Sub-Venues</label>
               <input
                 id="subVenueCount"
@@ -220,12 +238,12 @@ export default function AddVenue({setAddVenue}) {
                 placeholder="Sub Venues Count"
                 onChange={handleSubVenueCount}
               />
-            </div>
+            </div>}
           </div>
           <br />
 
 
-          <div className="ce-form-header v-form-header">
+          {!id && <><div className="ce-form-header v-form-header">
             <h2>Add SubVenue Details</h2>
             {/* <button onClick={handleSubVenueCount} type="button">Add subVenue</button> */}
           </div>
@@ -274,11 +292,13 @@ export default function AddVenue({setAddVenue}) {
               </div>
             </div>
           ))}
+          </>
+        }
 
          {id ?
-          <button onClick={handleDialogOpen} type="button">Edit Venue</button>
+          <button onClick={handleEditVenue} type="button">Edit Venue</button>
         : <button onClick={handleDialogOpen} type="button">Create Venue</button>}
-          <button onClick={() => setAddVenue(false)} type="button">Back</button>
+          <button onClick={() => id? navigate(-1) : setAddVenue(false)} type="button">Back</button>
         </form>
       </div>
 
@@ -286,9 +306,15 @@ export default function AddVenue({setAddVenue}) {
         open={openDialog}
         onClose={() => setOpenDialog(false)}
         onConfirm={handleCreateConfirm}
-        createVenue={true}
-        isEdit={false}
       />
+      
+      <ConfirmCreationDialog
+      open={editDialog}
+      onClose= {() => setEditDialog(false)}
+      onConfirm= {confirmEdit}
+      isEdit={true}
+      />
+
     </>
   )
 }

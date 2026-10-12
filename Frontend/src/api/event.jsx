@@ -179,9 +179,9 @@ const deleteSubVenue = async (id) => {
     }
 }
 
-const editVenue = async (id)=>{
+const editVenueById = async (id, data)=>{
         try{
-       const res = await axiosInstance.delete(`organizer/updateVenue/${id}`);
+       const res = await axiosInstance.patch(`organizer/updateVenue/${id}`, data);
        console.log(res.data);
        return res.data
     }
@@ -191,7 +191,19 @@ const editVenue = async (id)=>{
 
 }
 
+const editSubVenueById = async (id, data) =>{
+    try{
+       const res = await axiosInstance.patch(`organizer/updateSubVenue/${id}`, data);
+       console.log(res.data);
+       return res.data
+    }
+    catch{
+       throw new Error("could not edit Sub venue")
+    }
+
+}
+
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenue
+    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, editSubVenueById
 };
