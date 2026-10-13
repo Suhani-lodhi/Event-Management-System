@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 import DeleteDialog from './models/DeleteDialog';
 import { toast } from 'react-toastify';
+import { getImageSrc } from '../../utils/imageUrl';
 
 export default function OrganizerDashboard() {
 
@@ -120,6 +121,25 @@ export default function OrganizerDashboard() {
           <div className="od-event-list">
             {filteredEvents.map((event) => (
               <div className="od-event-card" key={event.id}  >
+                
+                <div className="od-event-image">
+  {event.imageUrl ? (
+    <img
+      src={getImageSrc(event.imageUrl)}
+      alt={event.Title}
+      loading="lazy"
+      onError={(e) => {
+        e.currentTarget.style.display = "none"; // hide broken image
+      }}
+    />
+  ) : (
+    <div className="od-image-placeholder">No image</div>
+  )}
+</div>
+
+
+
+
                 <div className="od-event-main">
                   <div className="od-event-top">
                     <div>

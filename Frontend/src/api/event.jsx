@@ -1,6 +1,7 @@
 import axiosInstance from "./axiosInstance";
 
 const CreateEvent = async (eventData) => {
+       console.log("is FormData:", eventData instanceof FormData);
     try {
         const res = await axiosInstance.post("organizer/createEvent", eventData);
         return { res, status: true };

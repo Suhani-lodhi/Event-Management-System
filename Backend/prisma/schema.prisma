@@ -131,6 +131,7 @@ model Event {
   Title            String
   Description      String?
   currentSessionId Int?          @unique
+  imageUrl String?
   status           EventStatus?  @default(DRAFTED)
   organizer        Organizer     @relation(fields: [organizerId], references: [id])
   sessions         Session[]

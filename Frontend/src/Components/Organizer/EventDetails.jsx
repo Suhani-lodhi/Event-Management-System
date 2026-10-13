@@ -3,6 +3,7 @@ import {  useNavigate, useParams } from "react-router-dom";
 import { getEventDetails } from "../../api/event";
 import '../Organizer/styles/OrganizerDashboard.css'
 import Table from '../Organizer/models/Table'
+import { getImageSrc } from "../../utils/imageUrl";
 
 export default function EventDetails(){
     const {id}= useParams();
@@ -16,6 +17,7 @@ export default function EventDetails(){
                 const data = await getEventDetails(id);
                 // console.log(data.event);
                 setEvent(data.event);
+                console.log("event details -------> ", data.event)
             }
             catch (err) {
                 console.log("error occurred in get all events")
@@ -49,7 +51,24 @@ export default function EventDetails(){
                 <p>View your event details here</p>
             </div>
 
-                <div className="ed-card" >
+                <div className="ed-card">
+
+                {event.imageUrl ? (
+                    <img
+                      src={getImageSrc(event.imageUrl)}
+                      alt={event.Title}
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none"; 
+                      }}
+
+                      className="ed-banner-img"
+                    />
+                  ) : (
+                    <div className="ed-banner-placeholder">No image</div>
+                  )}
+                
+
                     <div className="ed-event-top">
                   <h1>{event.Title}</h1>
                   <div >

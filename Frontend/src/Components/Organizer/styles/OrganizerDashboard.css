@@ -236,7 +236,7 @@ select:focus{
   border-radius: 14px;
   background: #ffffff;
   margin: auto;
-  margin-top: 10px;
+  margin-top: 5px;
   padding: 24px;
 }
 
@@ -245,7 +245,7 @@ select:focus{
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  padding: 0px 0px 20px 0px;
   border-bottom: 1px solid var(--color-blush-mid);
 }
 
@@ -265,6 +265,51 @@ select:focus{
   border-bottom: 1px solid var(--color-blush-mid);
   padding-bottom: 8px;
   margin: 4px;
+}
+
+.ed-banner-img {
+  display: block;
+  width: 100%;
+  height: 400px;
+  object-fit:fill;  
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+
+.ed-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 14px;
+} 
+
+.od-event-image {
+  flex-shrink: 0;
+  width: 160px;
+  height: 120px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.od-event-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* crops to fill instead of stretching */
+  display: block;
+}
+
+.od-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #9ca3af;
 }
 
 

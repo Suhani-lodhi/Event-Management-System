@@ -22,7 +22,7 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-
+app.use("/uploads", express.static("uploads"));
 app.use("/auth", authRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), eventRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);

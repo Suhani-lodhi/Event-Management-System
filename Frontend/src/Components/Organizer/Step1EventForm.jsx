@@ -3,11 +3,15 @@ import ConfirmCreateDialog from './models/ConfirmCreateDialog'
 import { useEffect, useRef, useState } from 'react';
 import { CreateEvent, getEventDetails, updateEvent } from '../../api/event';
 import { toast } from 'react-toastify';
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export default function Step1EventForm({ setStep, setEventId, id, createEvent }) {
   const formRef = useRef(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loading, setLoading] = useState(Boolean(id)); 
+  const [image, setImage] = useState(null);      
+const [preview, setPreview] = useState(null);
+  
 
   const [eventData, setEventData] = useState({
     title: "",
@@ -27,6 +31,13 @@ export default function Step1EventForm({ setStep, setEventId, id, createEvent })
           category: data.event.category,
           genre: data.event.genre,
         });
+        if(data.event.imageUrl){
+          setPreview(`${API_URL}${data.event.imageUrl}`)
+        }
+        else{
+          setImage(null);
+          setPreview(null);
+        }
         setEventId(id);
       } catch (err) {
         console.log("could not load event for editing");
@@ -46,6 +57,8 @@ export default function Step1EventForm({ setStep, setEventId, id, createEvent })
     });
     setEventId(null)
     setLoading(false);
+    setImage(null);
+    setPreview(null)
     }
 
    
@@ -68,31 +81,80 @@ export default function Step1EventForm({ setStep, setEventId, id, createEvent })
     submitEvent();
   }
 
-  async function submitEvent() {
-    const payload = {
-      Title: eventData.title,
-      Description: eventData.description,
-      category: eventData.category,
-      genre: eventData.genre,
-    };
+  function handleImageChange(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    try {
-      if (id) {
-        await updateEvent(id, payload);
-        toast.success("Event edited successfully")
-        setEventId(id);
-      } else {
-        const isAdded = await CreateEvent(payload);
-        setEventId(isAdded.res.data.event.id);
-        toast.success("Event created Successfully")
-      }
-      setStep((prev) => prev + 1);
-    } catch (err) {
-      console.log(err)
-      toast.error("Could not save event")
-      console.error("could not save event");
-    }
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    toast.error("Only JPG, PNG or WEBP images are allowed");
+    e.target.value = "";
+    return;
   }
+  if (file.size > 5 * 1024 * 1024) {
+    toast.error("Image must be smaller than 5 MB");
+    e.target.value = "";
+    return;
+  }
+
+  setImage(file);
+  setPreview(URL.createObjectURL(file));
+}
+
+  // async function submitEvent() {
+  //   const payload = {
+  //     Title: eventData.title,
+  //     Description: eventData.description,
+  //     category: eventData.category,
+  //     genre: eventData.genre,
+  //   };
+
+  //   try {
+  //     if (id) {
+  //       await updateEvent(id, payload);
+  //       toast.success("Event edited successfully")
+  //       setEventId(id);
+  //     } else {
+  //       const isAdded = await CreateEvent(payload);
+  //       setEventId(isAdded.res.data.event.id);
+  //       toast.success("Event created Successfully")
+  //     }
+  //     setStep((prev) => prev + 1);
+  //   } catch (err) {
+  //     console.log(err)
+  //     toast.error("Could not save event")
+  //     console.error("could not save event");
+  //   }
+  // }
+
+  async function submitEvent() {
+  const formData = new FormData();
+  formData.append("Title", eventData.title);
+  formData.append("Description", eventData.description);
+  formData.append("category", eventData.category);
+  formData.append("genre", eventData.genre);
+  if (image) formData.append("image", image); 
+
+  console.log([...formData.entries()]);
+
+  try {
+    if (id) {
+      await updateEvent(id, formData);
+      toast.success("Event edited successfully");
+      setEventId(id);
+    } else {
+      const isAdded = await CreateEvent(formData);
+      setEventId(isAdded.res.data.event.id);
+      toast.success("Event created Successfully");
+    }
+    setStep((prev) => prev + 1);
+  } catch (err) {
+    console.error(err);
+    toast.error("Could not save event");
+  }
+}
+
+
+
 
   if (loading) return <p>Loading event details...</p>;
 
@@ -133,6 +195,14 @@ export default function Step1EventForm({ setStep, setEventId, id, createEvent })
               onChange={(e) => updateField("description", e.target.value)}
               required
             ></textarea>
+          </div>
+
+          <div className='ce-card'>
+            <div className='ce-card-header'>
+              <label>Upload Image</label>
+            </div>
+            <input type="file" accept="image/*" onChange={handleImageChange}/>
+            {preview && <img src={preview} alt="Preview" className='ce-image-preview'  />}
           </div>
 
           <div className="ce-card">

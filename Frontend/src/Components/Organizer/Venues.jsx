@@ -3,10 +3,12 @@ import '../Organizer/styles/CreateEvents.css'
 import AddVenue from './AddVenue'
 import MyVenue from './MyVenue'
 import ViewVenue from './ViewVenue'
-import { useParams } from 'react-router-dom'
+import { useParams, useLocation} from 'react-router-dom'
 export default function Venues(){
     const {id} = useParams();
-    const [addVenue, setAddVenue] = useState(false)
+    const location = useLocation();
+    const [addVenue, setAddVenue] = useState(location.state?.openAddVenue ?? false)
+
 
     return (
         <>

@@ -1,11 +1,16 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../index.js";
+import fs from "fs/promises";
+import path from 'path'
+import { removeUploadedFile, removeFile } from "../utils/imagehandle.js";
+
 
 const createEvent = async (req, res) => {
   try {
     const { category, genre, Title, Description } = req.body;
 
     if (!category || !genre || !Title) {
+       await removeUploadedFile(req.file);
       return res.status(StatusCodes.BAD_REQUEST).json({
         msg: "required info not found",
         success: false,
@@ -18,11 +23,14 @@ const createEvent = async (req, res) => {
     });
 
     if (!organizer) {
+      await removeUploadedFile(req.file);
       return res.status(StatusCodes.NOT_FOUND).json({
         msg: "invalid organizer: organizer not found",
         success: false,
       });
     }
+
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
     const event = await prisma.event.create({
       data: {
@@ -31,6 +39,7 @@ const createEvent = async (req, res) => {
         genre,
         Title,
         Description: Description || null,
+        imageUrl: imageUrl
       },
     });
 
@@ -40,6 +49,7 @@ const createEvent = async (req, res) => {
       success: true,
     });
   } catch (err) {
+    await removeUploadedFile(req.file);
     console.error(err);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: "could not create event",
@@ -142,6 +152,7 @@ const updateEventById = async (req, res) => {
     const event = await prisma.event.findUnique({ where: { id: eventId } });
 
     if (!event) {
+      await removeFile(req.file);
       return res.status(StatusCodes.NOT_FOUND).json({
         msg: "event not found",
         success: false,
@@ -149,6 +160,7 @@ const updateEventById = async (req, res) => {
     }
 
     if (!organizer || event.organizerId !== organizer.id) {
+      await removeFile(req.file?.path);
       return res.status(StatusCodes.FORBIDDEN).json({
         msg: "not authorized to update this event",
         success: false,
@@ -162,8 +174,13 @@ const updateEventById = async (req, res) => {
         ...(genre && { genre }),
         ...(Title && { Title }),
         ...(Description !== undefined && { Description }),
+        ...(req.file && { imageUrl: `/uploads/${req.file.filename}` }),
       },
     });
+
+    if (req.file && event.imageUrl) {
+      await removeFile(path.join("uploads", path.basename(event.imageUrl)));
+    }
 
     res.status(StatusCodes.OK).json({
       event: updated,
@@ -210,11 +227,16 @@ const deleteEventById = async (req, res) => {
       prisma.session.deleteMany({ where: { eventId: eventId } }),
       prisma.event.delete({ where: { id: eventId } }),
     ]);
+    
+    if (event.imageUrl) {
+      await removeFile(path.join("uploads", path.basename(event.imageUrl)));
+    }
 
     res.status(StatusCodes.OK).json({
       msg: "Event Deleted sucecessfully",
       success: true,
     });
+
   } catch (err) {
     console.log(err);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
