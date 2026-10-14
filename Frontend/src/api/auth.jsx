@@ -20,3 +20,6 @@ export const signupParticipant = (formData) =>
 
 export const signupOrganizer = (formData) =>
   post("/auth/organizerSignup", formData, "Signup failed");
+
+export const verifyOtp = (data) => post("/auth/verifyOtp", data);
+export const resendOtp = (data) => post("/auth/resendOtp", data);

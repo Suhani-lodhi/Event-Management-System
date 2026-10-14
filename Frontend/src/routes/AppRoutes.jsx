@@ -14,6 +14,7 @@ import { useEffect } from 'react';
 import Venues from '../Components/Organizer/Venues';
 import ViewVenue from '../Components/Organizer/ViewVenue';
 import UserDashboard from '../pages/user/UserDashboard';
+import VerifyOtp from '../pages/verifyOtp';
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {
@@ -71,6 +72,14 @@ export default function AppRoutes() {
           </PublicOnlyRoute>
         }
       />
+      <Route
+        path="/verify-otp"
+        element={
+          <PublicOnlyRoute>
+            <VerifyOtp />
+          </PublicOnlyRoute>
+        }
+      />
 
       {/* Protected routes */}
       {/* Organizer side routes */}
@@ -100,10 +109,10 @@ export default function AppRoutes() {
             <UserDashboard/>
         </ProtectedRoute>
       }>
-        
+
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+    </Routes >
   );
 }

@@ -57,13 +57,11 @@ export default function OrganizerSignup() {
     try {
       const payload = { ...formData, pincode: parseInt(formData.pincode, 10) };
       const res = await signupOrganizer(payload);
-      // login(res.data.token, res.data.userData);
-      login(res.data.accessToken,res.data.refreshToken, res.data.user);
-
       sessionStorage.removeItem(STORAGE_KEY);
-      navigate('/dashboard');
+      navigate('/verify-otp', { state: { email: res.data.email } });
+
     } catch (err) {
-      setError(err.response?.data?.msg || 'Signup failed. Please try again.');
+      setError(err.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
