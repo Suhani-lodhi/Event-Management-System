@@ -1,7 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
 const CreateEvent = async (eventData) => {
-       console.log("is FormData:", eventData instanceof FormData);
     try {
         const res = await axiosInstance.post("organizer/createEvent", eventData);
         return { res, status: true };
@@ -26,7 +25,6 @@ const getAllEvents = async () => {
 
 
 const getEventDetails = async (id) => {
-    console.log("get event -----> ", id)
     try {
         const res = await axiosInstance.get(`organizer/getEvent/${id}`);
         return res.data;
@@ -125,10 +123,7 @@ const getVenuesOfOrganizer = async () =>{
 
 const getSubVenues = async (id) =>{
     try{
-        console.log("Id............",id)
         const res = await axiosInstance.get(`organizer/subVenues/${id}`)
-        console.log(res)
-        console.log(res.data)
         return res.data;
     }
     catch(err){
@@ -139,7 +134,6 @@ const getSubVenues = async (id) =>{
 const createVenue = async (data)=>{
     try{
        const res = await axiosInstance.post(`organizer/createVenue`, data);
-       console.log(res.data);
        return res.data
     }
     catch{
@@ -150,7 +144,6 @@ const createVenue = async (data)=>{
 const deleteVenueById = async (id) =>{
      try{
        const res = await axiosInstance.delete(`organizer/deleteVenue/${id}`);
-       console.log(res.data);
        return res.data
     }
     catch{
@@ -161,7 +154,6 @@ const deleteVenueById = async (id) =>{
 const getVenueDetails = async (id) =>{
     try{
        const res = await axiosInstance.get(`organizer/venue/${id}`)
-       console.log(res.data);
        return res.data;
     }
     catch(err){
@@ -172,7 +164,6 @@ const getVenueDetails = async (id) =>{
 const deleteSubVenue = async (id) => {
      try{
        const res = await axiosInstance.delete(`organizer/deleteSubVenue/${id}`);
-       console.log(res.data);
        return res.data
     }
     catch{
@@ -183,7 +174,6 @@ const deleteSubVenue = async (id) => {
 const editVenueById = async (id, data)=>{
         try{
        const res = await axiosInstance.patch(`organizer/updateVenue/${id}`, data);
-       console.log(res.data);
        return res.data
     }
     catch{
@@ -195,7 +185,6 @@ const editVenueById = async (id, data)=>{
 const editSubVenueById = async (id, data) =>{
     try{
        const res = await axiosInstance.patch(`organizer/updateSubVenue/${id}`, data);
-       console.log(res.data);
        return res.data
     }
     catch{
@@ -207,7 +196,6 @@ const editSubVenueById = async (id, data) =>{
 const createSubVenue = async (id, data) =>{
     try{
        const res = await axiosInstance.post(`organizer/createSubVenue/${id}`, data);
-       console.log(res.data);
        return res.data
     }
     catch{

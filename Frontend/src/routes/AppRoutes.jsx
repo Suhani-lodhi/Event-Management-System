@@ -16,6 +16,12 @@ import ViewVenue from '../Components/Organizer/ViewVenue';
 import UserDashboard from '../pages/user/UserDashboard';
 import VerifyOtp from '../pages/verifyOtp';
 
+
+
+const ROLES = {
+  ORGANIZER: '/dashboard',
+  USER: '/user',
+};
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user, loading } = useAuth();
@@ -35,11 +41,15 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 // Keeps logged-in users out of login/signup pages
 function PublicOnlyRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
+  if (isAuthenticated) {
+    return <Navigate to={ROLES[user?.role] || '/login'} replace />;
+  }
+
+  return children;
 }
 
 export default function AppRoutes() {

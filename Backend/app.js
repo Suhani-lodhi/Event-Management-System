@@ -9,6 +9,7 @@ import authRouter from "./Routes/auth.js";
 import eventRouter from "./Routes/event.js";
 import sessionRouter from "./Routes/session.js";
 import venueRouter from "./Routes/venues.js";
+import userEventRouter from "./Routes/User_Routes/event.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -27,6 +28,7 @@ app.use("/auth", authRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), eventRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), venueRouter);
+app.use("/user", userEventRouter);
 
 app.listen(port, () => {
   console.log("app is listening on port", port);

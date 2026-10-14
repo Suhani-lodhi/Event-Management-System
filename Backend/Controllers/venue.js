@@ -90,7 +90,6 @@ const createVenue = async (req, res) => {
 const createSubVenue = async (req, res) => {
   try {
     const venueId = Number(req.params.id);
-    console.log("venueId------>", venueId)
     const { subVenueName, categoryCount, capacity } = req.body;
 
     if (Number.isNaN(venueId)) {
