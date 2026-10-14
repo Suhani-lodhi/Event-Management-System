@@ -6,6 +6,7 @@
 }
 :root {
   /* Color Pallete */
+  --color-blush-lightest2: #f3f3f3; /* rgb(251, 239, 239) */
   --color-blush-lightest: #fbefef; /* rgb(251, 239, 239) */
   --color-blush-light: #ffe2e2; /* rgb(255, 226, 226) */
   --color-blush-mid: #f5cbcb; /* rgb(245, 203, 203) */

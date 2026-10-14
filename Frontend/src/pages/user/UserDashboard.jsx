@@ -1,7 +1,10 @@
+import Navbar from "../../Components/Navbar"
+import UserNavigation from "../../Components/user/UserNavigation"
 export default function UserDashboard(){
     return (
         <>
-          <h1>User dashboard</h1>
+        <Navbar role="user"/>
+          <UserNavigation />
         </>
     )
 }

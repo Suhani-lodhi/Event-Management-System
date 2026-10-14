@@ -292,3 +292,18 @@ input {
   margin-top: 5px;
   margin-bottom: 5px;
 }
+
+
+/* user-navigation */
+
+.user-nav{
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 30px;
+  background-color: var(--color-blush-light);
+}
+
+.user-nav div a{
+  text-decoration: none;
+  padding: 10px;
+}

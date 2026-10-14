@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 
-export default function Navbar() {
+export default function Navbar({role}) {
   const { user, logout } = useAuth();
   const navigate = useNavigate(); // ✅ FIXED 2: Initialized navigate hook
 
@@ -53,6 +53,9 @@ export default function Navbar() {
           />
         </form> */}
 
+  
+
+
         <ul className="nav-right">
           {/* <li>
             <a href="" className="nav-link" aria-label="Notifications">
@@ -82,7 +85,6 @@ export default function Navbar() {
                 aria-expanded={open}
                 onClick={handleClick}
               >
-                {/* ✅ FIXED 4: Using the safe initials handler */}
                 {getInitials()} 
               </div>
               <Menu
