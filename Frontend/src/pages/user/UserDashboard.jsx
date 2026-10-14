@@ -1,10 +1,12 @@
+import MainContent from "../../Components/MainContent"
 import Navbar from "../../Components/Navbar"
-import UserNavigation from "../../Components/user/UserNavigation"
+import UserNavigation from "../../Components/User/UserNavigation"
 export default function UserDashboard(){
     return (
         <>
-        <Navbar role="user"/>
+        <Navbar/>
           <UserNavigation />
+          <MainContent />
         </>
     )
 }

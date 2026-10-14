@@ -4,7 +4,6 @@ import {
   deleteEventById,
   getEventById,
   getEventByOrganizerId,
-  getEvents,
   updateEventById,
 } from "../Controllers/event.js";
 import {upload} from '../Middleware/upload.js'
@@ -20,6 +19,6 @@ router.delete("/deleteEvent/:id", deleteEventById);
 
 
 
-router.get("/getEvents", getEvents);
+
 
 export default router;

@@ -15,6 +15,7 @@ import Venues from '../Components/Organizer/Venues';
 import ViewVenue from '../Components/Organizer/ViewVenue';
 import UserDashboard from '../pages/user/UserDashboard';
 import VerifyOtp from '../pages/verifyOtp';
+import Home from '../pages/user/Home';
 
 
 const ROLES = {
@@ -120,6 +121,7 @@ export default function AppRoutes() {
             <UserDashboard/>
         </ProtectedRoute>
       }>
+        <Route index element={<Home/>}/>
 
       </Route>
 

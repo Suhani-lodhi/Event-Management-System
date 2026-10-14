@@ -58,22 +58,7 @@ const createEvent = async (req, res) => {
   }
 };
 
-const getEvents = async (req, res) => {
-  try {
-    const events = await prisma.event.findMany({
-      include: { currentSession: true, sessions: true },
-      orderBy: { id: "desc" },
-    });
 
-    res.status(StatusCodes.OK).json({ events, success: true });
-  } catch (err) {
-    console.error(err);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "could not fetch events",
-      success: false,
-    });
-  }
-};
 
 const getEventById = async (req, res) => {
   try {
@@ -248,7 +233,6 @@ const deleteEventById = async (req, res) => {
 
 export {
   createEvent,
-  getEvents,
   getEventById,
   getEventByOrganizerId,
   updateEventById,

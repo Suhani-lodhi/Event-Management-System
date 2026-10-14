@@ -7,7 +7,7 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 
-export default function Navbar({role}) {
+export default function Navbar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate(); // ✅ FIXED 2: Initialized navigate hook
 

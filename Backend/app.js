@@ -29,7 +29,8 @@ app.use("/auth", authRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), eventRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), venueRouter);
-app.use("/user", userEventRouter);
+
+app.use("/user",authenticate, authorize("USER"), userEventRouter);
 
 
 
