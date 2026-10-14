@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { loginUser } from '../api/auth';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { loginUser, resendOtp } from '../api/auth';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
+
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,13 +23,21 @@ export default function Login() {
     try {
       const res = await loginUser(form);
       const user = res.data.user;
-      login(user); 
+      login(user);
 
       navigate(user.role === 'ORGANIZER' ? '/organizer' : '/dashboard', { replace: true });
     } catch (err) {
+
+      if (err.response?.status === 403) {
+        try {
+          await resendOtp({ email: form.email });
+        } catch {}
+        navigate('/verify-otp', { state: { email: form.email } });
+        return;
+      }
+
       setError(
         err.response?.data?.message ||
-        err.response?.data?.msg ||
         err.message ||
         'Login failed. Please try again.'
       );

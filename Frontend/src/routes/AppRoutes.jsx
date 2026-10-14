@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { useEffect } from 'react';
 import Venues from '../Components/Organizer/Venues';
 import ViewVenue from '../Components/Organizer/ViewVenue';
+import VerifyOtp from '../pages/verifyOtp';
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {
@@ -67,6 +68,14 @@ export default function AppRoutes() {
         element={
           <PublicOnlyRoute>
             <OrganizerSignup />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/verify-otp"
+        element={
+          <PublicOnlyRoute>
+            <VerifyOtp />
           </PublicOnlyRoute>
         }
       />

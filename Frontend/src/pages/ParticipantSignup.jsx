@@ -19,22 +19,20 @@ export default function ParticipantSignup() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      const res = await signupParticipant(form);
-      // login(res.data.token, res.data.userData);
-      login(res.data.accessToken,res.data.refreshToken, res.data.user);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+  try {
+    const res = await signupParticipant(form);
+      navigate('/verify-otp', { state: { email: res.data.email ?? form.email } });
 
-      navigate('/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.msg || 'Signup failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err) {
+    setError(err.response?.data?.message || 'Signup failed. Please try again.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="auth-page">
