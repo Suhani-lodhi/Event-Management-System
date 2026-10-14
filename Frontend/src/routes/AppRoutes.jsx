@@ -72,6 +72,7 @@ export default function AppRoutes() {
       />
 
       {/* Protected routes */}
+      {/* Organizer side routes */}
       <Route
         path="/dashboard"
         element={
@@ -90,6 +91,14 @@ export default function AppRoutes() {
         <Route path="venue/:id" element ={<ViewVenue/>} />
         <Route path="editVenue/:id" element={<Venues/>} />
       </Route>
+
+
+      <Route path='/user'
+      element={
+        <ProtectedRoute allowedRoles={["USER"]}>
+        
+        </ProtectedRoute>
+      }></Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
