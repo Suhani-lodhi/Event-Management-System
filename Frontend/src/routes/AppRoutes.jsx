@@ -13,6 +13,7 @@ import { toast } from 'react-toastify';
 import { useEffect } from 'react';
 import Venues from '../Components/Organizer/Venues';
 import ViewVenue from '../Components/Organizer/ViewVenue';
+import UserDashboard from '../pages/user/UserDashboard';
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {
@@ -96,9 +97,11 @@ export default function AppRoutes() {
       <Route path='/user'
       element={
         <ProtectedRoute allowedRoles={["USER"]}>
-        
+            <UserDashboard/>
         </ProtectedRoute>
-      }></Route>
+      }>
+        
+      </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
