@@ -9,5 +9,4 @@ export const hashOtp = (otp) =>
   crypto.createHmac("sha256", process.env.OTP_SECRET).update(otp).digest("hex");
 
 // console.log('OTP secret loaded?', Object.keys(process.env).filter(k => k.includes('OTP')));
-console.log(process.env)
 // console.log(hashOtp("apple"));
