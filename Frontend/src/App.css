@@ -296,6 +296,10 @@ input {
 
 /* user-navigation */
 
+.user-main{
+  margin: 10px 80px;
+}
+
 .user-nav{
   display: flex;
   justify-content: space-between;
@@ -306,4 +310,12 @@ input {
 .user-nav div a{
   text-decoration: none;
   padding: 10px;
+  color: var(--color-lavender);
+}
+
+.ud-events{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 32px 24px 60px;
 }

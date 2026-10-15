@@ -5,13 +5,20 @@
   font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
 :root {
-  /* Color Pallete */
-  --color-blush-lightest2: #f3f3f3; /* rgb(251, 239, 239) */
-  --color-blush-lightest: #fbefef; /* rgb(251, 239, 239) */
-  --color-blush-light: #ffe2e2; /* rgb(255, 226, 226) */
-  --color-blush-mid: #f5cbcb; /* rgb(245, 203, 203) */
-  --color-lavender: #983edd; /* rgb(152, 62, 221) */
-  --color-lavender-dark: #7f2fc0;
+  
+  /* --color-blush-lightest2: #f3f3f3; 
+  --color-blush-lightest: #fbefef;
+  --color-blush-light: #ffe2e2;
+  --color-blush-mid: #f5cbcb; 
+  --color-lavender: #983edd; 
+  --color-lavender-dark: #7f2fc0; */
+
+--color-blush-lightest2: #f1f3f5;
+--color-blush-lightest: #f8f9fa;
+--color-blush-light: #e9ecef;
+--color-blush-mid: #ced4da;
+--color-lavender: #343a40;
+--color-lavender-dark: #212529;
 }
 body {
   min-height: 100vh;

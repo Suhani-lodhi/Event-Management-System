@@ -6,7 +6,9 @@ export default function UserDashboard(){
         <>
         <Navbar/>
           <UserNavigation />
-          <MainContent />
+          <div className="user-main">
+            <MainContent/>
+          </div>
         </>
     )
 }
