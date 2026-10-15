@@ -15,7 +15,6 @@ const getEventById = async (req, res) => {
     const event = await prisma.event.findFirst({
       where: {
         id: eventId,
-        // status is nullable, so list the visible ones instead of "not DRAFTED"
         status: { in: ["COMING_SOON", "ACTIVE", "CLOSED", "DRAFTED"] },
       },
       include: {

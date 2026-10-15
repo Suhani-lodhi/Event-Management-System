@@ -10,7 +10,6 @@ const getEvents = async () =>{
         throw new Error("could not fetch events");
     }
 }
-
 const getEventDetailsForUser = async (id) => {
     try {
         const res = await axiosInstance.get(`user/getEvent/${id}`);
@@ -20,8 +19,4 @@ const getEventDetailsForUser = async (id) => {
     }
 };
 export {getEventDetailsForUser}
-
-
-export {
-    getEvents
-}
+export {getEvents}
