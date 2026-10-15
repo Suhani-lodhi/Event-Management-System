@@ -16,6 +16,7 @@ import ViewVenue from '../Components/Organizer/ViewVenue';
 import UserDashboard from '../pages/user/UserDashboard';
 import VerifyOtp from '../pages/verifyOtp';
 import Home from '../pages/user/Home';
+import ParticipantEventDetails from '../Components/User/Models/EventDetail';
 
 
 const ROLES = {
@@ -121,7 +122,9 @@ export default function AppRoutes() {
             <UserDashboard/>
         </ProtectedRoute>
       }>
-        <Route index element={<Home/>}/>
+      <Route index element={<Home/>}/>
+        
+      <Route path="getEvent/:id"  element = {<ParticipantEventDetails/>} />
 
       </Route>
 

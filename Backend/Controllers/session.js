@@ -146,7 +146,7 @@ const getSessionsByEventId = async (req, res) => {
       msg: "could not fetch sessions",
       success: false,
     });
-  }
+  } 
 };
 
 const getSessionById = async (req, res) => {
