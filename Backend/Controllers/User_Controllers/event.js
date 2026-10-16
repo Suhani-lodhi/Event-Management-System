@@ -76,4 +76,63 @@ const getEvents = async (req, res) => {
 
 
 
-export { getEventById, getEvents };
+
+const CATEGORIES = ['MOVIE', 'STANDUP', 'GAME', 'ACTIVITY'];
+const parseList = (value, allowed) =>
+  String(value || '')
+    .split(',')
+    .map((v) => v.trim().toUpperCase())
+    .filter((v) => allowed.includes(v));
+
+
+const getEventsByFilter = async (req, res) => {
+  try {
+    const { category, genre, search, page = 1, limit = 12 } = req.query;
+
+    const categories = parseList(category, CATEGORIES);
+
+    // Only public, published events for the participant side
+    const where = {};
+
+    if (categories.length) where.category = { in: categories };
+    if (genre) where.genre = genre.toUpperCase();
+    if (search) where.title = { contains: search, mode: 'insensitive' };
+
+    const take = Math.min(Number(limit) || 12, 50);
+    const skip = (Math.max(Number(page) || 1, 1) - 1) * take;
+
+    const [events, total] = await Promise.all([
+      prisma.event.findMany({
+        where,
+        skip,
+        take,
+        orderBy: { id: 'desc' },
+        select: {
+          id: true,
+          title: true,
+          imageUrl: true,
+          category: true,
+          genre: true,
+        },
+      }),
+      prisma.event.count({ where }),
+    ]);
+
+    res.json({
+      events,
+      total,
+      page: Number(page) || 1,
+      totalPages: Math.ceil(total / take),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch events' });
+  }
+};
+
+
+
+
+
+
+export { getEventById, getEvents, getEventsByFilter };

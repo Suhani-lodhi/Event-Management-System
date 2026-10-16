@@ -21,7 +21,7 @@ import ParticipantEventDetails from '../Components/User/Models/EventDetail';
 
 const ROLES = {
   ORGANIZER: '/dashboard',
-  USER: '/user', 
+  USER: '/home', 
 };
 
 
@@ -116,7 +116,7 @@ export default function AppRoutes() {
       </Route>
 
 
-      <Route path='/user'
+      <Route path='/home'
       element={
         <ProtectedRoute allowedRoles={["USER"]}>
             <UserDashboard/>

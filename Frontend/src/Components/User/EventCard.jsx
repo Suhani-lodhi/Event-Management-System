@@ -1,11 +1,13 @@
+import { useNavigate } from "react-router-dom";
 import { getImageSrc } from "../../utils/imageUrl";
-import './styles/EventCard.css';
+import './Styles/EventCard.css';
 
 export default function EventCard({event}){
     const { Title, imageUrl, category, genre } = event;
+    const navigate = useNavigate();
     return (
         <>
-          <div className="event-card">
+          <div className="event-card" onClick={() => navigate('/home/getEvent/'+event.id)}>
       <div className="event-card__image-wrapper">
         <img
           className="event-card__image"

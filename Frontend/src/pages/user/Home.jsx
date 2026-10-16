@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react"
 import { getEvents } from "../../api/user";
 import EventCard from "../../Components/User/EventCard";
+import FloatingImages from "../../Components/User/FloatingImages";
+
 
 export default function Home(){
   
     const [events, setEvents] = useState([]);
+    
 
     useEffect(()=>{
         async function getAllEvents () {
@@ -18,6 +21,13 @@ export default function Home(){
 
     return (
         <>
+         
+         <FloatingImages/>
+
+         <br/>
+         <br/>
+         <h2>Find your interest here ...</h2>
+
           {
             events.length > 0 ? 
             <div className="ud-events">
