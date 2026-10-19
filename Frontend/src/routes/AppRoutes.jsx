@@ -17,6 +17,7 @@ import UserDashboard from '../pages/user/UserDashboard';
 import VerifyOtp from '../pages/verifyOtp';
 import Home from '../pages/user/Home';
 import ParticipantEventDetails from '../Components/User/Models/EventDetail';
+import ParticipantProfile from '../Components/User/UserProfile';
 
 
 const ROLES = {
@@ -125,6 +126,7 @@ export default function AppRoutes() {
       <Route index element={<Home/>}/>
         
       <Route path="getEvent/:id"  element = {<ParticipantEventDetails/>} />
+        <Route path="me" element={<ParticipantProfile/>} />
 
       </Route>
 

@@ -22,6 +22,10 @@ export default function Navbar() {
     setAnchorEl(null);
   };
 
+  function openProfile(){
+    navigate(`/${user?.role.toUpperCase() === "USER"?"user":"dashboard"}/me`)
+  }
+
   function handleLogout(){
     handleClose();
     logout();
@@ -37,6 +41,12 @@ export default function Navbar() {
       .toUpperCase();
   };
 
+  // const profileRole = () => {
+  //   if (user?.role === "ORGANIZER"){
+  //     return "organizer"
+  //   }
+  //   else if (user?.role === "")
+  // }
   return (
     <>
       <nav className="navbar">
@@ -107,6 +117,16 @@ export default function Navbar() {
                   },
                 }}
               >
+                 <MenuItem onClick={openProfile}
+                  sx={{
+                    fontSize: "14px",
+                    py: 1.2,
+                    px: 2,
+                    "&:hover": {
+                      backgroundColor: "var(--color-blush-lightest)",
+                    },
+                  }}
+                >My Profile</MenuItem>
                 <MenuItem onClick={handleLogout}
                   sx={{
                     fontSize: "14px",
