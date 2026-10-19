@@ -18,6 +18,7 @@ import VerifyOtp from '../pages/verifyOtp';
 import Home from '../pages/user/Home';
 import ParticipantEventDetails from '../Components/User/Models/EventDetail';
 import EventFilterPage from '../pages/user/EventFilterPage'
+import ParticipantProfile from '../Components/User/UserProfile';
 
 
 const ROLES = {
@@ -126,6 +127,7 @@ export default function AppRoutes() {
       <Route index element={<Home/>}/>
       <Route path='events' element={<EventFilterPage/>}/>
       <Route path="getEvent/:id"  element = {<ParticipantEventDetails/>} />
+        <Route path="me" element={<ParticipantProfile/>} />
 
       </Route>
 
