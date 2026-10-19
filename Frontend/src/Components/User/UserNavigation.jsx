@@ -4,10 +4,10 @@ export default function UserNavigation(){
         <>
           <div className="user-nav">
             <div>
-              <a href="">Movies</a>
-              <a href="">Standup</a>
-              <a href="">Game</a>
-              <a href="">Activity</a>
+              <a href="/home/events?category=MOVIE">Movies</a>
+              <a href="/home/events?category=STANDUP">Standup</a>
+              <a href="/home/events?category=GAME">Game</a>
+              <a href="/home/events?category=ACTIVITY">Activity</a>
             </div>
           <div>
             <a href="">Host your show</a>

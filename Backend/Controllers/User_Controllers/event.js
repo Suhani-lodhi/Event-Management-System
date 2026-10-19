@@ -78,6 +78,7 @@ const getEvents = async (req, res) => {
 
 
 const CATEGORIES = ['MOVIE', 'STANDUP', 'GAME', 'ACTIVITY'];
+const GENRE = ['COMEDY', 'HORROR', 'ACTION', 'FUN'];
 const parseList = (value, allowed) =>
   String(value || '')
     .split(',')
@@ -86,17 +87,20 @@ const parseList = (value, allowed) =>
 
 
 const getEventsByFilter = async (req, res) => {
+
+  console.log("query", req.query)
+
   try {
     const { category, genre, search, page = 1, limit = 12 } = req.query;
 
     const categories = parseList(category, CATEGORIES);
+    const genres = parseList(genre, GENRE);
 
-    // Only public, published events for the participant side
     const where = {};
 
     if (categories.length) where.category = { in: categories };
-    if (genre) where.genre = genre.toUpperCase();
-    if (search) where.title = { contains: search, mode: 'insensitive' };
+    if (genres.length) where.genre = {in : genres};
+    if (search) where.Title = { contains: search, mode: 'insensitive' };
 
     const take = Math.min(Number(limit) || 12, 50);
     const skip = (Math.max(Number(page) || 1, 1) - 1) * take;
@@ -109,7 +113,8 @@ const getEventsByFilter = async (req, res) => {
         orderBy: { id: 'desc' },
         select: {
           id: true,
-          title: true,
+          Title: true,
+          Description: true,
           imageUrl: true,
           category: true,
           genre: true,
@@ -117,6 +122,8 @@ const getEventsByFilter = async (req, res) => {
       }),
       prisma.event.count({ where }),
     ]);
+
+    console.log("backend", events )
 
     res.json({
       events,
