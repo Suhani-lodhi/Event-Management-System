@@ -27,7 +27,7 @@ const cleanParams = (params) =>
     )
   );
 
-export const getEventsByFilter = async ({ category, genre, search, page, limit } = {}, signal) => {
+const getEventsByFilter = async ({ category, genre, search, page, limit } = {}, signal) => {
   const  {data}  = await axiosInstance.get('user/events', {
     params: cleanParams({ category, genre, search, page, limit }),
     signal, 
@@ -37,5 +37,24 @@ export const getEventsByFilter = async ({ category, genre, search, page, limit }
 };
 
 
+const getPricingDetailsOfSession = async (sessionId) =>{
+  try{
+    const {data} = await axiosInstance.get('user/getCategoriesPricing/'+sessionId);
+    return data ;
+  }
+  catch(err){
+    throw new Error("cannot get the pricing details of the session");
+  }
+}
 
-export {getEventDetailsForUser, getEvents}
+const createBooking = async (data)=>{
+  try{
+
+  }
+  catch(err){
+    
+  }
+}
+
+
+export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession}

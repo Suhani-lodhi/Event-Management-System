@@ -19,6 +19,7 @@ import Home from '../pages/user/Home';
 import ParticipantEventDetails from '../Components/User/Models/EventDetail';
 import EventFilterPage from '../pages/user/EventFilterPage'
 import ParticipantProfile from '../Components/User/UserProfile';
+import SessionBookingPage from '../pages/user/SessionBookingPage';
 
 
 const ROLES = {
@@ -128,7 +129,7 @@ export default function AppRoutes() {
       <Route path='events' element={<EventFilterPage/>}/>
       <Route path="getEvent/:id"  element = {<ParticipantEventDetails/>} />
         <Route path="me" element={<ParticipantProfile/>} />
-
+      <Route path="event/booking/:id" element={<SessionBookingPage/>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

@@ -69,7 +69,7 @@ export default function ParticipantEventDetails() {
 
   function handleBook(sessionId) {
 
-    navigate(`/events/${id}/book/sessionId`);
+    navigate(`/home/event/booking/${sessionId}`);
   }
 
   if (loading) return <p className="loading">Loading event...</p>;
@@ -124,7 +124,7 @@ export default function ParticipantEventDetails() {
         </div>
 
         <div className="tags">
-          {event.category && <span className="tag">{event.category}</span>}
+          {event.category && <span className="tag">{event.category} </span>}
           {event.genre && <span className="tag">{event.genre}</span>}
         </div>
 

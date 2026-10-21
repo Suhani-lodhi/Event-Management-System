@@ -423,3 +423,81 @@ input {
     width: 100%;
   }
 }
+
+/* SESSION BOOKING PAGE */
+
+.session-booking {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.session-booking h1 {
+  margin: 0 0 20px;
+}
+
+.ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ticket-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 12px;
+  padding: 16px 20px;
+  transition: box-shadow 0.2s;
+}
+
+.ticket-card:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-card.sold-out {
+  opacity: 0.55;
+}
+
+.ticket-info h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.ticket-detail {
+  margin: 0 0 6px;
+  color: #666;
+  font-size: 14px;
+}
+
+.ticket-price {
+  margin: 0;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.session-booking .badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.session-booking .badge-available {
+  background: var(--color-blush-light);
+  color: var(--color-lavender-dark);
+}
+
+.session-booking .badge-low {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.session-booking .badge-soldout {
+  background: #fee2e2;
+  color: #b91c1c;
+}

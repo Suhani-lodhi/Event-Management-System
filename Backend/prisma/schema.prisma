@@ -43,6 +43,13 @@ enum RegistrationStatus {
   CLOSED
 }
 
+enum BookingStatus {
+  PENDING     
+  CONFIRMED   
+  CANCELLED
+  EXPIRED
+}
+
 model Users {
   id             Int           @id @default(autoincrement())
   firstName      String
@@ -58,6 +65,7 @@ model Users {
   organizer      Organizer?
   venues         Venue[]
   emailOtp       EmailOtp?
+  booking Booking[] @relation("User")
 }
 
 model EmailOtp {
@@ -162,6 +170,7 @@ model Session {
   currentFor            Event?                 @relation("CurrentSession")
   event                 Event                  @relation(fields: [eventId], references: [id])
   sessionCategoryPrices SessionCategoryPrice[]
+  booking Booking[]
 }
 
 model SessionCategoryPrice {
@@ -173,7 +182,35 @@ model SessionCategoryPrice {
   seatsForSale   Int
   session        Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id])
-
+  ticket Tickets[] 
   @@unique([sessionId, seatCategoryId])
   @@index([seatCategoryId])
+}
+
+
+
+model Booking {
+  id          Int           @id @default(autoincrement())
+  userId      Int          
+  sessionId   Int
+  status      BookingStatus @default(PENDING)
+  totalAmount Decimal       @db.Decimal(10, 2)
+  totalCount  Int
+  expiresAt   DateTime?    
+  paymentRef  String?      
+  createdAt   DateTime      @default(now())
+  user        Users @relation("User",fields:[userId], references: [id])
+  session     Session       @relation(fields: [sessionId], references: [id])
+  ticket       Tickets[]
+
+}
+
+model Tickets {
+  id                     Int      @id @default(autoincrement())
+  bookingId              Int
+  sessionCategoryPriceId Int
+  status                 BookingStatus @default (PENDING)
+  unitPrice              Decimal  @db.Decimal(10, 2)  
+  booking                Booking  @relation(fields: [bookingId], references: [id])
+  sessionCategoryPrice   SessionCategoryPrice @relation(fields: [sessionCategoryPriceId], references: [id])
 }
