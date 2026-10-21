@@ -80,7 +80,7 @@ model Organizer {
   state                String
   country              String
   pincode              Int
-  user                 Users   @relation(fields: [userid], references: [id])
+  user                 Users   @relation(fields: [userid], references: [id], onDelete: Cascade)
   events               Event[]
 }
 
@@ -108,20 +108,21 @@ model SubVenue {
   categoryCount  Int
   capacity       Int?
   seatCategories SeatCategory[]
-  venue          Venue          @relation(fields: [venueId], references: [id])
+  venue          Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
   sessions       Session[]
 }
 
 model SeatCategory {
-  id             Int          @id @default(autoincrement())
-  subVenueId     Int
-  categoryName   String
-  categoryDetail String?
-  seatCount      Int
-  rowCount       Int?
-  columnCount    Int?
-  subVenue       SubVenue     @relation(fields: [subVenueId], references: [id])
-  seatDetails    SeatDetail[]
+  id                    Int                    @id @default(autoincrement())
+  subVenueId            Int
+  categoryName          String
+  categoryDetail        String?
+  seatCount             Int
+  rowCount              Int?
+  columnCount           Int?
+  subVenue              SubVenue               @relation(fields: [subVenueId], references: [id], onDelete: Cascade)
+  seatDetails           SeatDetail[]
+  sessionCategoryPrices SessionCategoryPrice[]
 }
 
 model SeatDetail {
@@ -130,7 +131,7 @@ model SeatDetail {
   columnName     String
   columnNumber   Int
   rowNumber      Int
-  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id])
+  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -141,7 +142,7 @@ model Event {
   Title            String
   Description      String?
   currentSessionId Int?          @unique
-  imageUrl String?
+  imageUrl         String?
   status           EventStatus?  @default(DRAFTED)
   organizer        Organizer     @relation(fields: [organizerId], references: [id])
   sessions         Session[]
@@ -149,15 +150,30 @@ model Event {
 }
 
 model Session {
-  id                 Int                @id @default(autoincrement())
-  eventId            Int
-  subVenueId         Int
-  startDateTime      DateTime
-  endDateTime        DateTime
-  regStartdateTime   DateTime
-  regEndDateTime     DateTime
-  registrationStatus RegistrationStatus @default(CLOSED)
-  subVenue           SubVenue           @relation(fields: [subVenueId], references: [id])
-  currentFor         Event?             @relation("CurrentSession")
-  event              Event              @relation(fields: [eventId], references: [id])
+  id                    Int                    @id @default(autoincrement())
+  eventId               Int
+  subVenueId            Int
+  startDateTime         DateTime
+  endDateTime           DateTime
+  regStartdateTime      DateTime
+  regEndDateTime        DateTime
+  registrationStatus    RegistrationStatus     @default(CLOSED)
+  subVenue              SubVenue               @relation(fields: [subVenueId], references: [id])
+  currentFor            Event?                 @relation("CurrentSession")
+  event                 Event                  @relation(fields: [eventId], references: [id])
+  sessionCategoryPrices SessionCategoryPrice[]
+}
+
+model SessionCategoryPrice {
+  id             Int          @id @default(autoincrement())
+  sessionId      Int
+  seatCategoryId Int
+  alias          String
+  price          Decimal      @db.Decimal(10, 2)
+  seatsForSale   Int
+  session        Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id])
+
+  @@unique([sessionId, seatCategoryId])
+  @@index([seatCategoryId])
 }
