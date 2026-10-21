@@ -113,7 +113,7 @@ function searchCalled(e){
 
       <section className="results">
         {/* <input type="text" placeholder="Search..." className="input-search" onChange={(e)=> searchCalled(e)}/> */}
-
+        
         {loading ? (
           <p>Loading...</p>
         ) : events.length === 0 ? (
