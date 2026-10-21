@@ -1,0 +1,26 @@
+.floating-wrapper {
+  width: 100%;
+  padding: 24px 0;
+  overflow: hidden;
+}
+
+/* This is what makes the scroll smooth and continuous */
+.floating-swiper .swiper-wrapper {
+  transition-timing-function: linear !important;
+}
+
+.floating-img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 14px;
+  display: block;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  opacity: 0.9;
+}
+
+@media (max-width: 600px) {
+  .floating-img {
+    height: 180px;
+  }
+}

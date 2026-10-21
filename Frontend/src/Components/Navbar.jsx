@@ -23,7 +23,7 @@ export default function Navbar() {
   };
 
   function openProfile(){
-    navigate(`/${user?.role.toUpperCase() === "USER"?"user":"dashboard"}/me`)
+    navigate(`/${user?.role.toUpperCase() === "USER"?"home":"dashboard"}/me`)
   }
 
   function handleLogout(){

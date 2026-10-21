@@ -17,12 +17,13 @@ import UserDashboard from '../pages/user/UserDashboard';
 import VerifyOtp from '../pages/verifyOtp';
 import Home from '../pages/user/Home';
 import ParticipantEventDetails from '../Components/User/Models/EventDetail';
+import EventFilterPage from '../pages/user/EventFilterPage'
 import ParticipantProfile from '../Components/User/UserProfile';
 
 
 const ROLES = {
   ORGANIZER: '/dashboard',
-  USER: '/user', 
+  USER: '/home', 
 };
 
 
@@ -117,14 +118,14 @@ export default function AppRoutes() {
       </Route>
 
 
-      <Route path='/user'
+      <Route path='/home'
       element={
         <ProtectedRoute allowedRoles={["USER"]}>
             <UserDashboard/>
         </ProtectedRoute>
       }>
       <Route index element={<Home/>}/>
-        
+      <Route path='events' element={<EventFilterPage/>}/>
       <Route path="getEvent/:id"  element = {<ParticipantEventDetails/>} />
         <Route path="me" element={<ParticipantProfile/>} />
 

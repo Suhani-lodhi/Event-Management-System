@@ -6,4 +6,4 @@ node_modules
 .windsurf/
 .env
 
-.uploads/
+uploads

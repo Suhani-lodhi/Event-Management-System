@@ -18,5 +18,24 @@ const getEventDetailsForUser = async (id) => {
         throw new Error("could not fetch events");
     }
 };
-export {getEventDetailsForUser}
-export {getEvents}
+
+
+const cleanParams = (params) =>
+  Object.fromEntries(
+    Object.entries(params).filter(
+      ([, v]) => v !== undefined && v !== null && v !== ''
+    )
+  );
+
+export const getEventsByFilter = async ({ category, genre, search, page, limit } = {}, signal) => {
+  const  {data}  = await axiosInstance.get('user/events', {
+    params: cleanParams({ category, genre, search, page, limit }),
+    signal, 
+  });
+  console.log("api service", data)
+  return data; 
+};
+
+
+
+export {getEventDetailsForUser, getEvents}
