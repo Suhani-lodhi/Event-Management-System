@@ -246,7 +246,7 @@ button[type="button"] {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--color-lavender);
+  background: var(--color-lavander-real);
   color: #ffffff;
   font-weight: 600;
   font-size: 14px;
@@ -307,7 +307,6 @@ input {
   margin-bottom: 5px;
 }
 
-
 /* user-navigation */
 
 .user-main {
@@ -333,8 +332,6 @@ input {
   gap: 20px;
   padding: 32px 24px 60px;
 }
-
-
 
 /* FILTER EVENTS PAGE */
 

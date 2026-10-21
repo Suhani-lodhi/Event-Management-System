@@ -2,7 +2,11 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 32px 24px 60px;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
   box-sizing: border-box;
 }
 
@@ -37,18 +41,17 @@
 
 .ce-field-plain input {
   width: 100%;
-  padding: 10px ;
+  padding: 10px;
   border: none;
   border-bottom: 1px solid var(--color-blush-mid);
   font-size: 16px;
   background: transparent;
 }
 
-.ce-field-plain input:focus{
-    outline: none;
-    border-bottom: 1px solid var(--color-lavender);
+.ce-field-plain input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--color-lavender);
 }
-
 
 .ce-card {
   background: #ffffff;
@@ -79,7 +82,6 @@
   color: #1a1a1a;
 }
 
-
 .ce-image-preview {
   display: block;
   width: 100%;
@@ -92,7 +94,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-
 .ce-card textarea {
   width: 100%;
   padding: 14px;
@@ -103,11 +104,10 @@
   resize: vertical;
 }
 
-.ce-card textarea:focus{
-    outline: none;
-    border: 1px solid var(--color-lavender);
+.ce-card textarea:focus {
+  outline: none;
+  border: 1px solid var(--color-lavender);
 }
-
 
 .ce-row {
   display: flex;
@@ -132,7 +132,6 @@
   color: #1a1a1a;
 }
 
-
 .ce-card select {
   width: 100%;
   padding: 10px 12px;
@@ -144,26 +143,24 @@
   cursor: pointer;
 }
 
-
-
-.ce-session-card-header label{
+.ce-session-card-header label {
   font-size: 20px;
 }
 
-.ce-session-element{
+.ce-session-element {
   display: flex;
   justify-content: space-between;
 }
 
-
-.ce-session-element label{
+.ce-session-element label {
   font-size: medium;
-  font-weight:500;
+  font-weight: 500;
   color: #1a1a1a;
   margin-bottom: 4px;
 }
 
-.startDate, .endDate{
+.startDate,
+.endDate {
   width: 300px;
   border: 1px solid var(--color-blush-mid);
   height: 30px;
@@ -173,7 +170,7 @@
   cursor: pointer;
 }
 
-.subVenue{
+.subVenue {
   margin-top: 10px;
 }
 
@@ -181,36 +178,34 @@ select:focus,
 input[type="datetime-local"]:focus {
   outline: none;
   border-color: var(--color-lavender);
-
 }
 
-.ce-session-header{
+.ce-session-header {
   display: flex;
   justify-content: space-between;
 }
 
-.session-icon{
+.session-icon {
   margin-right: 2px;
   cursor: pointer;
 }
 
-
 /* venue css*/
 
-.v-elements{
+.v-elements {
   display: flex;
   justify-content: space-between;
 }
-.v-elements div{
+.v-elements div {
   width: 45%;
 }
 
-.sv-elements{
+.sv-elements {
   display: flex;
   justify-content: space-between;
 }
 
-.v-form-header{
+.v-form-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -220,21 +215,60 @@ input[type="datetime-local"]:focus {
   border-bottom: 1px solid var(--color-blush-mid);
 }
 
-.v-header{
+.v-header {
   margin: 10px 50px;
   padding: 10px;
   border-bottom: 1px solid var(--color-blush-mid);
 }
 
-.v-header p{
+.v-header p {
   color: #000000;
   padding: 5px;
 }
-
 
 @media (max-width: 600px) {
   .ce-row {
     flex-direction: column;
     gap: 16px;
   }
+}
+
+.sc-add-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 14px;
+}
+
+.sc-add-head h4 {
+  margin: 0;
+}
+
+.sc-add-head .icon {
+  cursor: pointer;
+}
+
+.sc-summary {
+  margin: 8px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.sc-add-row {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+
+.sc-add-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sc-add-fields .ce-field-plain {
+  flex: 1 1 180px;
 }

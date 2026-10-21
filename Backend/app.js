@@ -12,6 +12,7 @@ import venueRouter from "./Routes/venues.js";
 import profileRouter from "./Routes/profile.js";
 import userEventRouter from "./Routes/User_Routes/event.js";
 import userEventBookingRouter from "./Routes/User_Routes/eventBooking.js"
+import categoryRouter from "./Routes/seatCategory.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/auth", authRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), eventRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), venueRouter);
+app.use("/organizer", authenticate, authorize("ORGANIZER"), categoryRouter);
 
 app.use("/user", authenticate, authorize("USER"), userEventRouter);
 app.use("/user", authenticate, authorize("USER"), userEventBookingRouter)

@@ -77,9 +77,9 @@
   color: #1a1a1a;
 }
 
-.od-overview-header div{
-    width: 100%;
-    border-bottom: 1px solid var(--color-blush-mid);
+.od-overview-header div {
+  width: 100%;
+  border-bottom: 1px solid var(--color-blush-mid);
 }
 
 /* Event list */
@@ -161,7 +161,7 @@
   color: #d1435b;
 }
 
-.od-icon{
+.od-icon {
   display: flex;
   justify-content: space-between;
   font-size: 20px;
@@ -187,14 +187,11 @@
   font-weight: 600;
 }
 
-
-
 .od-event-arrow {
   flex-shrink: 0;
   font-size: 22px;
   color: #8a8a8a;
 }
-
 
 .od-loading,
 .od-empty {
@@ -204,7 +201,7 @@
   font-size: 14px;
 }
 
-select{
+select {
   width: 30%;
   padding: 10px 12px;
   border: 1px solid var(--color-blush-mid);
@@ -216,21 +213,20 @@ select{
   margin-bottom: 10px;
 }
 
-select:focus{
-   border: 1px solid var(--color-lavender);
+select:focus {
+  border: 1px solid var(--color-lavender);
 }
-
 
 /* event detail page */
 
-.ed-container{
+.ed-container {
   max-width: 1100px;
   margin: 0 auto;
   padding: 24px 24px 60px;
   box-sizing: border-box;
 }
 
-.ed-card{
+.ed-card {
   width: 100%;
   border: 1px solid var(--color-blush-mid);
   border-radius: 14px;
@@ -240,7 +236,7 @@ select:focus{
   padding: 24px;
 }
 
-.ed-header{
+.ed-header {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -249,29 +245,33 @@ select:focus{
   border-bottom: 1px solid var(--color-blush-mid);
 }
 
-.ed-event-top{
+.ed-event-top {
   display: flex;
   justify-content: space-between;
-
 }
 
-.ed-session-heading{
+.ed-session-heading {
   margin-top: 4px;
 }
 
-.ed-sessions{
+.ed-sessions {
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid var(--color-blush-mid);
   padding-bottom: 8px;
   margin: 4px;
 }
-
+.ed-banner {
+  /* background-color: grey; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .ed-banner-img {
   display: block;
-  width: 100%;
+  /* width: 100%; */
   height: 400px;
-  object-fit:fill;  
+  object-fit: fill;
   border-radius: 14px;
   margin-bottom: 10px;
 }
@@ -284,7 +284,7 @@ select:focus{
   justify-content: center;
   color: #9ca3af;
   font-size: 14px;
-} 
+}
 
 .od-event-image {
   flex-shrink: 0;
@@ -312,7 +312,6 @@ select:focus{
   color: #9ca3af;
 }
 
-
 @media (max-width: 700px) {
   .od-banner {
     flex-direction: column;
@@ -330,7 +329,7 @@ select:focus{
     align-items: flex-start;
   }
 
-  select{
+  select {
     width: 100%;
   }
 }

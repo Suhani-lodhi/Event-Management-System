@@ -203,10 +203,48 @@ const createSubVenue = async (id, data) =>{
     }
 }
 
+// nayi wali hai
+const seatErr = (err, fallback) =>
+    new Error(err.response?.data?.msg || fallback);
+
+const getSeatCategories = async (subVenueId) => {
+    try {
+        const res = await axiosInstance.get(`organizer/getCategories/${subVenueId}`);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not fetch seat categories");
+    }
+};
+
+const createSeatCategory = async (subVenueId, data) => {
+    try {
+        const res = await axiosInstance.post(`organizer/createCategory/${subVenueId}`, data);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not create category");
+    }
+};
+
+const updateSeatCategory = async (id, data) => {
+    try {
+        const res = await axiosInstance.patch(`organizer/updateCategory/${id}`, data);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not update category");
+    }
+};
+
+const deleteSeatCategory = async (id) => {
+    try {
+        const res = await axiosInstance.delete(`organizer/deleteCategory/${id}`);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not delete category");
+    }
+};
 
 
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, editSubVenueById,
-    createSubVenue
+    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, editSubVenueById,createSubVenue, seatErr,getSeatCategories,createSeatCategory,updateSeatCategory,deleteSeatCategory
 };
