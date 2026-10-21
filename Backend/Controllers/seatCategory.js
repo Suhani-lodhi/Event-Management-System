@@ -1,9 +1,10 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../index.js";
-import { validateCategory } from "../Sevices/seatCategory.service.js";
+import {
+  validateCategory,
+  validateCategoryForUpdate,
+} from "../Sevices/seatCategory.service.js";
 import fail from "../utils/fail.js";
-
-
 
 const updateSubVenueTotals = async (tx, subVenueId) => {
   const { _count, _sum } = await tx.seatCategory.aggregate({
@@ -16,7 +17,6 @@ const updateSubVenueTotals = async (tx, subVenueId) => {
     data: { categoryCount: _count._all, capacity: _sum.seatCount ?? 0 },
   });
 };
-
 
 const loadOwnCategory = async (req, res) => {
   const category = await prisma.seatCategory.findUnique({
@@ -88,6 +88,7 @@ const getCategoriesBySubVenueId = async (req, res) => {
     const categories = await prisma.seatCategory.findMany({
       where: { subVenueId: Number(req.params.subVenueId) },
       orderBy: { id: "asc" },
+      
     });
     res.status(StatusCodes.OK).json({ categories, success: true });
   } catch (err) {
@@ -98,7 +99,7 @@ const getCategoriesBySubVenueId = async (req, res) => {
 
 const updateSeatCategory = async (req, res) => {
   try {
-    const error = validateCategory(req.body);
+    const error = validateCategoryForUpdate(req.body);
     if (error) return fail(res, StatusCodes.BAD_REQUEST, error);
 
     const category = await loadOwnCategory(req, res);
@@ -106,29 +107,37 @@ const updateSeatCategory = async (req, res) => {
 
     const { categoryName, categoryDetail, seatCount } = req.body;
 
+    // build data from only the fields that were sent
+    const data = {};
+    if (categoryName !== undefined) data.categoryName = categoryName.trim();
+    if (categoryDetail !== undefined) data.categoryDetail = categoryDetail;
+    if (seatCount !== undefined) data.seatCount = Number(seatCount);
+
+    if (Object.keys(data).length === 0) {
+      return fail(res, StatusCodes.BAD_REQUEST, "nothing to update");
+    }
+
     // can't go below the seats a session is already selling from this category
-    const onSale = await prisma.sessionCategoryPrice.findFirst({
-      where: {
-        seatCategoryId: category.id,
-        seatsForSale: { gt: Number(seatCount) },
-      },
-    });
-    if (onSale) {
-      return fail(
-        res,
-        StatusCodes.CONFLICT,
-        `a session is selling ${onSale.seatsForSale} seats from this category, reduce that first`,
-      );
+    if (data.seatCount !== undefined) {
+      const onSale = await prisma.sessionCategoryPrice.findFirst({
+        where: {
+          seatCategoryId: category.id,
+          seatsForSale: { gt: data.seatCount },
+        },
+      });
+      if (onSale) {
+        return fail(
+          res,
+          StatusCodes.CONFLICT,
+          `a session is selling ${onSale.seatsForSale} seats from this category, reduce that first`,
+        );
+      }
     }
 
     const result = await prisma.$transaction(async (tx) => {
       const updated = await tx.seatCategory.update({
         where: { id: category.id },
-        data: {
-          categoryName: categoryName.trim(),
-          categoryDetail,
-          seatCount: Number(seatCount),
-        },
+        data,
       });
       const updatedSubVenue = await updateSubVenueTotals(
         tx,

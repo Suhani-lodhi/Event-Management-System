@@ -7,8 +7,8 @@ import {
 } from "../Controllers/seatCategory.js";
 const router = express.Router();
 
-router.post("/createCategory/:subVenueId", createSeatCategory);
 router.get("/getCategories/:subVenueId", getCategoriesBySubVenueId);
+router.post("/createCategory/:subVenueId", createSeatCategory);
 router.patch("/updateCategory/:categoryId", updateSeatCategory);
 router.delete("/deleteCategory/:categoryId", deleteSeatCategory);
 
