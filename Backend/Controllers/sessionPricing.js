@@ -30,6 +30,7 @@ const setSessionCategoryPricing = async (req, res) => {
     const organizer = await prisma.organizer.findUnique({
       where: { userid: req.user.id },
     });
+
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
       include: { event: true },
@@ -38,6 +39,7 @@ const setSessionCategoryPricing = async (req, res) => {
     if (!organizer || session.event.organizerId !== organizer.id) {
       return fail(res, StatusCodes.FORBIDDEN, "not allowed");
     }
+    console.log(organizer, session, organizer.id);
 
     const categories = await prisma.seatCategory.findMany({
       where: { subVenueId: session.subVenueId },

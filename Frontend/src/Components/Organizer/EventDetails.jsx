@@ -52,6 +52,7 @@ export default function EventDetails(){
             </div>
 
                 <div className="ed-card">
+                  <div className="ed-banner">
 
                 {event.imageUrl ? (
                     <img
@@ -67,7 +68,7 @@ export default function EventDetails(){
                   ) : (
                     <div className="ed-banner-placeholder">No image</div>
                   )}
-                
+                </div>
 
                     <div className="ed-event-top">
                   <h1>{event.Title}</h1>
