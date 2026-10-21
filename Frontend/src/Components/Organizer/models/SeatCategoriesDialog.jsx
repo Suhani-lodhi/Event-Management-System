@@ -15,8 +15,13 @@ import {
   deleteSeatCategory,
 } from "../../../api/event";
 import DeleteDialog from "./DeleteDialog";
+import {
+  emptyCategory,
+  validateCategory,
+  toCategoryPayload,
+} from "../../../utils/seatCategoryHelpers";
 
-const emptyForm = { categoryName: "", categoryDetail: "", seatCount: "" };
+const emptyForm = emptyCategory();
 
 
 export default function SeatCategoriesDialog({ open, subVenue, onClose, onChange }) {
@@ -74,21 +79,17 @@ export default function SeatCategoriesDialog({ open, subVenue, onClose, onChange
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // only used for the red helper text under the seat count field
   const seatCountInvalid =
     form.seatCount === "" ||
     !Number.isInteger(Number(form.seatCount)) ||
     Number(form.seatCount) < 1;
-  const nameInvalid = !form.categoryName.trim();
-  const formInvalid = seatCountInvalid || nameInvalid;
+  const formInvalid = Boolean(validateCategory(form));
 
   async function handleSave() {
     if (formInvalid) return;
     setSaving(true);
-    const payload = {
-      categoryName: form.categoryName.trim(),
-      categoryDetail: form.categoryDetail.trim() || null,
-      seatCount: Number(form.seatCount),
-    };
+    const payload = toCategoryPayload(form);
     try {
       const res = editingId
         ? await updateSeatCategory(editingId, payload)
