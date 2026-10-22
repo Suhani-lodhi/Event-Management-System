@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom"
-import { getPricingDetailsOfSession } from "../../api/user";
+import { useNavigate, useParams } from "react-router-dom"
+import { createBooking, getPricingDetailsOfSession } from "../../api/user";
+import { toast } from "react-toastify";
+
+const MAX_PER_CATEGORY = 10;  
+const MAX_PER_BOOKING = 20;
 
 export default function SessionBookingPage(){  
    const {id} = useParams();
    const [ticketDetails, setTicketDetails] = useState([]);
    const [loading, setLoading] = useState(true);
    const [addTicket, setAddTicket] = useState(0)
+  const [quantities, setQuantities] = useState({});
+  const navigate = useNavigate();
 
    useEffect(()=>{
     async function getPricingDetails(){
@@ -26,6 +32,71 @@ export default function SessionBookingPage(){
     getPricingDetails();
    },[id])
 
+
+
+   const totalCount = Object.values(quantities).reduce((s, q) => s + q, 0);
+  const totalAmount = ticketDetails.reduce(
+    (sum, t) => sum + Number(t.price) * (quantities[t.id] || 0),
+    0
+  );
+
+
+
+    const increase = (ticket) => {
+    setQuantities((prev) => {
+      const current = prev[ticket.id] || 0;
+      const limit = Math.min(ticket.seatsForSale, MAX_PER_CATEGORY);
+      const total = Object.values(prev).reduce((s, q) => s + q, 0);
+
+      if (current >= limit || total >= MAX_PER_BOOKING) return prev; // no change
+      return { ...prev, [ticket.id]: current + 1 };
+    });
+
+
+  };
+
+  const decrease = (ticket) => {
+    setQuantities((prev) => {
+      const current = prev[ticket.id] || 0;
+      if (current <= 0) return prev;
+      return { ...prev, [ticket.id]: current - 1 };
+    });
+
+  };
+
+
+  async function handleProceed(){
+    console.log(quantities);
+    const items = Object.entries(quantities)
+    .filter(([, quantity]) => quantity > 0)
+    .map(([sessionCategoryPriceId, quantity]) => ({
+      sessionCategoryPriceId: Number(sessionCategoryPriceId), 
+      quantity,
+    }));
+
+  if (items.length === 0) return;
+
+  try {
+    const data = await createBooking({
+      sessionId: Number(id),   
+      items,                   
+    });
+    console.log(data.booking);
+    toast.success("Booking initiated successfully");
+    navigate('/home/event/tickets/booking/'+data.booking.id);
+   
+  } catch (err) {
+    console.log(err.message);  
+    toast.error(err.message);
+  }
+
+   
+
+  }
+
+
+
+
     return (
         <>
          <div className="session-booking">
@@ -34,6 +105,10 @@ export default function SessionBookingPage(){
       <div className="ticket-list">
         {ticketDetails.map((ticket) => {
           const soldOut = ticket.seatsForSale <= 0;
+          const qty = quantities[ticket.id] || 0;
+          const atLimit =
+            qty >= Math.min(ticket.seatsForSale, MAX_PER_CATEGORY) ||
+            totalCount >= MAX_PER_BOOKING;
 
           return (
             <div
@@ -66,16 +141,22 @@ export default function SessionBookingPage(){
                   </span>
                 )}
               </div>
-              <div>
-                <button>add</button>
-              </div>
-
-
-
+             <div className="ticket-counter">
+                  <button onClick={() => decrease(ticket)} disabled={qty === 0}>
+                    −
+                  </button>
+                  <span>{qty}</span>
+                  <button onClick={() => increase(ticket)} disabled={soldOut || atLimit}>
+                    +
+                  </button>
+                </div>
+               
               </div>
             </div>
           );
         })}
+
+        <button onClick={() => handleProceed()} disabled={totalCount === 0}>Proceed</button>
       </div>
     </div>
         </>

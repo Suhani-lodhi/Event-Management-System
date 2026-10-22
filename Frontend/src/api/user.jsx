@@ -47,14 +47,56 @@ const getPricingDetailsOfSession = async (sessionId) =>{
   }
 }
 
-const createBooking = async (data)=>{
-  try{
 
+const createBooking = async (payload) => {
+  try {
+    const res = await axiosInstance.post("/user/createBookings", payload);
+    return res.data;
+  } catch (err) {
+    console.log(err)                       
+    throw new Error(err.response?.data?.message || "cannot create booking");
+  }
+};
+
+
+const getBookingDetails = async (id) =>{
+  try{
+    const res = await axiosInstance.get("/user/getBookings"+id);
+    return res.data;
   }
   catch(err){
-    
+    throw new Error("cannot get booking details");
   }
 }
 
+const getBookingSummary = async (id) =>{
+  try{
+    const res = await axiosInstance.get("/user/bookings/"+id+"/summary");
+    return res.data;
+  }
+  catch(err){
+    throw new Error("cannot get booking summary");
+  }
+}
 
-export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession}
+const payForBooking = async (id) =>{
+  try{
+    const res = await axiosInstance.post("/user/bookings/"+id+"/pay");
+    return res.data;
+  }
+  catch(err){
+    throw new Error("cannot get booking summary");
+  }
+}
+
+const cancelBooking = async (bookingId) => {
+  try {
+    const res = await axiosInstance.post(`/user/bookings/${bookingId}/cancel`);
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "cannot cancel booking");
+  }
+};
+
+export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession, 
+  createBooking, getBookingSummary, getBookingDetails, payForBooking, cancelBooking}

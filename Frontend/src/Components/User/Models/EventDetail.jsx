@@ -69,7 +69,7 @@ export default function ParticipantEventDetails() {
 
   function handleBook(sessionId) {
 
-    navigate(`/home/event/booking/${sessionId}`);
+    navigate(`/home/event/tickets/${sessionId}`);
   }
 
   if (loading) return <p className="loading">Loading event...</p>;
