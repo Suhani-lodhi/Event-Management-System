@@ -48,55 +48,39 @@ const getPricingDetailsOfSession = async (sessionId) =>{
 }
 
 
-const createBooking = async (payload) => {
+
+
+const getBookingSummary = async (payload) => {
   try {
-    const res = await axiosInstance.post("/user/createBookings", payload);
+    const res = await axiosInstance.post("/user/bookingSummary", payload); // same axios setup as your other calls
     return res.data;
   } catch (err) {
-    console.log(err)                       
-    throw new Error(err.response?.data?.message || "cannot create booking");
+    throw new Error(err.response?.data?.message || "cannot get the summary");
   }
 };
 
 
-const getBookingDetails = async (id) =>{
-  try{
-    const res = await axiosInstance.get("/user/getBookings"+id);
-    return res.data;
-  }
-  catch(err){
-    throw new Error("cannot get booking details");
-  }
-}
 
-const getBookingSummary = async (id) =>{
-  try{
-    const res = await axiosInstance.get("/user/bookings/"+id+"/summary");
-    return res.data;
-  }
-  catch(err){
-    throw new Error("cannot get booking summary");
-  }
-}
-
-const payForBooking = async (id) =>{
-  try{
-    const res = await axiosInstance.post("/user/bookings/"+id+"/pay");
-    return res.data;
-  }
-  catch(err){
-    throw new Error("cannot get booking summary");
-  }
-}
-
-const cancelBooking = async (bookingId) => {
+const payForBooking = async (payload) => {   
   try {
-    const res = await axiosInstance.post(`/user/bookings/${bookingId}/cancel`);
+    const res = await axiosInstance.post("/user/payForBooking", payload);   
     return res.data;
   } catch (err) {
-    throw new Error(err.response?.data?.message || "cannot cancel booking");
+       throw new Error(err.response?.data?.message || "cannot book tickets");
+
   }
 };
+
+const getAllBookings = async () =>{
+  try{
+    const res = await axiosInstance.get('/user/getBookings');
+    return res.data;
+  }
+  catch(err){
+    throw new Error(err.response?.data?.message || "cannot get the bookings");
+  }
+}
+
 
 export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession, 
-  createBooking, getBookingSummary, getBookingDetails, payForBooking, cancelBooking}
+   getBookingSummary, payForBooking}

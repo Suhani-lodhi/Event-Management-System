@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"
-import { createBooking, getPricingDetailsOfSession } from "../../api/user";
+import {  getPricingDetailsOfSession} from "../../api/user";
 import { toast } from "react-toastify";
 
 const MAX_PER_CATEGORY = 10;  
@@ -65,34 +65,18 @@ export default function SessionBookingPage(){
   };
 
 
-  async function handleProceed(){
-    console.log(quantities);
-    const items = Object.entries(quantities)
+  async function handleProceed() {
+  const items = Object.entries(quantities)
     .filter(([, quantity]) => quantity > 0)
     .map(([sessionCategoryPriceId, quantity]) => ({
-      sessionCategoryPriceId: Number(sessionCategoryPriceId), 
+      sessionCategoryPriceId: Number(sessionCategoryPriceId),
       quantity,
     }));
 
   if (items.length === 0) return;
 
-  try {
-    const data = await createBooking({
-      sessionId: Number(id),   
-      items,                   
-    });
-    console.log(data.booking);
-    toast.success("Booking initiated successfully");
-    navigate('/home/event/tickets/booking/'+data.booking.id);
-   
-  } catch (err) {
-    console.log(err.message);  
-    toast.error(err.message);
-  }
-
-   
-
-  }
+  navigate(`/home/event/tickets/${id}/booking`, { state: { items } });
+}
 
 
 

@@ -609,7 +609,7 @@ input {
 }
 
 .booking-summary-page button{
-  margin-top: 10px ;
+  margin: 10px ;
 }
 
 @media (max-width: 600px) {

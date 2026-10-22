@@ -131,7 +131,7 @@ export default function AppRoutes() {
       <Route path="getEvent/:id"  element = {<ParticipantEventDetails/>} />
         <Route path="me" element={<ParticipantProfile/>} />
       <Route path="event/tickets/:id" element={<SessionBookingPage/>} />
-      <Route path="event/tickets/booking/:id" element={<TicketBookingPage/>}/>
+      <Route path="event/tickets/:id/booking" element={<TicketBookingPage/>}/>
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
