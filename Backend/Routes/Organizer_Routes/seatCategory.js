@@ -4,7 +4,7 @@ import {
   getCategoriesBySubVenueId,
   updateSeatCategory,
   deleteSeatCategory,
-} from "../Controllers/seatCategory.js";
+} from "../../Controllers/Organizer_Controllers/seatCategory.js";
 const router = express.Router();
 
 router.get("/getCategories/:subVenueId", getCategoriesBySubVenueId);

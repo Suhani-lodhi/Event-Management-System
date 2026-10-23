@@ -5,12 +5,12 @@ import {
   getEventById,
   getEventByOrganizerId,
   updateEventById,
-} from "../Controllers/event.js";
+} from "../../Controllers/Organizer_Controllers/event.js";
 import {
   updateEventStatus,
   updateRegistrationStatus,
-} from "../Controllers/eventStatus.js";
-import { upload } from "../Middleware/upload.js";
+} from "../../Controllers/Organizer_Controllers/eventStatus.js";
+import { upload } from "../../Middleware/upload.js";
 const router = express.Router();
 
 // organizer side routes

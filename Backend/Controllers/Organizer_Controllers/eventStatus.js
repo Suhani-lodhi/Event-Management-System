@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import prisma from "../index.js";
-import fail from "../utils/fail.js";
+import prisma from "../../index.js";
+import fail from "../../utils/fail.js";
 
 const EVENT_STATUSES = ["DRAFTED", "COMING_SOON", "ACTIVE", "CLOSED"];
 const REGISTRATION_STATUSES = ["OPEN", "CLOSED"];

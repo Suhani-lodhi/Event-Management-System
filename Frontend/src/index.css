@@ -64,7 +64,7 @@ button {
 }
 
 button:hover {
-  background: var(--color-blush-light);
+  background: var(--color-lavender);
   border-color: var(--color-lavender-dark);
 }
 

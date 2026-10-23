@@ -1,4 +1,3 @@
-
 // const cancelBooking = async (req, res) => {
 //   try {
 //     const userId = req.user.id;
@@ -35,14 +34,13 @@
 //   }
 // };
 
-
-
-
 import prisma from "../../index.js";
+// import { generateOtp } from "../../utils/otpGenerator.js";
+import { sendMail } from "../../utils/mailer.js";
+import { bookingConfirmationTemplate } from "../../utils/mailTemplate.js";
 
 const MAX_PER_CATEGORY = 10;
 const MAX_PER_BOOKING = 20;
-
 
 const parseItems = (items) => {
   if (!Array.isArray(items) || items.length === 0)
@@ -57,9 +55,11 @@ const parseItems = (items) => {
     merged.set(id, (merged.get(id) || 0) + qty);
   }
 
-
   const lines = [...merged.entries()]
-    .map(([sessionCategoryPriceId, quantity]) => ({ sessionCategoryPriceId, quantity }))
+    .map(([sessionCategoryPriceId, quantity]) => ({
+      sessionCategoryPriceId,
+      quantity,
+    }))
     .sort((a, b) => a.sessionCategoryPriceId - b.sessionCategoryPriceId);
 
   const totalCount = lines.reduce((sum, l) => sum + l.quantity, 0);
@@ -72,7 +72,6 @@ const parseItems = (items) => {
   return { lines, totalCount };
 };
 
-
 const buildOrder = async (db, sessionId, items) => {
   const parsed = parseItems(items);
   if (parsed.error) return { error: { status: 400, message: parsed.error } };
@@ -83,14 +82,27 @@ const buildOrder = async (db, sessionId, items) => {
 
   const now = new Date();
   if (now < session.regStartDateTime || now > session.regEndDateTime)
-    return { error: { status: 400, message: "Registration is not open for this session" } };
+    return {
+      error: {
+        status: 400,
+        message: "Registration is not open for this session",
+      },
+    };
 
   const categories = await db.sessionCategoryPrice.findMany({
-    where: { id: { in: lines.map((l) => l.sessionCategoryPriceId) }, sessionId },
+    where: {
+      id: { in: lines.map((l) => l.sessionCategoryPriceId) },
+      sessionId,
+    },
     select: { id: true, alias: true, price: true, seatsForSale: true },
   });
   if (categories.length !== lines.length)
-    return { error: { status: 400, message: "One or more categories do not belong to this session" } };
+    return {
+      error: {
+        status: 400,
+        message: "One or more categories do not belong to this session",
+      },
+    };
 
   const categoryById = new Map(categories.map((c) => [c.id, c]));
 
@@ -101,7 +113,12 @@ const buildOrder = async (db, sessionId, items) => {
     const cat = categoryById.get(sessionCategoryPriceId);
 
     if (cat.seatsForSale < quantity)
-      return { error: { status: 409, message: `Not enough tickets available in "${cat.alias}"` } };
+      return {
+        error: {
+          status: 409,
+          message: `Not enough tickets available in "${cat.alias}"`,
+        },
+      };
 
     const subtotal = cat.price.mul(quantity);
     totalAmount = totalAmount ? totalAmount.add(subtotal) : subtotal;
@@ -109,16 +126,14 @@ const buildOrder = async (db, sessionId, items) => {
     orderLines.push({
       sessionCategoryPriceId,
       alias: cat.alias,
-      unitPrice: cat.price,  
+      unitPrice: cat.price,
       quantity,
-      subtotal,               
+      subtotal,
     });
   }
 
   return { orderLines, totalCount, totalAmount };
 };
-
-
 
 const getBookingSummary = async (req, res) => {
   try {
@@ -128,7 +143,10 @@ const getBookingSummary = async (req, res) => {
       return res.status(400).json({ message: "sessionId is required" });
 
     const order = await buildOrder(prisma, sessionId, items);
-    if (order.error) return res.status(order.error.status).json({ message: order.error.message });
+    if (order.error)
+      return res
+        .status(order.error.status)
+        .json({ message: order.error.message });
 
     return res.status(200).json({
       sessionId,
@@ -144,12 +162,62 @@ const getBookingSummary = async (req, res) => {
     });
   } catch (err) {
     console.error("getBookingSummary error:", err);
-    return res.status(500).json({ message: "Could not generate booking summary" });
+    return res
+      .status(500)
+      .json({ message: "Could not generate booking summary" });
   }
 };
 
+const sendBookingEmail = async (result) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id: result.bookingId },
+    include: {
+      user: true,
+      session: {
+        include: {
+          event: true,
+          subVenue: { include: { venue: true } },
+        },
+      },
+    },
+  });
+  if (!booking?.user?.email) return;
 
+  const { session } = booking;
+  const { venue } = session.subVenue;
 
+  // console.log(venue); 
+
+  const { subject, html } = bookingConfirmationTemplate({
+    userName: `${booking.user.firstName} ${booking.user.lastName}`,
+    bookingId: booking.id,
+    eventName: session.event.Title,
+    session,
+    venue: {
+      venueName: venue.venueName,
+      subVenueName: session.subVenue.subVenueName,
+      address: [
+        venue.addressLine1,
+        venue.city,
+        venue.state,
+        venue.country,
+        venue.pincode,
+      ]
+        .filter(Boolean)
+        .join(", "),
+    },
+    items: result.orderLines.map((l) => ({
+      alias: l.alias,
+      unitPrice: Number(l.unitPrice),
+      quantity: l.quantity,
+      subtotal: Number(l.subtotal),
+    })),
+    totalCount: result.totalCount,
+    totalAmount: Number(result.totalAmount),
+  });
+
+  await sendMail({ to: booking.user.email, subject, html });
+};
 const payForBooking = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -159,11 +227,9 @@ const payForBooking = async (req, res) => {
       return res.status(400).json({ message: "sessionId is required" });
 
     const result = await prisma.$transaction(async (tx) => {
-    
       const order = await buildOrder(tx, sessionId, items);
       if (order.error) return { error: order.error };
 
-      
       for (const line of order.orderLines) {
         const r = await tx.sessionCategoryPrice.updateMany({
           where: {
@@ -175,7 +241,6 @@ const payForBooking = async (req, res) => {
         });
 
         if (r.count === 0) {
-         
           const err = new Error(`Tickets in "${line.alias}" just sold out`);
           err.code = "OUT_OF_STOCK";
           throw err;
@@ -205,13 +270,26 @@ const payForBooking = async (req, res) => {
         select: { id: true },
       });
 
-      return { bookingId: booking.id };
+      return {
+        bookingId: booking.id,
+        orderLines: order.orderLines,
+        totalCount: order.totalCount,
+        totalAmount: order.totalAmount,
+      };
     });
 
     if (result.error)
-      return res.status(result.error.status).json({ message: result.error.message });
+      return res
+        .status(result.error.status)
+        .json({ message: result.error.message });
 
-    return res.status(201).json({ message: "Booking confirmed", bookingId: result.bookingId });
+    sendBookingEmail(result).catch((e) =>
+      console.error("booking email failed:", e),
+    );
+
+    return res
+      .status(201)
+      .json({ message: "Booking confirmed", bookingId: result.bookingId });
   } catch (err) {
     if (err.code === "OUT_OF_STOCK")
       return res.status(409).json({ message: err.message });
@@ -221,22 +299,21 @@ const payForBooking = async (req, res) => {
   }
 };
 
-const getBookingsByUserId = async(req, res)=>{
-   try{
-     const userId = req.user.id;
-     const booking = await prisma.booking.findMany({
-      where: {userId},
-      include: {ticket: true}
-     })
+const getBookingsByUserId = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const booking = await prisma.booking.findMany({
+      where: { userId },
+      include: { ticket: true },
+    });
 
     if (!booking) return res.status(404).json({ message: "Booking not found" });
     return res.status(200).json({ booking });
-   }
-   catch(err){
+  } catch (err) {
     console.error("getBookings error:", err);
     return res.status(500).json({ message: "Could not fetch booking" });
-   }
-}
+  }
+};
 
 const getBookings = async (req, res) => {
   try {

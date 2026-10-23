@@ -5,11 +5,11 @@ import {
   getSessionById,
   getSessionsByEventId,
   updateSessionById,
-} from "../Controllers/session.js";
+} from "../../Controllers/Organizer_Controllers/session.js";
 import {
   getSessionCategoryPricing,
   setSessionCategoryPricing,
-} from "../Controllers/sessionPricing.js";
+} from "../../Controllers/Organizer_Controllers/sessionPricing.js";
 
 const router = express.Router();
 
