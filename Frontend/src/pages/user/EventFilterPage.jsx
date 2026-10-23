@@ -79,9 +79,9 @@ export default function EventFilterPage(){
     )
 }
 
-function searchCalled(e){
-    console.log(e.target.value);
-}
+// function searchCalled(e){
+//     console.log(e.target.value);
+// }
 
 
   const hasFilters = selectedCategories.length || selectedGenres.length;
@@ -113,7 +113,7 @@ function searchCalled(e){
 
       <section className="results">
         {/* <input type="text" placeholder="Search..." className="input-search" onChange={(e)=> searchCalled(e)}/> */}
-
+        
         {loading ? (
           <p>Loading...</p>
         ) : events.length === 0 ? (
