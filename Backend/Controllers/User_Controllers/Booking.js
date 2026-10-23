@@ -1,43 +1,3 @@
-
-// const cancelBooking = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const bookingId = Number(req.params.id);
-
-//     if (!Number.isInteger(bookingId))
-//       return res.status(400).json({ message: "Invalid booking id" });
-
-//     const booking = await prisma.booking.findFirst({ where: { id: bookingId, userId } });
-//     if (!booking) return res.status(404).json({ message: "Booking not found" });
-
-//     if (booking.status === "CONFIRMED")
-//       return res.status(409).json({ message: "A paid booking cannot be cancelled here" });
-
-//     // already cancelled or expired: treat as success so repeated calls are harmless
-//     if (booking.status !== "PENDING")
-//       return res.status(200).json({ message: "Booking already closed" });
-
-//     await prisma.$transaction([
-//       prisma.booking.updateMany({
-//         where: { id: bookingId, status: "PENDING" },   // never overwrites a booking paid a moment ago
-//         data: { status: "CANCELLED" },
-//       }),
-//       prisma.tickets.updateMany({
-//         where: { bookingId, status: "PENDING" },
-//         data: { status: "CANCELLED" },
-//       }),
-//     ]);
-
-//     return res.status(200).json({ message: "Booking cancelled" });
-//   } catch (err) {
-//     console.error("cancelBooking error:", err);
-//     return res.status(500).json({ message: "Could not cancel booking" });
-//   }
-// };
-
-
-
-
 import prisma from "../../index.js";
 
 const MAX_PER_CATEGORY = 10;
@@ -123,11 +83,12 @@ const buildOrder = async (db, sessionId, items) => {
 const getBookingSummary = async (req, res) => {
   try {
     const { sessionId, items } = req.body;
-
+    console.log("booking summary--------------> ", items);
     if (!Number.isInteger(sessionId))
       return res.status(400).json({ message: "sessionId is required" });
 
     const order = await buildOrder(prisma, sessionId, items);
+    console.log(order);
     if (order.error) return res.status(order.error.status).json({ message: order.error.message });
 
     return res.status(200).json({
@@ -221,43 +182,311 @@ const payForBooking = async (req, res) => {
   }
 };
 
-const getBookingsByUserId = async(req, res)=>{
-   try{
-     const userId = req.user.id;
-     const booking = await prisma.booking.findMany({
-      where: {userId},
-      include: {ticket: true}
-     })
-
-    if (!booking) return res.status(404).json({ message: "Booking not found" });
-    return res.status(200).json({ booking });
-   }
-   catch(err){
-    console.error("getBookings error:", err);
-    return res.status(500).json({ message: "Could not fetch booking" });
-   }
-}
-
-const getBookings = async (req, res) => {
+const getBookingsByUserId = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const bookingId = Number(req.params.id);
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
+    const bookings = await prisma.booking.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        status: true,
+        totalAmount: true,
+        totalCount: true,
+        createdAt: true,
+        session: {
+          select: {
+            id: true,
+            startDateTime: true,
+            endDateTime: true,
+            event: { select: { id: true, Title: true, imageUrl:true } },  
+            subVenue:{
+              select:{
+                id:true,
+                subVenueName:true,
+                venue: {
+                  select: {
+                    id: true,
+                    venueName: true,
+                    addressLine1:true,
+                    city:true,
+                    state:true,
+                    country: true,
+                    pincode: true
+                  }
+                }
+              }
+            } 
+          },
+        },
+      },
+    });
+
+
+
+    return res.status(200).json({
+      bookings: bookings.map((b) => ({
+        id: b.id,
+        status: b.status,
+        totalAmount: Number(b.totalAmount),
+        totalCount: b.totalCount,
+        bookedOn: b.createdAt,
+        event: b.session.event,
+        session: {
+          id: b.session.id,
+          startDateTime: b.session.startDateTime,
+          endDateTime: b.session.endDateTime,
+        },
+        subVenue: b.session.subVenue, 
+      })),
+    });
+  } catch (err) {
+    console.error("getMyBookings error:", err);
+    return res.status(500).json({ message: "Could not fetch bookings" });
+  }
+};
+
+const cancelBooking = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const bookingId = Number(req.params.id);
+    if (!Number.isInteger(bookingId))
+      return res.status(400).json({ message: "Invalid booking id" });
+
+    
+    const { ticketIds } = req.body ?? {};
+    if (ticketIds !== undefined) {
+      if (
+        !Array.isArray(ticketIds) ||
+        ticketIds.length === 0 ||
+        !ticketIds.every(Number.isInteger)
+      )
+        return res.status(400).json({ message: "Invalid ticketIds" });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+     
+      const booking = await tx.booking.findFirst({
+        where: { id: bookingId, userId },
+        include: { session: true },
+      });
+      if (!booking) return { error: { status: 404, message: "Booking not found" } };
+
+      if (booking.status === "CANCELLED")
+        return { error: { status: 409, message: "Booking is already cancelled" } };
+
+    
+      if (new Date() >= booking.session.startDateTime)
+        return { error: { status: 400, message: "This session has already started" } };
+
+     
+      const tickets = await tx.tickets.findMany({
+        where: {
+          bookingId,
+          status: "CONFIRMED",
+          ...(ticketIds ? { id: { in: ticketIds } } : {}),
+        },
+        select: { id: true, sessionCategoryPriceId: true, unitPrice: true },
+      });
+
+      if (tickets.length === 0)
+        return { error: { status: 409, message: "No active tickets to cancel" } };
+
+      if (ticketIds && tickets.length !== new Set(ticketIds).size)
+        return {
+          error: {
+            status: 400,
+            message: "Some tickets do not belong to this booking or are already cancelled",
+          },
+        };
+
+     
+      const claimed = await tx.tickets.updateMany({
+        where: { id: { in: tickets.map((t) => t.id) }, status: "CONFIRMED" },
+        data: { status: "CANCELLED" },
+      });
+      if (claimed.count !== tickets.length) {
+        const err = new Error("Tickets were changed by another request. Please try again.");
+        err.code = "CONFLICT";
+        throw err;
+      }
+
+      const perCategory = new Map();
+      let refundAmount = tickets[0].unitPrice.mul(0);
+      for (const t of tickets) {
+        perCategory.set(
+          t.sessionCategoryPriceId,
+          (perCategory.get(t.sessionCategoryPriceId) || 0) + 1
+        );
+        refundAmount = refundAmount.add(t.unitPrice);
+      }
+
+      const categoryIds = [...perCategory.keys()].sort((a, b) => a - b);
+      for (const categoryId of categoryIds) {
+        await tx.sessionCategoryPrice.update({
+          where: { id: categoryId },
+          data: { seatsForSale: { increment: perCategory.get(categoryId) } },
+        });
+      }
+      const remaining = await tx.tickets.count({
+        where: { bookingId, status: "CONFIRMED" },
+      });
+      if (remaining === 0) {
+        await tx.booking.update({ where: { id: bookingId }, data: { status: "CANCELLED" } });
+      }
+
+      return {
+        cancelledCount: tickets.length,
+        refundAmount: Number(refundAmount),
+        bookingCancelled: remaining === 0,
+      };
+    });
+
+    if (result.error)
+      return res.status(result.error.status).json({ message: result.error.message });
+
+    return res.status(200).json({
+      message: result.bookingCancelled ? "Booking cancelled" : "Selected tickets cancelled",
+      cancelledCount: result.cancelledCount,
+      refundAmount: result.refundAmount,
+      bookingCancelled: result.bookingCancelled,
+    });
+  } catch (err) {
+    if (err.code === "CONFLICT") return res.status(409).json({ message: err.message });
+    console.error("cancelBooking error:", err);
+    return res.status(500).json({ message: "Could not cancel booking" });
+  }
+};
+
+
+
+const getTickets = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
+    const bookingId = Number(req.params.id);
     if (!Number.isInteger(bookingId))
       return res.status(400).json({ message: "Invalid booking id" });
 
     const booking = await prisma.booking.findFirst({
-      where: { id: bookingId, userId },
-      include: { ticket: true },
+      where: { id: bookingId, userId },            // owner check built in
+      select: {
+        id: true,
+        status: true,
+        totalAmount: true,
+        totalCount: true,
+        createdAt: true,
+        session: {
+          select: {
+            id: true,
+            startDateTime: true,
+            endDateTime: true,
+            event: { select: { id: true, Title: true, imageUrl: true, status: true } },
+            subVenue: {
+              select: {
+                id: true,
+                subVenueName: true,
+                venue: {
+                  select: {
+                    id: true,
+                    venueName: true,
+                    addressLine1: true,
+                    city: true,
+                    state: true,
+                    country: true,
+                    pincode: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        ticket: {                                 
+          orderBy: { id: "asc" },
+          select: {
+            id: true,
+            status: true,
+            unitPrice: true,
+            sessionCategoryPrice: {
+              select: {
+                id: true,
+                alias: true,
+                seatCategory: {
+                  select: { id: true, categoryName: true, categoryDetail: true },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    return res.status(200).json({ booking });
+    const ticketgroup = new Map();
+   const ticketIds = new Map(); 
+
+    for (const t of booking.ticket) {
+        const key = t.sessionCategoryPrice.id;
+
+        ticketgroup.set(key, (ticketgroup.get(key) || 0) + 1);
+
+       if (!ticketIds.has(key)) ticketIds.set(key, []);
+       ticketIds.get(key).push(t.id);
+}
+   console.log(ticketgroup);
+
+   const arrayOfTicket = Array.from(ticketgroup, ([key, value]) => ({ sessionCategoryPriceId: key, quantity: value}))
+   console.log("array of ticket summary",arrayOfTicket)
+
+   const arrayOfTicketIds = Array.from(ticketIds, ([key, value]) => ({ id: key, ticketId: [...value]}))
+
+   const ticketSummary = await buildOrder(prisma, booking.session.id, arrayOfTicket);
+   console.log("summary of tickets", ticketSummary)
+
+   const ticketSummaryWithIds = ticketSummary.orderLines.map((line) => ({
+  ...line,
+  ticketIds: ticketIds.get(line.sessionCategoryPriceId) ?? [],   
+}));
+
+ 
+
+    return res.status(200).json({
+      booking: {
+        id: booking.id,
+        status: booking.status,
+        totalAmount: Number(booking.totalAmount),
+        totalCount: booking.totalCount,
+        bookedOn: booking.createdAt,
+      },
+      event: booking.session.event,
+      session: {
+        id: booking.session.id,
+        startDateTime: booking.session.startDateTime,
+        endDateTime: booking.session.endDateTime,
+      },
+      subVenue: booking.session.subVenue,           
+      tickets: booking.ticket.map((t) => ({
+        id: t.id,
+        status: t.status,
+        unitPrice: Number(t.unitPrice),
+        alias: t.sessionCategoryPrice.alias,
+        categoryName: t.sessionCategoryPrice.seatCategory?.categoryName,
+        categoryDetail: t.sessionCategoryPrice.seatCategory?.categoryDetail,
+        sessionCategoryPriceId: t.sessionCategoryPrice.id,
+      })),
+      ticketSummary: ticketSummaryWithIds
+    });
   } catch (err) {
-    console.error("getBookings error:", err);
-    return res.status(500).json({ message: "Could not fetch booking" });
+    console.error("getTickets error:", err);
+    return res.status(500).json({ message: "Could not fetch Tickets" });
   }
 };
 
-export { getBookingSummary, payForBooking, getBookings, getBookingsByUserId };
+
+export { getBookingSummary, payForBooking, getTickets, getBookingsByUserId, cancelBooking}

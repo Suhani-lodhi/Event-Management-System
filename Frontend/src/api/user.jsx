@@ -82,5 +82,24 @@ const getAllBookings = async () =>{
 }
 
 
+const cancelBooking = async (bookingId, ticketIds) => {
+  try {
+    const res = await axiosInstance.patch(`/user/cancelBooking/${bookingId}`, ticketIds ? { ticketIds } : {});
+    return res.data;
+  } catch (err) {
+    throw new Error(err.response?.data?.message || "cannot cancel booking");
+  }
+};
+
+const getTicketsByBookingId = async (bookingId) =>{
+  try {
+    const res = await axiosInstance.get(`/user/bookings/tickets/${bookingId}`);
+    return res.data;
+  } catch (err) {
+    console.log(err);
+    throw new Error(err.response?.data?.message || "cannot get tickets");
+  }
+}
+
 export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession, 
-   getBookingSummary, payForBooking}
+   getBookingSummary, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId}
