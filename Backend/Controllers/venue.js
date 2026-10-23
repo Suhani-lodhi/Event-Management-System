@@ -1,5 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../index.js";
+import fail from "../utils/fail.js";
 
 const createVenue = async (req, res) => {
   try {
@@ -33,33 +34,73 @@ const createVenue = async (req, res) => {
         success: false,
       });
     }
-    const invalidSubVenue = subVenues.some(
-      (sv) =>
-        !sv ||
-        sv.categoryCount === undefined ||
-        sv.categoryCount === "" ||
-        Number.isNaN(Number(sv.categoryCount)) ||
-        (sv.capacity != null &&
-          sv.capacity !== "" &&
-          Number.isNaN(Number(sv.capacity))),
-    );
 
-    if (invalidSubVenue) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "Each sub-venue needs a numeric categoryCount, and capacity must be a number if provided",
-        success: false,
-      });
+    // validate categories of every sub-venue
+    for (const sv of subVenues) {
+      if (!sv) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: "Invalid sub-venue",
+          success: false,
+        });
+      }
+
+      const categories = sv.categories ?? [];
+      if (!Array.isArray(categories)) {
+        return res.status(StatusCodes.BAD_REQUEST).json({
+          msg: "categories must be a list",
+          success: false,
+        });
+      }
+
+      const names = new Set();
+      for (const c of categories) {
+        const name = String(c?.categoryName ?? "").trim();
+        const count = Number(c?.seatCount);
+
+        if (!name) {
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            msg: "Every category needs a name",
+            success: false,
+          });
+        }
+        if (!Number.isInteger(count) || count < 1) {
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            msg: `seatCount for "${name}" must be a whole number, 1 or more`,
+            success: false,
+          });
+        }
+        if (names.has(name.toLowerCase())) {
+          return res.status(StatusCodes.BAD_REQUEST).json({
+            msg: `duplicate category name "${name}" in a sub-venue`,
+            success: false,
+          });
+        }
+        names.add(name.toLowerCase());
+      }
     }
-    const subVenueData = subVenues.map((sv) => ({
-      subVenueName: sv.subVenueName || null,
-      categoryCount: Number(sv.categoryCount),
-      capacity:
-        sv.capacity == null || sv.capacity === "" ? null : Number(sv.capacity),
-    }));
+
+    // categoryCount and capacity are calculated here, not trusted from the client
+    const subVenueData = subVenues.map((sv) => {
+      const categories = sv.categories ?? [];
+      return {
+        subVenueName: sv.subVenueName || null,
+        categoryCount: categories.length,
+        capacity: categories.length
+          ? categories.reduce((total, c) => total + Number(c.seatCount), 0)
+          : null,
+        seatCategories: {
+          create: categories.map((c) => ({
+            categoryName: String(c.categoryName).trim(),
+            categoryDetail: String(c.categoryDetail ?? "").trim() || null,
+            seatCount: Number(c.seatCount),
+          })),
+        },
+      };
+    });
 
     const venue = await prisma.venue.create({
       data: {
-        venueName: venueName,
+        venueName,
         addressLine1,
         city,
         state,
@@ -71,7 +112,7 @@ const createVenue = async (req, res) => {
           create: subVenueData,
         },
       },
-      include: { subVenues: true },
+      include: { subVenues: { include: { seatCategories: true } } },
     });
 
     return res.status(StatusCodes.CREATED).json({
@@ -80,6 +121,12 @@ const createVenue = async (req, res) => {
       success: true,
     });
   } catch (err) {
+    if (err.code === "P2002") {
+      return res.status(StatusCodes.CONFLICT).json({
+        msg: "this category name already exists in the subvenue",
+        success: false,
+      });
+    }
     console.error(err);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       msg: "could not create venue",
@@ -203,23 +250,47 @@ const updateVenue = async (req, res) => {
 };
 const deleteVenue = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const venueId = Number(req.params.id);
+    if (!Number.isInteger(venueId)) {
+      return fail(res, StatusCodes.BAD_REQUEST, "invalid venue id");
+    }
+
+    const venue = await prisma.venue.findFirst({
+      where: { id: venueId, userId: req.user.id },
+    });
+    if (!venue) return fail(res, StatusCodes.NOT_FOUND, "venue not found");
+
+    const sessionCount = await prisma.session.count({
+      where: { subVenue: { venueId } },
+    });
+    if (sessionCount > 0) {
+      return fail(
+        res,
+        StatusCodes.CONFLICT,
+        `${sessionCount} session(s) use this venue, delete or move them first`,
+      );
+    }
 
     await prisma.$transaction([
-      prisma.subVenue.deleteMany({ where: { venueId: id } }),
-      prisma.venue.delete({ where: { id } }),
+      prisma.seatCategory.deleteMany({ where: { subVenue: { venueId } } }),
+      prisma.subVenue.deleteMany({ where: { venueId } }),
+      prisma.venue.delete({ where: { id: venueId } }),
     ]);
 
     return res.status(StatusCodes.OK).json({
-      msg: "session deleted successfully",
+      msg: "venue deleted successfully",
       success: true,
     });
   } catch (err) {
+    if (err.code === "P2003") {
+      return fail(res, StatusCodes.CONFLICT, "this venue is still in use");
+    }
     console.error(err);
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "could not delete session",
-      success: false,
-    });
+    return fail(
+      res,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "could not delete venue",
+    );
   }
 };
 const getVenues = async (req, res) => {

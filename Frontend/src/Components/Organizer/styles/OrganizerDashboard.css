@@ -333,3 +333,91 @@ select:focus {
     width: 100%;
   }
 }
+/* status toggles */
+.st-group {
+  display: inline-flex;
+  margin-top: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.st-option {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #fff;
+  color: #444;
+  border: none;
+  border-right: 1px solid #e5e7eb;
+  cursor: pointer;
+}
+
+.st-option:last-child {
+  border-right: none;
+}
+.st-option:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.st-active {
+  background: #111827;
+  color: #fff;
+}
+
+.st-note {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.st-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.st-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.st-slider {
+  position: relative;
+  flex-shrink: 0;
+  width: 38px;
+  height: 20px;
+  border-radius: 20px;
+  background: #d1d5db;
+  transition: background 0.2s;
+}
+
+.st-slider::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+}
+
+.st-switch input:checked + .st-slider {
+  background: #16a34a;
+}
+.st-switch input:checked + .st-slider::after {
+  transform: translateX(18px);
+}
+.st-switch input:disabled + .st-slider {
+  opacity: 0.6;
+}
+.st-switch input:focus-visible + .st-slider {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}

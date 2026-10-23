@@ -16,6 +16,7 @@ import DeleteDialog from './DeleteDialog';
 import { deleteSessionById, updateSessionById, getVenues, getSubVenues } from '../../../api/event';
 import ConfirmCreateDialog from './ConfirmCreateDialog';
 import { toast } from 'react-toastify';
+import { RegistrationSwitch } from '../StatusToggles';
 
 const columns = [
   { id: 'index', label: '#', minWidth: 50 },
@@ -25,7 +26,7 @@ const columns = [
   { id: 'regEndDateTime', label: 'Reg. Closes', minWidth: 200, format: formatDateTime, editType: 'datetime' },
   { id: 'venueId', label: 'Venue', minWidth: 160, editType: 'venueSelect' },
   { id: 'subVenueId', label: 'Sub-Venue', minWidth: 160, editType: 'subVenueSelect' },
-  { id: 'registrationStatus', label: 'Registration', minWidth: 140 },
+  { id: 'registrationStatus', label: 'Registration', minWidth: 230 },
   { id: 'actions', label: 'Actions', minWidth: 170 },
 ];
 
@@ -282,14 +283,25 @@ export default function SessionsTable({ sessions = [] }) {
     return null;
   }
 
+  // The switch (registrationStatus) is the organizer's master control.
+  // When it is OPEN, the registration window dates still decide whether
+  // registration is actually open right now.
   function getRegistrationStatus(session) {
     const { regStartdateTime, regEndDateTime, registrationStatus } = session;
+    if (registrationStatus === 'CLOSED') return 'CLOSED';
     if (!regStartdateTime || !regEndDateTime) return registrationStatus;
 
     const now = new Date();
     if (now < new Date(regStartdateTime)) return 'UPCOMING';
     if (now > new Date(regEndDateTime)) return 'CLOSED';
     return 'OPEN';
+  }
+
+  // called by the switch after the server accepted the change
+  function handleRegistrationChange(sessionId, registrationStatus) {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, registrationStatus } : s))
+    );
   }
 
   function handleDeleteClick(id) {
@@ -371,11 +383,20 @@ export default function SessionsTable({ sessions = [] }) {
                             const status = getRegistrationStatus(session);
                             return (
                               <TableCell key={column.id}>
-                                <Chip
-                                  label={status}
-                                  size="small"
-                                  color={statusColor[status] || 'default'}
-                                />
+                                <Stack spacing={1} alignItems="flex-start">
+                                  <RegistrationSwitch
+                                    sessionId={session.id}
+                                    status={session.registrationStatus}
+                                    onChange={(next) =>
+                                      handleRegistrationChange(session.id, next)
+                                    }
+                                  />
+                                  <Chip
+                                    label={status}
+                                    size="small"
+                                    color={statusColor[status] || 'default'}
+                                  />
+                                </Stack>
                               </TableCell>
                             );
                           }

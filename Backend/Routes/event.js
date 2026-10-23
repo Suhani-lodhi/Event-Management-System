@@ -6,6 +6,10 @@ import {
   getEventByOrganizerId,
   updateEventById,
 } from "../Controllers/event.js";
+import {
+  updateEventStatus,
+  updateRegistrationStatus,
+} from "../Controllers/eventStatus.js";
 import { upload } from "../Middleware/upload.js";
 const router = express.Router();
 
@@ -17,4 +21,6 @@ router.get("/getEventsbyOrganizerId", getEventByOrganizerId);
 router.patch("/updateEvent/:id", upload.single("image"), updateEventById);
 router.delete("/deleteEvent/:id", deleteEventById);
 
+router.patch("/updateEventStatus/:id", updateEventStatus);
+router.patch("/updateRegistrationStatus/:sessionId", updateRegistrationStatus);
 export default router;
