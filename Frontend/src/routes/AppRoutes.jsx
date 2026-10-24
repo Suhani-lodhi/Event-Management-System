@@ -1,0 +1,144 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+import Login from '../pages/Login';
+import ParticipantSignup from '../pages/ParticipantSignup';
+import OrganizerSignup from '../pages/OrganizerSignup';
+import Dashboard from '../pages/Organizer/Dashboard';
+import OrganizerDashboard from '../Components/Organizer/OrganizerDashboard';
+import CreateEvent from '../pages/Organizer/CreateEvent';
+import EventDetails from '../pages/Organizer/EventDetails';
+import OrganizerProfile from '../pages/Organizer/OrganizerProfile';
+import { toast } from 'react-toastify';
+import { useEffect } from 'react';
+import Venues from '../pages/Organizer/Venues';
+import ViewVenue from '../pages/Organizer/ViewVenue';
+import UserDashboard from '../pages/user/UserDashboard';
+import VerifyOtp from '../pages/verifyOtp';
+import Home from '../pages/user/Home';
+import ParticipantEventDetails from '../Components/User/Models/EventDetail';
+import EventFilterPage from '../pages/user/EventFilterPage'
+import ParticipantProfile from '../Components/User/UserProfile';
+import SessionBookingPage from '../pages/user/SessionBookingPage';
+import TicketBookingPage from '../pages/user/TicketBookingPage';
+import MyBookings from '../pages/user/MyBookings';
+import MyTickets from '../pages/user/MyTickets';
+
+
+const ROLES = {
+  ORGANIZER: '/dashboard',
+  USER: '/home', 
+};
+
+
+// Blocks access to authenticated-only pages (e.g. /dashboard)
+function ProtectedRoute({ children, allowedRoles }) {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  // Don't decide anything until /auth/me (and a possible refresh) has finished
+  if (loading) return <div>Loading...</div>;
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Don't redirect to /login: PublicOnlyRoute would send them straight back here
+    return <div>You don't have access to this page.</div>;
+  }
+
+  return children;
+}
+
+// Keeps logged-in users out of login/signup pages
+function PublicOnlyRoute({ children }) {
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+
+  if (isAuthenticated) {
+    return <Navigate to={ROLES[user?.role] || '/login'} replace />;
+  }
+
+  return children;
+}
+
+export default function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      {/* Public-only routes */}
+      <Route
+        path="/login"
+        element={
+          <PublicOnlyRoute>
+            <Login />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <PublicOnlyRoute>
+            <ParticipantSignup />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/signup/organizer"
+        element={
+          <PublicOnlyRoute>
+            <OrganizerSignup />
+          </PublicOnlyRoute>
+        }
+      />
+      <Route
+        path="/verify-otp"
+        element={
+          <PublicOnlyRoute>
+            <VerifyOtp />
+          </PublicOnlyRoute>
+        }
+      />
+
+      {/* Protected routes */}
+      {/* Organizer side routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["ORGANIZER"]}>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<OrganizerDashboard />}/>
+        <Route path="createEvent" element = {<CreateEvent createEvent={true} />}/>
+        <Route path="event/:id" element = {<EventDetails/>}/>
+        <Route path="editEvent/:id" element = {<CreateEvent />} />
+        <Route path="addSessions/:id"  element = {<CreateEvent addSession={true} />} />
+        <Route path="me" element = {<OrganizerProfile />} />
+        <Route path="myVenues" element={<Venues/>}/>
+        <Route path="venue/:id" element ={<ViewVenue/>} />
+        <Route path="editVenue/:id" element={<Venues/>} />
+      </Route>
+
+
+      <Route path='/home'
+      element={
+        <ProtectedRoute allowedRoles={["USER"]}>
+            <UserDashboard/>
+        </ProtectedRoute>
+      }>
+      <Route index element={<Home/>}/>
+      <Route path='events' element={<EventFilterPage/>}/>
+      <Route path="getEvent/:id"  element = {<ParticipantEventDetails/>} />
+        <Route path="me" element={<ParticipantProfile/>} />
+      <Route path="event/tickets/:id" element={<SessionBookingPage/>} />
+      <Route path="event/tickets/:id/booking" element={<TicketBookingPage/>}/>
+      <Route path="mybookings" element={<MyBookings/>}/>
+      <Route path="bookings/:id/tickets" element={<MyTickets/>}/>
+      </Route>
+
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes >
+  );
+}

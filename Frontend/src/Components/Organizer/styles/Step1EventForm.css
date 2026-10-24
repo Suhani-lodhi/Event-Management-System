@@ -1,0 +1,313 @@
+.ce-form-page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: clamp(16px, 4vw, 32px) clamp(14px, 3vw, 24px) 60px;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  box-sizing: border-box;
+}
+
+.ce-form-page * {
+  box-sizing: border-box;               /* fields never overflow their container */
+}
+
+.ce-form-header {
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.ce-form-header h1 {
+  margin: 0 0 6px;
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.ce-form-header p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.ce-field-plain {
+  margin-bottom: 24px;
+}
+
+.ce-field-plain label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.ce-field-plain input {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-bottom: 1px solid var(--color-blush-mid);
+  font-size: 16px;                      /* 16px also stops iOS from zooming on focus */
+  background: transparent;
+}
+
+.ce-field-plain input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--color-lavender);
+}
+
+.ce-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: clamp(14px, 3vw, 24px);
+  margin-bottom: 20px;
+}
+
+.ce-card-header {
+  display: flex;
+  flex-wrap: wrap;                      /* title and action drop to two lines when tight */
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.ce-card-header-stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.ce-card-header label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.ce-image-preview {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  aspect-ratio: 16 / 10;                /* keeps the shape instead of a fixed 200px height */
+  margin-top: 12px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.ce-card textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.ce-card textarea:focus {
+  outline: none;
+  border: 1px solid var(--color-lavender);
+}
+
+/* Columns: side by side when there is room, stacked when there isn't */
+.ce-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+
+.ce-col {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.ce-field-label-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+
+.ce-field-label-row label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.ce-card select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1a1a1a;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.ce-session-card-header label {
+  font-size: clamp(17px, 3vw, 20px);
+}
+
+.ce-session-element {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.ce-session-element label {
+  font-size: medium;
+  font-weight: 500;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.startDate,
+.endDate {
+  width: 100%;
+  max-width: 300px;                     /* 300px on desktop, shrinks on phones */
+  height: 40px;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.subVenue {
+  margin-top: 10px;
+}
+
+select:focus,
+input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: var(--color-lavender);
+}
+
+.ce-session-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.session-icon {
+  margin-right: 2px;
+  cursor: pointer;
+}
+
+/* venue css */
+
+.v-elements {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 16px 24px;
+}
+
+.v-elements > div {
+  flex: 1 1 240px;                      /* was width: 45% */
+  min-width: 0;
+}
+
+.sv-elements {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.v-form-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.v-header {
+  margin: 10px clamp(0px, 5vw, 50px);   /* the 50px side margins were too big for phones */
+  padding: 10px;
+  border-bottom: 1px solid var(--color-blush-mid);
+}
+
+.v-header p {
+  color: #000000;
+  padding: 5px;
+}
+
+/* seat category adding */
+
+.sc-add-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 14px;
+}
+
+.sc-add-head h4 {
+  margin: 0;
+}
+
+.sc-add-head .icon {
+  cursor: pointer;
+}
+
+.sc-summary {
+  margin: 8px 0;
+  font-size: 13px;
+  color: #555;
+}
+
+.sc-add-row {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+
+.sc-add-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sc-add-fields .ce-field-plain {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+
+/* ---------- phones: the only media query ---------- */
+@media (max-width: 480px) {
+  .ce-card {
+    border-radius: 10px;
+  }
+
+  .startDate,
+  .endDate {
+    max-width: 100%;                  
+  }
+
+  .ce-image-preview {
+    max-width: 100%;
+  }
+}

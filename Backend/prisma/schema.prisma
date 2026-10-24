@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ORGANIZER
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum EventCategory {
+  STANDUP
+  ACTIVITY
+  GAME
+  MOVIE
+}
+
+enum EventGenre {
+  COMEDY
+  HORROR
+  ACTION
+  FUN
+}
+
+enum EventStatus {
+  DRAFTED
+  COMING_SOON
+  ACTIVE
+  CLOSED
+}
+
+enum RegistrationStatus {
+  OPEN
+  CLOSED
+}
+
+enum BookingStatus {
+  PARTIALLY_CANCELLED     
+  CONFIRMED   
+  CANCELLED
+  EXPIRED
+}
+
+model Users {
+  id             Int           @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  phoneNumber    String?
+  email          String        @unique
+  password       String
+  role           Role          @default(USER)
+  status         AccountStatus @default(ACTIVE)
+  isEmailVeified Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
+  organizer      Organizer?
+  venues         Venue[]
+  emailOtp       EmailOtp?
+  booking Booking[] @relation("User")
+}
+
+model EmailOtp {
+  id         String   @id @default(uuid())
+  userId     Int      @unique
+  codeHash   String
+  attemps    Int      @default(0)
+  lastSentAt DateTime @default(now())
+  user       Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Organizer {
+  id                   Int     @id @default(autoincrement())
+  userid               Int     @unique
+  displayName          String
+  companyName          String
+  alternatePhoneNumber String?
+  addressLine1         String
+  city                 String
+  state                String
+  country              String
+  pincode              Int
+  user                 Users   @relation(fields: [userid], references: [id], onDelete: Cascade)
+  events               Event[]
+}
+
+model Venue {
+  id Int @id @default(autoincrement())
+
+  venueName     String
+  addressLine1  String
+  city          String
+  state         String
+  country       String
+  pincode       Int
+  subVenueCount Int        @default(1)
+  userId        Int        @default(1)
+  user          Users      @relation(fields: [userId], references: [id])
+  subVenues     SubVenue[]
+
+  @@index([userId])
+}
+
+model SubVenue {
+  id             Int            @id @default(autoincrement())
+  venueId        Int
+  subVenueName   String?
+  categoryCount  Int
+  capacity       Int?
+  seatCategories SeatCategory[]
+  venue          Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  sessions       Session[]
+}
+
+model SeatCategory {
+  id                    Int                    @id @default(autoincrement())
+  subVenueId            Int
+  categoryName          String
+  categoryDetail        String?
+  seatCount             Int
+  rowCount              Int?
+  columnCount           Int?
+  subVenue              SubVenue               @relation(fields: [subVenueId], references: [id], onDelete: Cascade)
+  seatDetails           SeatDetail[]
+  sessionCategoryPrices SessionCategoryPrice[]
+}
+
+model SeatDetail {
+  id             Int          @id @default(autoincrement())
+  seatCategoryId Int
+  columnName     String
+  columnNumber   Int
+  rowNumber      Int
+  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id               Int           @id @default(autoincrement())
+  organizerId      Int
+  category         EventCategory
+  genre            EventGenre
+  Title            String
+  Description      String?
+  currentSessionId Int?          @unique
+  imageUrl         String?
+  status           EventStatus?  @default(DRAFTED)
+  organizer        Organizer     @relation(fields: [organizerId], references: [id])
+  sessions         Session[]
+  currentSession   Session?      @relation("CurrentSession", fields: [currentSessionId], references: [id])
+}
+
+model Session {
+  id                    Int                    @id @default(autoincrement())
+  eventId               Int
+  subVenueId            Int
+  startDateTime         DateTime
+  endDateTime           DateTime
+  regStartdateTime      DateTime
+  regEndDateTime        DateTime
+  registrationStatus    RegistrationStatus     @default(CLOSED)
+  subVenue              SubVenue               @relation(fields: [subVenueId], references: [id])
+  currentFor            Event?                 @relation("CurrentSession")
+  event                 Event                  @relation(fields: [eventId], references: [id])
+  sessionCategoryPrices SessionCategoryPrice[]
+  booking Booking[]
+}
+
+model SessionCategoryPrice {
+  id             Int          @id @default(autoincrement())
+  sessionId      Int
+  seatCategoryId Int
+  alias          String
+  price          Decimal      @db.Decimal(10, 2)
+  seatsForSale   Int
+  session        Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id])
+  ticket Tickets[] 
+  @@unique([sessionId, seatCategoryId])
+  @@index([seatCategoryId])
+}
+
+
+
+model Booking {
+  id          Int           @id @default(autoincrement())
+  userId      Int          
+  sessionId   Int
+  status      BookingStatus 
+  totalAmount Decimal       @db.Decimal(10, 2)
+  totalCount  Int
+  paymentRef  String?      
+  createdAt   DateTime      @default(now())
+  user        Users @relation("User",fields:[userId], references: [id])
+  session     Session       @relation(fields: [sessionId], references: [id])
+  ticket       Tickets[]
+
+}
+
+model Tickets {
+  id                     Int      @id @default(autoincrement())
+  bookingId              Int
+  sessionCategoryPriceId Int
+  status                 BookingStatus 
+  unitPrice              Decimal  @db.Decimal(10, 2)  
+  booking                Booking  @relation(fields: [bookingId], references: [id])
+  sessionCategoryPrice   SessionCategoryPrice @relation(fields: [sessionCategoryPriceId], references: [id])
+}
