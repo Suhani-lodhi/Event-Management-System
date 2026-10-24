@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
-import Step1EventForm from "./Step1EventForm";
+import Step1EventForm from "../../Components/Organizer/Step1EventForm";
 import '../Organizer/styles/CreateEvents.css'
-import Step2Session from "./Step2Sessions";
+import Step2Session from "../../Components/Organizer/Step2Sessions";
 import { useParams } from "react-router-dom";
 
 export default function CreateEvents({addSession, createEvent}) {

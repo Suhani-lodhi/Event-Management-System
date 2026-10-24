@@ -67,11 +67,17 @@ export default function MyTickets(){
     const handleConfirm = async () => {
       console.log(cancelQty)
       const ticketsToCancel = ticketSummary.flatMap((t) => {
-        const quantity = cancelQty[t.sessionCategoryPriceId ?? 0]
-        return t.ticketIds.slice(0, quantity);
-      })
+    const quantity = cancelQty[t.sessionCategoryPriceId] ?? 0;   
+    return quantity > 0 ? t.ticketIds.slice(0, quantity) : [];   
+    })
 
-      console.log(ticketsToCancel)
+  if (ticketsToCancel.length === 0) {
+    toast.error("Select at least one ticket to cancel");
+    return;
+  }
+
+
+      console.log("tickets to cancel",ticketsToCancel)
       
       try{
         const data = await cancelBooking(booking.id, ticketsToCancel);

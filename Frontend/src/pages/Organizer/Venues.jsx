@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import '../Organizer/styles/CreateEvents.css'
-import AddVenue from './AddVenue'
-import MyVenue from './MyVenue'
-import ViewVenue from './ViewVenue'
+import AddVenue from '../../Components/Organizer/AddVenue'
+import MyVenue from '../../Components/Organizer/MyVenue'
 import { useParams, useLocation} from 'react-router-dom'
 export default function Venues(){
     const {id} = useParams();

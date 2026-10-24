@@ -257,7 +257,12 @@ const cancelBooking = async (req, res) => {
     if (!Number.isInteger(bookingId))
       return res.status(400).json({ message: "Invalid booking id" });
 
+
     const { ticketIds } = req.body ?? {};
+
+    console.log("cancel body:", JSON.stringify(req.body), "ticketIds:", ticketIds);
+
+
     if (ticketIds !== undefined) {
       if (
         !Array.isArray(ticketIds) ||

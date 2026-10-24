@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import {  useNavigate, useParams } from "react-router-dom";
 import { getEventDetails } from "../../api/event";
 import '../Organizer/styles/OrganizerDashboard.css'
-import Table from '../Organizer/models/Table'
+import Table from "../../Components/Organizer/models/Table"
 import { getImageSrc } from "../../utils/imageUrl";
 
 export default function EventDetails(){

@@ -87,7 +87,7 @@ export default function EventFilterPage(){
   const hasFilters = selectedCategories.length || selectedGenres.length;
     return (
         <>
-        <button onClick={()=>navigate('/user/home')}>Home</button>
+        {/* <p onClick={()=>navigate('/user/home')}><u>Home</u></p> */}
              <div className="filter-page">
       <aside className="filters">
         <div className="filters__header">

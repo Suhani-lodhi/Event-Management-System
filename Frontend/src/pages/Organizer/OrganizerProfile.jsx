@@ -6,8 +6,8 @@ import {
   SaveBar,
   Section,
   getInitials,
-} from "../Profile/ProfileParts.jsx";
-import "../Profile/profile.css";
+} from "../../Components/Profile/ProfileParts.jsx"
+import "../../Components/Profile/profile.css";
 
 const PHONE = /^[0-9+\-\s]{7,15}$/;
 
