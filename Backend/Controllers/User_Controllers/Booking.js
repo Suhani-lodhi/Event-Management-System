@@ -374,7 +374,7 @@ const getTickets = async (req, res) => {
       return res.status(400).json({ message: "Invalid booking id" });
 
     const booking = await prisma.booking.findFirst({
-      where: { id: bookingId, userId },            // owner check built in
+      where: { id: bookingId, userId }, // owner check built in
       select: {
         id: true,
         status: true,
@@ -406,7 +406,8 @@ const getTickets = async (req, res) => {
             },
           },
         },
-        ticket: {                                 
+        ticket: {
+          where: { status: "CONFIRMED" }, // only active tickets
           orderBy: { id: "asc" },
           select: {
             id: true,
@@ -428,33 +429,31 @@ const getTickets = async (req, res) => {
 
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
-    const ticketgroup = new Map();
-   const ticketIds = new Map(); 
+    const grouped = new Map();
 
     for (const t of booking.ticket) {
-        const key = t.sessionCategoryPrice.id;
+      const key = t.sessionCategoryPrice.id;
+      const unitPrice = Number(t.unitPrice);
 
-        ticketgroup.set(key, (ticketgroup.get(key) || 0) + 1);
+      let line = grouped.get(key);
+      if (!line) {
+        line = {
+          sessionCategoryPriceId: key,
+          alias: t.sessionCategoryPrice.alias,
+          unitPrice,
+          quantity: 0,
+          subtotal: 0,
+          ticketIds: [],
+        };
+        grouped.set(key, line);
+      }
 
-       if (!ticketIds.has(key)) ticketIds.set(key, []);
-       ticketIds.get(key).push(t.id);
-}
-   console.log(ticketgroup);
+      line.quantity += 1;
+      line.subtotal += unitPrice;
+      line.ticketIds.push(t.id);
+    }
 
-   const arrayOfTicket = Array.from(ticketgroup, ([key, value]) => ({ sessionCategoryPriceId: key, quantity: value}))
-   console.log("array of ticket summary",arrayOfTicket)
-
-   const arrayOfTicketIds = Array.from(ticketIds, ([key, value]) => ({ id: key, ticketId: [...value]}))
-
-   const ticketSummary = await buildOrder(prisma, booking.session.id, arrayOfTicket);
-   console.log("summary of tickets", ticketSummary)
-
-   const ticketSummaryWithIds = ticketSummary.orderLines.map((line) => ({
-  ...line,
-  ticketIds: ticketIds.get(line.sessionCategoryPriceId) ?? [],   
-}));
-
- 
+    const ticketSummaryWithIds = [...grouped.values()]; // CHANGED: replaces the buildOrder().orderLines.map(...)
 
     return res.status(200).json({
       booking: {
@@ -470,7 +469,7 @@ const getTickets = async (req, res) => {
         startDateTime: booking.session.startDateTime,
         endDateTime: booking.session.endDateTime,
       },
-      subVenue: booking.session.subVenue,           
+      subVenue: booking.session.subVenue,
       tickets: booking.ticket.map((t) => ({
         id: t.id,
         status: t.status,
@@ -480,7 +479,7 @@ const getTickets = async (req, res) => {
         categoryDetail: t.sessionCategoryPrice.seatCategory?.categoryDetail,
         sessionCategoryPriceId: t.sessionCategoryPrice.id,
       })),
-      ticketSummary: ticketSummaryWithIds
+      ticketSummary: ticketSummaryWithIds, // same field name as before, so the frontend doesn't change
     });
   } catch (err) {
     console.error("getTickets error:", err);

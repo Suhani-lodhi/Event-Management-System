@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"
-import { getTicketsByBookingId } from "../../api/user";
+import { cancelBooking, getTicketsByBookingId } from "../../api/user";
 import { getImageSrc } from "../../utils/imageUrl";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from "@mui/material/DialogTitle";
+import Checkbox from "@mui/material/Checkbox";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import { NumberField } from '@base-ui/react/number-field';
+import DialogContent from "@mui/material/DialogContent";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import { toast } from "react-toastify";
+
 
 const fmt = { dateStyle: "medium", timeStyle: "short" };
 
@@ -15,6 +28,8 @@ export default function MyTickets(){
     const [subVenue, setSubVenue] = useState(null);
     const [ticketSummary, setTicketSummary] = useState([])
     const [loading, setLoading] = useState(true)
+    const [cancelQty, setCancelQty] = useState({});
+    const [openCancel, setOpenCancel] = useState(false);
     const navigate = useNavigate();
 
     useEffect(()=>{
@@ -41,6 +56,36 @@ export default function MyTickets(){
     },[id]);
 
     if (loading) return <p>Loading Tickets...</p>
+
+    const handleChange = (id, value) => {
+      console.log("handle change",cancelQty)
+  setCancelQty(prev => ({ ...prev, [id]: value ?? 0 }));
+   };
+
+
+
+    const handleConfirm = async () => {
+      console.log(cancelQty)
+      const ticketsToCancel = ticketSummary.flatMap((t) => {
+        const quantity = cancelQty[t.sessionCategoryPriceId ?? 0]
+        return t.ticketIds.slice(0, quantity);
+      })
+
+      console.log(ticketsToCancel)
+      
+      try{
+        const data = await cancelBooking(booking.id, ticketsToCancel);
+        console.log(data);
+        toast.success("Tickets cancelled successfully");
+        navigate('/home/bookings/'+booking.id+"tickets")
+      }
+      catch(err){
+        toast.error(err.message);
+      }
+      finally{
+        setOpenCancel(false)
+      }
+      };
 
 
     const venue = subVenue?.venue;
@@ -112,7 +157,7 @@ export default function MyTickets(){
 
       
 
-        <h2 className="tickets-heading">Tickets</h2>
+         {tickets.length>0 && <><h2 className="tickets-heading">Tickets</h2>
    
       <div className="ticket-rows">
         {ticketSummary?.map((t, index) => (
@@ -130,7 +175,44 @@ export default function MyTickets(){
           </div>
         ))}
       </div>
+      <p><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={() => setOpenCancel(true)} >click here</strong></u></p></>}
     </div>
-        </>
+
+    <Dialog open={openCancel} onClose={() => setOpenCancel(false)}>
+       <DialogTitle>Select Tickets to cancel</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2}>
+          {
+            ticketSummary?.map((t)=>
+              <Stack key={t.sessionCategoryPriceId} direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }} spacing={3}>
+                <Typography>{t.alias} (you have {t.quantity})</Typography>
+                <NumberField.Root
+                value={cancelQty[t.sessionCategoryPriceId] ?? 0}
+                onValueChange={v => handleChange(t.sessionCategoryPriceId, v)}
+                min={0}
+                max={t.quantity}
+                >
+
+                <NumberField.Group style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <NumberField.Decrement>−</NumberField.Decrement>
+                <NumberField.Input style={{ width: 48, textAlign: 'center' }} />
+                <NumberField.Increment>+</NumberField.Increment>
+                </NumberField.Group>
+
+                </NumberField.Root>
+              </Stack>
+            )
+          }
+        </Stack>
+      </DialogContent>
+
+
+      <DialogActions>
+        <Button onClick={() => setOpenCancel(false)}>Cancel</Button>
+        <Button variant="contained" color="error" onClick={handleConfirm}>Cancel Selected Tickets</Button>
+      </DialogActions>
+    </Dialog>
+
+    </>
     )
 }
