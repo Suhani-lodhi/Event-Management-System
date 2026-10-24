@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import "../Organizer/styles/OrganizerDashboard.css";
-import "../Organizer/styles/MyVenues.css";
+import "../../pages/Organizer/styles/OrganizerDashboard.css";
+import "../../pages/Organizer/styles/MyVenues.css";
 import { deleteVenueById, getVenuesOfOrganizer } from "../../api/event";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";

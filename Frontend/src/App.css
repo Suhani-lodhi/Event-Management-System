@@ -234,7 +234,6 @@ button[type="button"] {
 }
 
 .user-role {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   color: #6c757d;
 }
@@ -542,6 +541,7 @@ input {
 .status-confirmed { background:  var(--color-blush-light); color: #065f46; }
 .status-cancelled,
 .status-expired   { background:  var(--color-blush-light); color: #991b1b; }
+.status-partially_cancelled   { background:  var(--color-blush-light); color: #886ca3; }
 
 /* countdown */
 .hold-timer {
@@ -823,7 +823,6 @@ input {
   border: 1px solid var(--color-blush-light);
   border-radius: 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  cursor: pointer;
 }
 
 .tickets-info-img {
@@ -854,6 +853,7 @@ input {
   margin: 0;
   font-size: 1.4rem;
   line-height: 1.3;
+  cursor: pointer;
 }
 
 .info-block p,

@@ -82,12 +82,11 @@
   border-bottom: 1px solid var(--color-blush-mid);
 }
 
-/* Event list */
+
 .od-event-list {
-  display: flex;
-  /* flex-direction: column; */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  flex-wrap: wrap;
 }
 
 .od-event-card {
@@ -96,7 +95,6 @@
   justify-content: space-between;
   gap: 16px;
   padding: 24px;
-  width: 48%;
   border: 1px solid var(--color-blush-mid);
   border-radius: 14px;
   background: #ffffff;
@@ -333,6 +331,7 @@ select:focus {
     width: 100%;
   }
 }
+<<<<<<< HEAD:Frontend/src/Components/Organizer/styles/OrganizerDashboard.css
 /* status toggles */
 .st-group {
   display: inline-flex;
@@ -420,4 +419,119 @@ select:focus {
 .st-switch input:focus-visible + .st-slider {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
+=======
+
+
+/* responsive code */
+
+@media (max-width: 1000px) {
+  /* ---------- organizer dashboard ---------- */
+  .od-page {
+    padding: 16px 16px 40px;
+  }
+
+  .od-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .od-banner-text h2 {
+    font-size: 24px;
+  }
+
+  .od-banner-btn {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .od-overview-header h1 {
+    font-size: 24px;
+  }
+
+  .od-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* one card per row (the grid was still two columns) */
+  .od-event-list {
+    grid-template-columns: 1fr;
+  }
+
+  .od-event-card {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    padding: 16px;
+  }
+
+  .od-event-main {
+    width: 100%;
+  }
+
+  .od-event-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .od-event-top h3 {
+    font-size: 18px;
+  }
+
+  .od-event-description {
+    max-width: 100%;
+  }
+
+  .od-event-tags {
+    flex-wrap: wrap;
+  }
+
+  .od-icon {
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 16px;
+  }
+
+  /* card image goes full width on top */
+  .od-event-image {
+    width: 100%;
+    height: 160px;
+  }
+
+  .od-event-arrow {
+    display: none;
+  }
+
+  select {
+    width: 100%;
+  }
+
+  /* ---------- event detail page ---------- */
+  .ed-container {
+    padding: 16px 16px 40px;
+  }
+
+  .ed-card {
+    padding: 16px;
+  }
+
+  .ed-event-top {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ed-sessions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ed-banner-img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+  }
+>>>>>>> af419deaed1ad97c01143e0eef7027c39b1da9df:Frontend/src/pages/Organizer/styles/OrganizerDashboard.css
 }

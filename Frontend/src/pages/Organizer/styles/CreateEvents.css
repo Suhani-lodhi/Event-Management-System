@@ -88,3 +88,71 @@
 .av-button{
   height: 50px;
 }
+
+
+@media (max-width: 700px) {
+  .ce-header {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .ce-header h1 {
+    font-size: 24px;
+  }
+
+  /* steps: 2 per row */
+  .ce-steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .ce-steps span {
+    min-width: 0;
+    padding: 10px 12px;
+  }
+
+  /* an odd last step fills the whole row */
+  .ce-steps span:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  /* let long labels wrap instead of showing "..." */
+  .ce-steps p {
+    font-size: 13px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  /* header with the add button: stack */
+  .v-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .av-button {
+    width: 100%;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ce-header {
+    padding: 12px;
+  }
+
+  .ce-header h1 {
+    font-size: 20px;
+  }
+
+  .ce-steps span {
+    padding: 8px 10px;
+  }
+
+  .ce-steps p {
+    font-size: 12px;
+  }
+}

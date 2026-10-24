@@ -397,7 +397,15 @@ const cancelBooking = async (req, res) => {
     if (!Number.isInteger(bookingId))
       return res.status(400).json({ message: "Invalid booking id" });
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> af419deaed1ad97c01143e0eef7027c39b1da9df
     const { ticketIds } = req.body ?? {};
+
+    console.log("cancel body:", JSON.stringify(req.body), "ticketIds:", ticketIds);
+
+
     if (ticketIds !== undefined) {
       if (
         !Array.isArray(ticketIds) ||
@@ -420,6 +428,13 @@ const cancelBooking = async (req, res) => {
           error: { status: 409, message: "Booking is already cancelled" },
         };
 
+<<<<<<< HEAD
+=======
+      // CHANGED: only CONFIRMED or PARTIALLY_CANCELLED bookings can be cancelled further
+      if (!["CONFIRMED", "PARTIALLY_CANCELLED"].includes(booking.status))
+        return { error: { status: 409, message: "This booking cannot be cancelled" } };
+
+>>>>>>> af419deaed1ad97c01143e0eef7027c39b1da9df
       if (new Date() >= booking.session.startDateTime)
         return {
           error: { status: 400, message: "This session has already started" },
@@ -494,22 +509,37 @@ const cancelBooking = async (req, res) => {
           data: { seatsForSale: { increment: perCategory.get(categoryId) } },
         });
       }
+
+      // CHANGED: always update the booking status, never leave it as CONFIRMED
       const remaining = await tx.tickets.count({
         where: { bookingId, status: "CONFIRMED" },
       });
+<<<<<<< HEAD
       if (remaining === 0) {
         await tx.booking.update({
           where: { id: bookingId },
           data: { status: "CANCELLED" },
         });
       }
+=======
+      const newStatus = remaining === 0 ? "CANCELLED" : "PARTIALLY_CANCELLED";
+
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: { status: newStatus },
+      });
+>>>>>>> af419deaed1ad97c01143e0eef7027c39b1da9df
 
       return {
         cancelledCount: tickets.length,
         refundAmount: Number(refundAmount),
+<<<<<<< HEAD
         bookingCancelled: remaining === 0,
         cancelledLines: [...cancelledLines.values()], // added
         remainingCount: remaining, // added
+=======
+        bookingStatus: newStatus,               // CHANGED: replaces bookingCancelled
+>>>>>>> af419deaed1ad97c01143e0eef7027c39b1da9df
       };
     });
 
@@ -524,12 +554,20 @@ const cancelBooking = async (req, res) => {
     );
 
     return res.status(200).json({
+<<<<<<< HEAD
       message: result.bookingCancelled
         ? "Booking cancelled"
         : "Selected tickets cancelled",
+=======
+      message:
+        result.bookingStatus === "CANCELLED"
+          ? "Booking cancelled"
+          : "Selected tickets cancelled",
+>>>>>>> af419deaed1ad97c01143e0eef7027c39b1da9df
       cancelledCount: result.cancelledCount,
       refundAmount: result.refundAmount,
-      bookingCancelled: result.bookingCancelled,
+      bookingStatus: result.bookingStatus,      
+      bookingCancelled: result.bookingStatus === "CANCELLED", 
     });
   } catch (err) {
     if (err.code === "CONFLICT")
@@ -583,7 +621,7 @@ const getTickets = async (req, res) => {
           },
         },
         ticket: {
-          where: { status: "CONFIRMED" }, // only active tickets
+          where: { status: "CONFIRMED" }, 
           orderBy: { id: "asc" },
           select: {
             id: true,
@@ -633,8 +671,7 @@ const getTickets = async (req, res) => {
       line.ticketIds.push(t.id);
     }
 
-    const ticketSummaryWithIds = [...grouped.values()]; // CHANGED: replaces the buildOrder().orderLines.map(...)
-
+    const ticketSummaryWithIds = [...grouped.values()]; 
     return res.status(200).json({
       booking: {
         id: booking.id,
@@ -659,7 +696,7 @@ const getTickets = async (req, res) => {
         categoryDetail: t.sessionCategoryPrice.seatCategory?.categoryDetail,
         sessionCategoryPriceId: t.sessionCategoryPrice.id,
       })),
-      ticketSummary: ticketSummaryWithIds, // same field name as before, so the frontend doesn't change
+      ticketSummary: ticketSummaryWithIds, 
     });
   } catch (err) {
     console.error("getTickets error:", err);

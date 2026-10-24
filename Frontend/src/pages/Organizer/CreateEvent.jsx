@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react"
-import Step1EventForm from "./Step1EventForm";
+import Step1EventForm from "../../Components/Organizer/Step1EventForm";
 import '../Organizer/styles/CreateEvents.css'
+<<<<<<< HEAD:Frontend/src/Components/Organizer/CreateEvent.jsx
 import Step2Session from "./Step2Sessions";
 import Step3Pricing from "./Step3Categories";
+=======
+import Step2Session from "../../Components/Organizer/Step2Sessions";
+>>>>>>> af419deaed1ad97c01143e0eef7027c39b1da9df:Frontend/src/pages/Organizer/CreateEvent.jsx
 import { useParams } from "react-router-dom";
 
 export default function CreateEvents({addSession, createEvent}) {

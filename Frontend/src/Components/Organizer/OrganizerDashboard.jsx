@@ -1,4 +1,4 @@
-import '../Organizer/styles/OrganizerDashboard.css'
+import '../../pages/Organizer/styles/OrganizerDashboard.css';
 import { useEffect, useState } from "react";
 import { deleteEventById, getAllEvents } from "../../api/event";
 import { useNavigate } from 'react-router-dom';

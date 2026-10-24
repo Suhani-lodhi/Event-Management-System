@@ -67,17 +67,23 @@ export default function MyTickets(){
     const handleConfirm = async () => {
       console.log(cancelQty)
       const ticketsToCancel = ticketSummary.flatMap((t) => {
-        const quantity = cancelQty[t.sessionCategoryPriceId ?? 0]
-        return t.ticketIds.slice(0, quantity);
-      })
+    const quantity = cancelQty[t.sessionCategoryPriceId] ?? 0;   
+    return quantity > 0 ? t.ticketIds.slice(0, quantity) : [];   
+    })
 
-      console.log(ticketsToCancel)
+  if (ticketsToCancel.length === 0) {
+    toast.error("Select at least one ticket to cancel");
+    return;
+  }
+
+
+      console.log("tickets to cancel",ticketsToCancel)
       
       try{
         const data = await cancelBooking(booking.id, ticketsToCancel);
         console.log(data);
         toast.success("Tickets cancelled successfully");
-        navigate('/home/bookings/'+booking.id+"tickets")
+        window.location.reload();
       }
       catch(err){
         toast.error(err.message);
@@ -94,12 +100,17 @@ export default function MyTickets(){
         .filter(Boolean)
         .join(", ")
     : "";
+
+    let remainingAmount = ticketSummary.reduce((sum, t)=> {
+      return sum+t.subtotal
+    },0); 
+    const refundedAmount = booking.totalAmount - remainingAmount;
     return (
         <>
            <div className="my-tickets">
 
             
-      <div className="tickets-info-card" onClick={() => navigate('/home/getEvent/'+event.id)}>
+      <div className="tickets-info-card" >
         {event?.imageUrl && (
           <img
             className="tickets-info-img"
@@ -110,7 +121,7 @@ export default function MyTickets(){
 
         <div className="tickets-info-body">
           <div className="tickets-info-head">
-            <h2>{event?.Title}</h2>
+            <h2 onClick={() => navigate('/home/getEvent/'+event.id)}>{event?.Title}</h2>
             <span className={`status-badge status-${booking.status.toLowerCase()}`}>
               {booking.status}
             </span>
@@ -143,14 +154,38 @@ export default function MyTickets(){
                 #{booking.id} · {new Date(booking.bookedOn).toLocaleDateString("en-IN", { dateStyle: "medium" })}
               </p>
             </div>
+            {booking.status==='CONFIRMED' ? <div>
+              <span className="info-label">Booked Tickets</span>
+              <p>{booking.totalCount}</p>
+            </div>: 
             <div>
-              <span className="info-label">Tickets</span>
+             <div>
+              <span className="info-label">Booked Tickets</span>
               <p>{booking.totalCount}</p>
             </div>
+             <div>
+              <span className="info-label">Cancelled Tickets</span>
+              <p>{booking.totalCount - tickets.length}</p>
+            </div>
+           </div>
+            }
+
+            {booking.status === 'CONFIRMED' ? <div>
+              <span className="info-label">Total paid</span>
+              <p><strong>₹{booking.totalAmount.toLocaleString("en-IN")}</strong></p>
+            </div> :
             <div>
+              <div>
               <span className="info-label">Total paid</span>
               <p><strong>₹{booking.totalAmount.toLocaleString("en-IN")}</strong></p>
             </div>
+             <div>
+              <span className="info-label">Total Refund</span>
+              <p><strong>₹{refundedAmount.toLocaleString("en-IN")}</strong></p>
+            </div>
+            </div>
+            }
+            
           </div>
         </div>
       </div>
