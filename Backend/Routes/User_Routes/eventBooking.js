@@ -1,7 +1,8 @@
 import express from "express";
 import { getSessionCategoryPricing } from "../../Controllers/Organizer_Controllers/sessionPricing.js";
 import {
-  getBookings,
+  cancelBooking,
+  getTickets,
   getBookingsByUserId,
   getBookingSummary,
   payForBooking,
@@ -9,9 +10,10 @@ import {
 const router = express.Router();
 
 router.get("/getCategoriesPricing/:sessionId", getSessionCategoryPricing);
-router.get("/bookings/:id", getBookings);
+router.get("/bookings/tickets/:id", getTickets);
 router.post("/bookingSummary", getBookingSummary);
 router.post("/payForBooking", payForBooking);
 router.get("/getBookings", getBookingsByUserId);
+router.patch("/cancelBooking/:id", cancelBooking);
 
 export default router;

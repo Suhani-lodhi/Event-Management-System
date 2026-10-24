@@ -61,3 +61,52 @@ export const bookingConfirmationTemplate = ({
     `,
   };
 };
+
+export const bookingCancellationTemplate = ({
+  userName,
+  bookingId,
+  eventName,
+  session,
+  venue,
+  items, // cancelled lines: [{ alias, unitPrice, quantity, subtotal }]
+  cancelledCount,
+  refundAmount,
+  bookingCancelled, 
+  remainingCount, }) => {
+  const rows = items
+    .map(
+      (i) =>
+        `<tr><td>${i.alias}</td><td>${i.quantity}</td><td>${money(i.unitPrice)}</td><td>${money(i.subtotal)}</td></tr>`,
+    )
+    .join("");
+
+  const intro = bookingCancelled
+    ? "your booking has been cancelled."
+    : `${cancelledCount} ticket(s) from your booking have been cancelled. ${remainingCount} ticket(s) remain active.`;
+
+  return {
+    subject: bookingCancelled
+      ? `Booking cancelled – ${eventName} (#${bookingId})`
+      : `Tickets cancelled – ${eventName} (#${bookingId})`,
+    html: `
+      <h2>${bookingCancelled ? "Booking cancelled" : "Tickets cancelled"}</h2>
+      <p>Hi ${userName}, ${intro}</p>
+
+      <p>
+        <b>Booking ID:</b> #${bookingId}<br>
+        <b>Event:</b> ${eventName}<br>
+        <b>Starts:</b> ${date(session.startDateTime)}<br>
+        <b>Ends:</b> ${date(session.endDateTime)}<br>
+        <b>Venue:</b> ${venue.venueName}, ${venue.subVenueName}<br>
+        <b>Address:</b> ${venue.address}
+      </p>
+
+      <h3>Cancelled tickets</h3>
+      <table border="1" cellpadding="8" cellspacing="0">
+        <tr><th>Category</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+        ${rows}
+        <tr><td><b>Total refund</b></td><td><b>${cancelledCount}</b></td><td></td><td><b>${money(refundAmount)}</b></td></tr>
+      </table>
+    `,
+  };
+};

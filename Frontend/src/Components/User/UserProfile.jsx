@@ -9,6 +9,7 @@ import {
 } from "../Profile/ProfileParts.jsx";
 import "../Profile/profile.css";
 
+
 const PHONE = /^[0-9+\-\s]{7,12}$/;
 
 const toForm = (p) => ({
@@ -61,6 +62,8 @@ export default function ParticipantProfile() {
   const fullName = `${profile.firstName ?? ""} ${profile.lastName ?? ""}`.trim();
 
   return (
+    <>
+
     <div className="pf-page">
       <ProfileHeader
         initials={getInitials(profile.firstName, profile.lastName)}
@@ -97,5 +100,7 @@ export default function ParticipantProfile() {
         {editing && <SaveBar saving={saving} onCancel={cancelEdit} />}
       </form>
     </div>
+
+   </>
   );
 }
