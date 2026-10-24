@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getBookingSummary, payForBooking } from "../../api/user";
 import { toast } from "react-toastify";
+import '../user/styles/TicketBookingPage.css';
 
 const PAYMENT_WINDOW_SECONDS = 0.5 * 60;
 

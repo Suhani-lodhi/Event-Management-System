@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getImageSrc } from "../../utils/imageUrl";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faEye } from "@fortawesome/free-solid-svg-icons";
+import '../user/styles/MyBookings.css'
 
 export default function MyBookings(){
     const [bookings, setBookings] = useState([]);
@@ -15,7 +16,7 @@ export default function MyBookings(){
             try{
                 const res = await getAllBookings();
                 console.log(res);
-                setBookings(res.booking);
+                setBookings(res.bookings);
                 console.log(bookings)
             }
             catch(err){
@@ -28,7 +29,7 @@ export default function MyBookings(){
         }
 
         getBookings();
-    },[bookings]);
+    },[]);
 
 
     if(loading) return <p>Loading your bookings</p>
@@ -41,7 +42,7 @@ export default function MyBookings(){
     <p className="my-bookings-empty">You have no bookings yet.</p>
   ) : (
     <div className="my-bookings-block">
-      {!bookings?.map((b) => {
+      {bookings?.map((b) => {
   const venue = b.subVenue?.venue;
   const start = new Date(b.session.startDateTime);
   const end = new Date(b.session.endDateTime);
@@ -62,7 +63,7 @@ export default function MyBookings(){
 
       <div className="booking-card-body">
         <div className="booking-card-head">
-          <h3>{b.event.Title.trim()}</h3>
+          <h3 onClick={() => navigate('/home/getEvent/'+event.id)} style={{cursor: "pointer"}}>{b.event.Title.trim()}</h3>
           <span className={`status-badge status-${b.status.toLowerCase()}`}>{b.status}</span>
         </div>
 

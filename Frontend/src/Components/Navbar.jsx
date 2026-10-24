@@ -54,7 +54,7 @@ export default function Navbar() {
   return (
     <>
       <nav className="navbar">
-        <h1 onClick={() => navigate('/home')} style={{cursor: "pointer"}}>Occasia</h1>
+        <h1 onClick={() => user.role==='USER'?navigate('/home') : navigate('/dashboard')} style={{cursor: "pointer"}}>Occasia</h1>
         {/* <form className="search" role="search">
           <span className="search-icon">
             <FontAwesomeIcon icon={faSearch} />

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "../user/styles/MyTickets.css";
 import { useNavigate, useParams } from "react-router-dom"
 import { cancelBooking, getTicketsByBookingId } from "../../api/user";
 import { getImageSrc } from "../../utils/imageUrl";
@@ -83,7 +84,7 @@ export default function MyTickets(){
         const data = await cancelBooking(booking.id, ticketsToCancel);
         console.log(data);
         toast.success("Tickets cancelled successfully");
-        window.location.reload();
+        navigate('/home/mybookings')
       }
       catch(err){
         toast.error(err.message);

@@ -1,13 +1,17 @@
 .ce-form-page {
   max-width: 960px;
   margin: 0 auto;
-  padding: 32px 24px 60px;
+  padding: clamp(16px, 4vw, 32px) clamp(14px, 3vw, 24px) 60px;
   font-family:
     "Inter",
     system-ui,
     -apple-system,
     sans-serif;
   box-sizing: border-box;
+}
+
+.ce-form-page * {
+  box-sizing: border-box;               /* fields never overflow their container */
 }
 
 .ce-form-header {
@@ -18,8 +22,9 @@
 
 .ce-form-header h1 {
   margin: 0 0 6px;
-  font-size: 30px;
+  font-size: clamp(22px, 4vw, 30px);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .ce-form-header p {
@@ -44,7 +49,7 @@
   padding: 10px;
   border: none;
   border-bottom: 1px solid var(--color-blush-mid);
-  font-size: 16px;
+  font-size: 16px;                      /* 16px also stops iOS from zooming on focus */
   background: transparent;
 }
 
@@ -56,15 +61,16 @@
 .ce-card {
   background: #ffffff;
   border-radius: 12px;
-  padding: 20px 24px;
+  padding: clamp(14px, 3vw, 24px);
   margin-bottom: 20px;
 }
 
 .ce-card-header {
   display: flex;
+  flex-wrap: wrap;                      /* title and action drop to two lines when tight */
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px 16px;
   padding-bottom: 14px;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--color-blush-mid);
@@ -86,7 +92,8 @@
   display: block;
   width: 100%;
   max-width: 320px;
-  height: 200px;
+  height: auto;
+  aspect-ratio: 16 / 10;                /* keeps the shape instead of a fixed 200px height */
   margin-top: 12px;
   object-fit: cover;
   border: 1px solid #e5e7eb;
@@ -109,20 +116,24 @@
   border: 1px solid var(--color-lavender);
 }
 
+/* Columns: side by side when there is room, stacked when there isn't */
 .ce-row {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 16px 24px;
 }
 
 .ce-col {
-  flex: 1;
+  flex: 1 1 240px;
   min-width: 0;
 }
 
 .ce-field-label-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
+  gap: 4px 12px;
   margin-bottom: 8px;
 }
 
@@ -144,12 +155,14 @@
 }
 
 .ce-session-card-header label {
-  font-size: 20px;
+  font-size: clamp(17px, 3vw, 20px);
 }
 
 .ce-session-element {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 12px 20px;
 }
 
 .ce-session-element label {
@@ -161,13 +174,15 @@
 
 .startDate,
 .endDate {
-  width: 300px;
+  width: 100%;
+  max-width: 300px;                     /* 300px on desktop, shrinks on phones */
+  height: 40px;
   border: 1px solid var(--color-blush-mid);
-  height: 30px;
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   margin-top: 10px;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .subVenue {
@@ -182,7 +197,10 @@ input[type="datetime-local"]:focus {
 
 .ce-session-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
 }
 
 .session-icon {
@@ -190,33 +208,40 @@ input[type="datetime-local"]:focus {
   cursor: pointer;
 }
 
-/* venue css*/
+/* venue css */
 
 .v-elements {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 16px 24px;
 }
-.v-elements div {
-  width: 45%;
+
+.v-elements > div {
+  flex: 1 1 240px;                      /* was width: 45% */
+  min-width: 0;
 }
 
 .sv-elements {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 12px 20px;
 }
 
 .v-form-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px 16px;
   padding-bottom: 10px;
   margin-bottom: 10px;
   border-bottom: 1px solid var(--color-blush-mid);
 }
 
 .v-header {
-  margin: 10px 50px;
+  margin: 10px clamp(0px, 5vw, 50px);   /* the 50px side margins were too big for phones */
   padding: 10px;
   border-bottom: 1px solid var(--color-blush-mid);
 }
@@ -226,17 +251,14 @@ input[type="datetime-local"]:focus {
   padding: 5px;
 }
 
-@media (max-width: 600px) {
-  .ce-row {
-    flex-direction: column;
-    gap: 16px;
-  }
-}
+/* seat category adding */
 
 .sc-add-head {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 8px 16px;
   margin-top: 14px;
 }
 
@@ -271,4 +293,21 @@ input[type="datetime-local"]:focus {
 
 .sc-add-fields .ce-field-plain {
   flex: 1 1 180px;
+  min-width: 0;
+}
+
+/* ---------- phones: the only media query ---------- */
+@media (max-width: 480px) {
+  .ce-card {
+    border-radius: 10px;
+  }
+
+  .startDate,
+  .endDate {
+    max-width: 100%;                  
+  }
+
+  .ce-image-preview {
+    max-width: 100%;
+  }
 }
