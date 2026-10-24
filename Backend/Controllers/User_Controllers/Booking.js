@@ -257,7 +257,6 @@ const cancelBooking = async (req, res) => {
     if (!Number.isInteger(bookingId))
       return res.status(400).json({ message: "Invalid booking id" });
 
-    
     const { ticketIds } = req.body ?? {};
     if (ticketIds !== undefined) {
       if (
@@ -269,7 +268,6 @@ const cancelBooking = async (req, res) => {
     }
 
     const result = await prisma.$transaction(async (tx) => {
-     
       const booking = await tx.booking.findFirst({
         where: { id: bookingId, userId },
         include: { session: true },
@@ -279,11 +277,13 @@ const cancelBooking = async (req, res) => {
       if (booking.status === "CANCELLED")
         return { error: { status: 409, message: "Booking is already cancelled" } };
 
-    
+      // CHANGED: only CONFIRMED or PARTIALLY_CANCELLED bookings can be cancelled further
+      if (!["CONFIRMED", "PARTIALLY_CANCELLED"].includes(booking.status))
+        return { error: { status: 409, message: "This booking cannot be cancelled" } };
+
       if (new Date() >= booking.session.startDateTime)
         return { error: { status: 400, message: "This session has already started" } };
 
-     
       const tickets = await tx.tickets.findMany({
         where: {
           bookingId,
@@ -304,7 +304,6 @@ const cancelBooking = async (req, res) => {
           },
         };
 
-     
       const claimed = await tx.tickets.updateMany({
         where: { id: { in: tickets.map((t) => t.id) }, status: "CONFIRMED" },
         data: { status: "CANCELLED" },
@@ -332,17 +331,22 @@ const cancelBooking = async (req, res) => {
           data: { seatsForSale: { increment: perCategory.get(categoryId) } },
         });
       }
+
+      // CHANGED: always update the booking status, never leave it as CONFIRMED
       const remaining = await tx.tickets.count({
         where: { bookingId, status: "CONFIRMED" },
       });
-      if (remaining === 0) {
-        await tx.booking.update({ where: { id: bookingId }, data: { status: "CANCELLED" } });
-      }
+      const newStatus = remaining === 0 ? "CANCELLED" : "PARTIALLY_CANCELLED";
+
+      await tx.booking.update({
+        where: { id: bookingId },
+        data: { status: newStatus },
+      });
 
       return {
         cancelledCount: tickets.length,
         refundAmount: Number(refundAmount),
-        bookingCancelled: remaining === 0,
+        bookingStatus: newStatus,               // CHANGED: replaces bookingCancelled
       };
     });
 
@@ -350,10 +354,14 @@ const cancelBooking = async (req, res) => {
       return res.status(result.error.status).json({ message: result.error.message });
 
     return res.status(200).json({
-      message: result.bookingCancelled ? "Booking cancelled" : "Selected tickets cancelled",
+      message:
+        result.bookingStatus === "CANCELLED"
+          ? "Booking cancelled"
+          : "Selected tickets cancelled",
       cancelledCount: result.cancelledCount,
       refundAmount: result.refundAmount,
-      bookingCancelled: result.bookingCancelled,
+      bookingStatus: result.bookingStatus,      
+      bookingCancelled: result.bookingStatus === "CANCELLED", 
     });
   } catch (err) {
     if (err.code === "CONFLICT") return res.status(409).json({ message: err.message });
@@ -407,7 +415,7 @@ const getTickets = async (req, res) => {
           },
         },
         ticket: {
-          where: { status: "CONFIRMED" }, // only active tickets
+          where: { status: "CONFIRMED" }, 
           orderBy: { id: "asc" },
           select: {
             id: true,
@@ -453,8 +461,7 @@ const getTickets = async (req, res) => {
       line.ticketIds.push(t.id);
     }
 
-    const ticketSummaryWithIds = [...grouped.values()]; // CHANGED: replaces the buildOrder().orderLines.map(...)
-
+    const ticketSummaryWithIds = [...grouped.values()]; 
     return res.status(200).json({
       booking: {
         id: booking.id,
@@ -479,7 +486,7 @@ const getTickets = async (req, res) => {
         categoryDetail: t.sessionCategoryPrice.seatCategory?.categoryDetail,
         sessionCategoryPriceId: t.sessionCategoryPrice.id,
       })),
-      ticketSummary: ticketSummaryWithIds, // same field name as before, so the frontend doesn't change
+      ticketSummary: ticketSummaryWithIds, 
     });
   } catch (err) {
     console.error("getTickets error:", err);

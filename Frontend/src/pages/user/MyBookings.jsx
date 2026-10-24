@@ -87,7 +87,7 @@ export default function MyBookings(){
 
         <div className="booking-card-foot">
           <span>
-            {b.totalCount} ticket{b.totalCount > 1 ? "s" : ""}
+            {/* {b.totalCount} ticket{b.totalCount > 1 ? "s" : ""} */}
           </span>
          <p onClick={()=> navigate('/home/bookings/'+b.id+'/tickets')} style={{cursor: "pointer"}}>View Bookings<FontAwesomeIcon icon={faEye}/></p>
         </div>

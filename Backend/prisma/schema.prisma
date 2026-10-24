@@ -44,7 +44,7 @@ enum RegistrationStatus {
 }
 
 enum BookingStatus {
-  PENDING     
+  PARTIALLY_CANCELLED     
   CONFIRMED   
   CANCELLED
   EXPIRED
@@ -193,7 +193,7 @@ model Booking {
   id          Int           @id @default(autoincrement())
   userId      Int          
   sessionId   Int
-  status      BookingStatus @default(PENDING)
+  status      BookingStatus 
   totalAmount Decimal       @db.Decimal(10, 2)
   totalCount  Int
   paymentRef  String?      
@@ -208,7 +208,7 @@ model Tickets {
   id                     Int      @id @default(autoincrement())
   bookingId              Int
   sessionCategoryPriceId Int
-  status                 BookingStatus @default (PENDING)
+  status                 BookingStatus 
   unitPrice              Decimal  @db.Decimal(10, 2)  
   booking                Booking  @relation(fields: [bookingId], references: [id])
   sessionCategoryPrice   SessionCategoryPrice @relation(fields: [sessionCategoryPriceId], references: [id])
