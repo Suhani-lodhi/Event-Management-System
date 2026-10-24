@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { getEventsByFilter } from "../../api/user";
 import EventCard from "../../Components/User/EventCard";
+import '../user/styles/EventFilterPage.css'
 
 const CATEGORIES = ['MOVIE', 'STANDUP', 'GAME', 'ACTIVITY'];
 const GENRES = ['ACTION', 'HORROR', 'COMEDY', 'FUN'];

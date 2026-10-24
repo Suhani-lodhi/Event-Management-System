@@ -10,7 +10,7 @@ export default function UserNavigation(){
               <a href="/home/events?category=ACTIVITY">Activity</a>
             </div>
           <div>
-            <a href="">Host your show</a>
+            {/* <a href="">Host your show</a> */}
           </div>
           </div>
         </>

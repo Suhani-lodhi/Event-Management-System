@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getImageSrc } from "../../utils/imageUrl";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faEye } from "@fortawesome/free-solid-svg-icons";
+import '../user/styles/MyBookings.css'
 
 export default function MyBookings(){
     const [bookings, setBookings] = useState([]);

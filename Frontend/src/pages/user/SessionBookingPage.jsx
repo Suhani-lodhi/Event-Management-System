@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"
 import {  getPricingDetailsOfSession} from "../../api/user";
 import { toast } from "react-toastify";
+import "../user/styles/SessionBookingPage.css"
 
 const MAX_PER_CATEGORY = 10;  
 const MAX_PER_BOOKING = 20;

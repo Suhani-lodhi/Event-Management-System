@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "../user/styles/MyTickets.css";
 import { useNavigate, useParams } from "react-router-dom"
 import { cancelBooking, getTicketsByBookingId } from "../../api/user";
 import { getImageSrc } from "../../utils/imageUrl";
