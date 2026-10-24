@@ -5,6 +5,8 @@ import {
   loginService,
   refreshService,
   meService,
+  verifyOtpService,
+  resendOtpService,
 } from "../Sevices/auth.service.js";
 import { clearAuthCookies, setAuthCookies } from "../Sevices/cookie.service.js";
 
@@ -23,7 +25,7 @@ const participantSignup = async (req, res) => {
     return res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Signed up successfully",
-      user,
+      email: user.email,
     });
   } catch (err) {
     return sendError(res, err);
@@ -36,8 +38,7 @@ const organizerSignup = async (req, res) => {
     return res.status(StatusCodes.CREATED).json({
       success: true,
       message: "Signed up successfully",
-      user,
-      organizer,
+      email: user.email,
     });
   } catch (err) {
     return sendError(res, err);
@@ -90,4 +91,31 @@ const me = async (req, res) => {
   }
 };
 
-export { participantSignup, organizerSignup, login, refresh, logout, me };
+const verifyOtp = async (req, res) => {
+  try {
+    const result = await verifyOtpService(req.body);
+    return res.status(StatusCodes.OK).json({ success: true, ...result });
+  } catch (err) {
+    return sendError(res, err);
+  }
+};
+
+const resendOtp = async (req, res) => {
+  try {
+    const result = await resendOtpService(req.body);
+    return res.status(StatusCodes.OK).json({ success: true, ...result });
+  } catch (err) {
+    return sendError(res, err);
+  }
+};
+
+export {
+  participantSignup,
+  organizerSignup,
+  login,
+  refresh,
+  logout,
+  me,
+  verifyOtp,
+  resendOtp,
+};

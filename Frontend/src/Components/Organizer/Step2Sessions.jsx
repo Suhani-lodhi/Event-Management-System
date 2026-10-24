@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { faCopy, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { getSubVenues, getVenues, createSession } from '../../api/event';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 export default function Step2Session(props) {
     
@@ -15,6 +16,7 @@ export default function Step2Session(props) {
     const [subVenues, setSubVenues] = useState([]);
     const [loadingVenue, setLoadingVenue] = useState(true);
     const [loadingSubVenues, setLoadingSubVenues] = useState(true);
+    const navigate = useNavigate();
     
 
 
@@ -94,7 +96,7 @@ async function submitSession(){
 }
 
 function addVenue(){
-  console.log("add venue called")
+  navigate("/dashboard/myVenues", { state: { openAddVenue: true } })
 }
    
 

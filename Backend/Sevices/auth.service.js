@@ -8,8 +8,16 @@ import {
 import prisma from "../index.js";
 import "dotenv/config.js";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
+import { sendMail } from "../utils/mailer.js";
+import { otpVerificationTemplate } from "../utils/mailTemplate.js";
+import { generateOtp, hashOtp } from "../utils/otpGenerator.js";
 
-const sanitizeUser = ({ password, refreshToken, ...safe }) => safe;
+const OTP_TTL_MS = 5 * 60 * 1000;
+const RESEND_COOLDOWN_MS = 60 * 1000;
+const MAX_ATTEMPTS = 3;
+
+const sanitizeUser = ({ password, ...safe }) => safe;
 
 const issueSession = async (user) => {
   const { accessToken, refreshToken } = generateToken(user);
@@ -26,6 +34,36 @@ const handleCreateError = (err) => {
   throw err;
 };
 
+//Otp Verification wala module
+const normalizeEmail = (email) => email.trim().toLowerCase();
+
+const issueOtp = async (user) => {
+  try {
+    const otp = generateOtp();
+    const data = {
+      codeHash: hashOtp(otp),
+      attemps: 0,
+      lastSentAt: new Date(),
+    };
+
+    await prisma.emailOtp.upsert({
+      where: { userId: user.id },
+      update: data,
+      create: { userId: user.id, ...data },
+    });
+
+    const { subject, html } = otpVerificationTemplate(otp);
+    await sendMail({
+      to: user.email,
+      subject,
+      text: `Your 6-digit OTP is ${otp}. It expires in 5 minutes.`, // plain-text fallback
+      html,
+    });
+  } catch (err) {
+    console.error("OTP email failed:", err);
+  }
+};
+
 const participantSignupService = async (data) => {
   if (
     !data?.firstName ||
@@ -36,7 +74,7 @@ const participantSignupService = async (data) => {
   ) {
     throw httpError(StatusCodes.BAD_REQUEST, "Required info not found");
   }
-
+  const email = normalizeEmail(data.email);
   const hashedPassword = await hashPassword(data.password);
 
   let user;
@@ -45,7 +83,7 @@ const participantSignupService = async (data) => {
       data: {
         firstName: data.firstName,
         lastName: data.lastName,
-        email: data.email.trim().toLowerCase(),
+        email,
         password: hashedPassword,
         phoneNumber: data.phoneNumber ? data.phoneNumber : null,
       },
@@ -53,8 +91,8 @@ const participantSignupService = async (data) => {
   } catch (err) {
     handleCreateError(err);
   }
-
-  return issueSession(user);
+  await issueOtp(user);
+  return { user: sanitizeUser(user) };
 };
 
 const organizerSignupService = async (data) => {
@@ -75,6 +113,7 @@ const organizerSignupService = async (data) => {
     throw httpError(StatusCodes.BAD_REQUEST, "Required info not found");
   }
 
+  const email = normalizeEmail(data.email);
   const hashedPassword = await hashPassword(data.password);
 
   let user, organizer;
@@ -84,7 +123,7 @@ const organizerSignupService = async (data) => {
         data: {
           firstName: data.firstName,
           lastName: data.lastName,
-          email: data.email.trim().toLowerCase(),
+          email,
           password: hashedPassword,
           phoneNumber: data.phoneNumber ? data.phoneNumber : null,
           role: "ORGANIZER",
@@ -113,8 +152,8 @@ const organizerSignupService = async (data) => {
     handleCreateError(err);
   }
 
-  const session = await issueSession(user);
-  return { ...session, organizer };
+  await issueOtp(user);
+  return { user: sanitizeUser(user), organizer };
 };
 
 const loginService = async (data) => {
@@ -130,7 +169,7 @@ const loginService = async (data) => {
   }
 
   const user = await prisma.Users.findUnique({
-    where: { email: email.trim().toLowerCase() },
+    where: { email: normalizeEmail(email) },
   });
 
   if (!user) {
@@ -142,6 +181,9 @@ const loginService = async (data) => {
     throw httpError(StatusCodes.BAD_REQUEST, "Wrong password");
   }
 
+  if (!user.isEmailVeified) {
+    throw httpError(StatusCodes.FORBIDDEN, "Email not verified");
+  }
   return issueSession(user);
 };
 
@@ -155,10 +197,84 @@ const meService = async (id) => {
   if (!user) throw httpError(StatusCodes.UNAUTHORIZED, "User not found");
   return sanitizeUser(user);
 };
+
+const verifyOtpService = async ({ email, otp } = {}) => {
+  if (typeof email !== "string" || typeof otp !== "string" || !email || !otp) {
+    throw httpError(StatusCodes.BAD_REQUEST, "Email and OTP are required");
+  }
+
+  const user = await prisma.users.findUnique({
+    where: { email: normalizeEmail(email) },
+    include: { emailOtp: true },
+  });
+
+  if (!user || !user.emailOtp) {
+    throw httpError(StatusCodes.BAD_REQUEST, "Invalid or expired code");
+  }
+
+  const record = user.emailOtp;
+  if (Date.now() - record.lastSentAt.getTime() > OTP_TTL_MS) {
+    throw httpError(StatusCodes.BAD_REQUEST, "Code expired, request a new one");
+  }
+
+  if (record.attemps >= MAX_ATTEMPTS) {
+    throw httpError(
+      StatusCodes.TOO_MANY_REQUESTS,
+      "Too many attempts, request a new code",
+    );
+  }
+
+  const match = hashOtp(otp.trim()) === record.codeHash;
+
+  if (!match) {
+    await prisma.emailOtp.update({
+      where: { userId: user.id },
+      data: { attemps: { increment: 1 } },
+    });
+    throw httpError(StatusCodes.BAD_REQUEST, "Invalid or expired code");
+  }
+  await prisma.$transaction([
+    prisma.users.update({
+      where: { id: user.id },
+      data: { isEmailVeified: true },
+    }),
+    prisma.emailOtp.delete({ where: { userId: user.id } }),
+  ]);
+
+  return { message: "Email verified" };
+};
+
+const resendOtpService = async ({ email } = {}) => {
+  if (typeof email !== "string" || !email) {
+    throw httpError(StatusCodes.BAD_REQUEST, "Email is required");
+  }
+  const generic = {
+    message: "If the account exists, a new code has been sent",
+  };
+
+  const user = await prisma.users.findUnique({
+    where: { email: normalizeEmail(email) },
+    include: { emailOtp: true },
+  });
+  if (!user || user.isEmailVeified) return generic;
+  if (
+    user.emailOtp &&
+    Date.now() - user.emailOtp.lastSentAt.getTime() < RESEND_COOLDOWN_MS
+  ) {
+    throw httpError(
+      StatusCodes.TOO_MANY_REQUESTS,
+      "Please wait before requesting another code",
+    );
+  }
+  await issueOtp(user);
+  return generic;
+};
 export {
   participantSignupService,
   organizerSignupService,
   loginService,
   refreshService,
   meService,
+  verifyOtpService,
+  resendOtpService,
 };

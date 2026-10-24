@@ -2,27 +2,42 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 :root {
-  /* Color Pallete */
-  --color-blush-lightest: #fbefef; /* rgb(251, 239, 239) */
-  --color-blush-light: #ffe2e2; /* rgb(255, 226, 226) */
-  --color-blush-mid: #f5cbcb; /* rgb(245, 203, 203) */
-  --color-lavender: #983edd; /* rgb(152, 62, 221) */
-  --color-lavender-dark: #7f2fc0;
+  /* --color-blush-lightest2: #f3f3f3; 
+  --color-blush-lightest: #fbefef;
+  --color-blush-light: #ffe2e2;
+  --color-blush-mid: #f5cbcb; 
+  --color-lavender: #983edd; 
+  --color-lavender-dark: #7f2fc0; */
+
+  --color-blush-lightest2: #f1f3f5;
+  --color-blush-lightest: #f8f9fa;
+  --color-blush-light: #e9ecef;
+  --color-blush-mid: #ced4da;
+  --color-lavender: #343a40;
+  --color-lavender-dark: #212529;
+  --color-lavander-real: #4a1f73;
 }
 body {
   min-height: 100vh;
-  background: linear-gradient(180deg, var( --color-blush-lightest) 70%, white 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-blush-lightest) 70%,
+    white 100%
+  );
   /* background-attachment: fixed; */
 }
 h1,
 h2,
 h3 {
-  color: var(--color-lavender);
+  color: var(--color-lavander-real);
 }
-
 
 /* button global css */
 
@@ -41,12 +56,15 @@ button {
   font-weight: 500;
   line-height: 1.2;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease,
-    box-shadow 0.15s ease, transform 0.05s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.05s ease;
 }
 
 button:hover {
-  background: var(--color-lavender-dark);
+  background: var(--color-lavender);
   border-color: var(--color-lavender-dark);
 }
 
@@ -67,7 +85,6 @@ button:disabled {
   transform: none;
 }
 
-/* Secondary: light button with a blush border */
 button.btn-secondary {
   background: #ffffff;
   border-color: var(--color-blush-mid);
@@ -78,4 +95,3 @@ button.btn-secondary:hover {
   background: var(--color-blush-lightest);
   border-color: var(--color-blush-mid);
 }
-

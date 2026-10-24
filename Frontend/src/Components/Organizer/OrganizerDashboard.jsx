@@ -1,4 +1,4 @@
-import '../Organizer/styles/OrganizerDashboard.css'
+import '../../pages/Organizer/styles/OrganizerDashboard.css';
 import { useEffect, useState } from "react";
 import { deleteEventById, getAllEvents } from "../../api/event";
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faTrash } from '@fortawesome/free-solid-svg-icons';
 import DeleteDialog from './models/DeleteDialog';
 import { toast } from 'react-toastify';
+import { getImageSrc } from '../../utils/imageUrl';
+import { EventStatusToggle } from './StatusToggles';
 
 export default function OrganizerDashboard() {
 
@@ -14,17 +16,17 @@ export default function OrganizerDashboard() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [eventToDelete, setEventToDelete] = useState(null);
   const [filter, setFilter] = useState("all")
-  const [filteredEvents, setFilteredEvents] = useState([]);
   const navigate = useNavigate();
 
-
+  // derived from `events` so a status change shows up in the cards right away
+  const filteredEvents =
+    filter === "all" ? events : events.filter((event) => event.status === filter);
 
 
   async function fetchEvents() {
     try {
       const data = await getAllEvents();
       setEvents(data.event ? data.event : []);
-      setFilteredEvents(data.event ? data.event : [])
     }
     catch (err) {
       console.log("error occurred in get all events")
@@ -38,16 +40,6 @@ export default function OrganizerDashboard() {
 
     fetchEvents();
   }, [])
-
-  function getfilteredEvents(e) {
-    // console.log("onchange called", e.target.value)
-
-    if (e.target.value == "all") {
-      setFilteredEvents(events)
-      return;
-    }
-    setFilteredEvents(events.filter((event) => event.status == e.target.value))
-  }
 
   async function deleteEvent(id) {
     const res = await deleteEventById(id);
@@ -76,6 +68,26 @@ export default function OrganizerDashboard() {
     setDialogOpen(false);
     setEventToDelete(null);
   }
+
+  // called after the server accepted a new event status.
+  // Draft and Closed also close registration on the server, so mirror that here.
+  function handleStatusChange(eventId, status) {
+    const closesRegistration = status === "DRAFTED" || status === "CLOSED";
+    setEvents((prev) =>
+      prev.map((ev) =>
+        ev.id === eventId
+          ? {
+              ...ev,
+              status,
+              sessions: closesRegistration
+                ? ev.sessions?.map((s) => ({ ...s, registrationStatus: "CLOSED" }))
+                : ev.sessions,
+            }
+          : ev
+      )
+    );
+  }
+
   if (loading) return <p>Loading events...</p>;
 
   return (
@@ -99,7 +111,7 @@ export default function OrganizerDashboard() {
 
 
         <div>
-          <select onChange={getfilteredEvents} defaultValue="all">
+          <select onChange={(e) => setFilter(e.target.value)} value={filter}>
             <option value="all">All</option>
             <option value="DRAFTED">Draft</option>
             <option value="COMING_SOON">Up-coming</option>
@@ -118,8 +130,32 @@ export default function OrganizerDashboard() {
           </div>
         ) : (
           <div className="od-event-list">
-            {filteredEvents.map((event) => (
+            {filteredEvents.map((event) => {
+              const sessionCount = event.sessions?.length ?? 0;
+              const openCount =
+                event.sessions?.filter((s) => s.registrationStatus === "OPEN").length ?? 0;
+
+              return (
               <div className="od-event-card" key={event.id}  >
+                
+                <div className="od-event-image">
+  {event.imageUrl ? (
+    <img
+      src={getImageSrc(event.imageUrl)}
+      alt={event.Title}
+      loading="lazy"
+      onError={(e) => {
+        e.currentTarget.style.display = "none"; // hide broken image
+      }}
+    />
+  ) : (
+    <div className="od-image-placeholder">No image</div>
+  )}
+</div>
+
+
+
+
                 <div className="od-event-main">
                   <div className="od-event-top">
                     <div>
@@ -145,11 +181,24 @@ export default function OrganizerDashboard() {
                     )}
                   </div>
 
+                  <EventStatusToggle
+                    eventId={event.id}
+                    status={event.status ?? "DRAFTED"}
+                    onChange={(status) => handleStatusChange(event.id, status)}
+                  />
+
+                  {sessionCount > 0 && (
+                    <p className="st-note">
+                      Registration open for {openCount} of {sessionCount} session{sessionCount > 1 ? "s" : ""}
+                    </p>
+                  )}
+
                 </div>
 
                 <span className="od-event-arrow">&#8250;</span>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

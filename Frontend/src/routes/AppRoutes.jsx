@@ -6,13 +6,30 @@ import ParticipantSignup from '../pages/ParticipantSignup';
 import OrganizerSignup from '../pages/OrganizerSignup';
 import Dashboard from '../pages/Organizer/Dashboard';
 import OrganizerDashboard from '../Components/Organizer/OrganizerDashboard';
-import CreateEvent from '../Components/Organizer/CreateEvent';
-import EventDetails from '../Components/Organizer/EventDetails';
-import OrganizerProfile from '../Components/Organizer/OrganizerProfile';
+import CreateEvent from '../pages/Organizer/CreateEvent';
+import EventDetails from '../pages/Organizer/EventDetails';
+import OrganizerProfile from '../pages/Organizer/OrganizerProfile';
 import { toast } from 'react-toastify';
 import { useEffect } from 'react';
-import Venues from '../Components/Organizer/Venues';
-import ViewVenue from '../Components/Organizer/ViewVenue';
+import Venues from '../pages/Organizer/Venues';
+import ViewVenue from '../pages/Organizer/ViewVenue';
+import UserDashboard from '../pages/user/UserDashboard';
+import VerifyOtp from '../pages/verifyOtp';
+import Home from '../pages/user/Home';
+import ParticipantEventDetails from '../Components/User/Models/EventDetail';
+import EventFilterPage from '../pages/user/EventFilterPage'
+import ParticipantProfile from '../Components/User/UserProfile';
+import SessionBookingPage from '../pages/user/SessionBookingPage';
+import TicketBookingPage from '../pages/user/TicketBookingPage';
+import MyBookings from '../pages/user/MyBookings';
+import MyTickets from '../pages/user/MyTickets';
+
+
+const ROLES = {
+  ORGANIZER: '/dashboard',
+  USER: '/home', 
+};
+
 
 // Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {
@@ -33,11 +50,15 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 // Keeps logged-in users out of login/signup pages
 function PublicOnlyRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) return <div>Loading...</div>;
 
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
+  if (isAuthenticated) {
+    return <Navigate to={ROLES[user?.role] || '/login'} replace />;
+  }
+
+  return children;
 }
 
 export default function AppRoutes() {
@@ -70,8 +91,17 @@ export default function AppRoutes() {
           </PublicOnlyRoute>
         }
       />
+      <Route
+        path="/verify-otp"
+        element={
+          <PublicOnlyRoute>
+            <VerifyOtp />
+          </PublicOnlyRoute>
+        }
+      />
 
       {/* Protected routes */}
+      {/* Organizer side routes */}
       <Route
         path="/dashboard"
         element={
@@ -91,7 +121,24 @@ export default function AppRoutes() {
         <Route path="editVenue/:id" element={<Venues/>} />
       </Route>
 
+
+      <Route path='/home'
+      element={
+        <ProtectedRoute allowedRoles={["USER"]}>
+            <UserDashboard/>
+        </ProtectedRoute>
+      }>
+      <Route index element={<Home/>}/>
+      <Route path='events' element={<EventFilterPage/>}/>
+      <Route path="getEvent/:id"  element = {<ParticipantEventDetails/>} />
+        <Route path="me" element={<ParticipantProfile/>} />
+      <Route path="event/tickets/:id" element={<SessionBookingPage/>} />
+      <Route path="event/tickets/:id/booking" element={<TicketBookingPage/>}/>
+      <Route path="mybookings" element={<MyBookings/>}/>
+      <Route path="bookings/:id/tickets" element={<MyTickets/>}/>
+      </Route>
+
       <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+    </Routes >
   );
 }

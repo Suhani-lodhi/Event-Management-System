@@ -1,15 +1,18 @@
 import { useEffect, useState } from "react";
-import "../Organizer/styles/OrganizerDashboard.css";
-import "../Organizer/styles/MyVenues.css";
+import "../../pages/Organizer/styles/OrganizerDashboard.css";
+import "../../pages/Organizer/styles/MyVenues.css";
 import { deleteVenueById, getVenuesOfOrganizer } from "../../api/event";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import DeleteDialog from "./models/DeleteDialog";
 
 export default function MyVenue() {
   const [venues, setVenues] = useState([]);
   const navigate = useNavigate();
+  const [deleteDialog, setDeleteDialog] = useState(false)
+  const [deleteId, setDeleteId] = useState(null);
 
   useEffect(() => {
     async function getVenues() {
@@ -23,6 +26,15 @@ export default function MyVenue() {
 
     getVenues();
   }, []);
+
+  function handleDeleteDialog(id){
+    setDeleteDialog(true);
+    setDeleteId(id)
+  }
+  function confirmDelete(){
+    deleteVenue(deleteId);
+    setDeleteId(null);
+  }
 
   async function deleteVenue(id){
   console.log("deleted venue", id);
@@ -60,7 +72,7 @@ export default function MyVenue() {
                   
                   <h3 className="mv-title">{v.venueName}</h3>
                   <div>
-                    <FontAwesomeIcon icon={faTrash} className="icon" onClick={() => deleteVenue(v.id)}/>
+                    <FontAwesomeIcon icon={faTrash} className="icon" onClick={() => handleDeleteDialog(v.id)}/>
                     <FontAwesomeIcon icon={faEye} className="icon" onClick={() => viewVenue(v.id)}/>
                   </div>
               </div>
@@ -89,6 +101,15 @@ export default function MyVenue() {
           ))}
         </div>
       )}
+      
+      <DeleteDialog
+      open={deleteDialog}
+      onClose ={() => setDeleteDialog(false)}
+      onConfirm = {confirmDelete}
+      />
+
     </div>
+    
+
   );
 }

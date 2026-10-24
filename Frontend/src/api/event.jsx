@@ -25,7 +25,6 @@ const getAllEvents = async () => {
 
 
 const getEventDetails = async (id) => {
-    console.log("get event -----> ", id)
     try {
         const res = await axiosInstance.get(`organizer/getEvent/${id}`);
         return res.data;
@@ -124,10 +123,7 @@ const getVenuesOfOrganizer = async () =>{
 
 const getSubVenues = async (id) =>{
     try{
-        console.log("Id............",id)
         const res = await axiosInstance.get(`organizer/subVenues/${id}`)
-        console.log(res)
-        console.log(res.data)
         return res.data;
     }
     catch(err){
@@ -138,7 +134,6 @@ const getSubVenues = async (id) =>{
 const createVenue = async (data)=>{
     try{
        const res = await axiosInstance.post(`organizer/createVenue`, data);
-       console.log(res.data);
        return res.data
     }
     catch{
@@ -149,7 +144,6 @@ const createVenue = async (data)=>{
 const deleteVenueById = async (id) =>{
      try{
        const res = await axiosInstance.delete(`organizer/deleteVenue/${id}`);
-       console.log(res.data);
        return res.data
     }
     catch{
@@ -160,7 +154,6 @@ const deleteVenueById = async (id) =>{
 const getVenueDetails = async (id) =>{
     try{
        const res = await axiosInstance.get(`organizer/venue/${id}`)
-       console.log(res.data);
        return res.data;
     }
     catch(err){
@@ -171,7 +164,6 @@ const getVenueDetails = async (id) =>{
 const deleteSubVenue = async (id) => {
      try{
        const res = await axiosInstance.delete(`organizer/deleteSubVenue/${id}`);
-       console.log(res.data);
        return res.data
     }
     catch{
@@ -179,10 +171,9 @@ const deleteSubVenue = async (id) => {
     }
 }
 
-const editVenue = async (id)=>{
+const editVenueById = async (id, data)=>{
         try{
-       const res = await axiosInstance.delete(`organizer/updateVenue/${id}`);
-       console.log(res.data);
+       const res = await axiosInstance.patch(`organizer/updateVenue/${id}`, data);
        return res.data
     }
     catch{
@@ -191,7 +182,102 @@ const editVenue = async (id)=>{
 
 }
 
+const editSubVenueById = async (id, data) =>{
+    try{
+       const res = await axiosInstance.patch(`organizer/updateSubVenue/${id}`, data);
+       return res.data
+    }
+    catch{
+       throw new Error("could not edit Sub venue")
+    }
+
+}
+
+const createSubVenue = async (id, data) =>{
+    try{
+       const res = await axiosInstance.post(`organizer/createSubVenue/${id}`, data);
+       return res.data
+    }
+    catch{
+       throw new Error("could not edit Sub venue")
+    }
+}
+
+// nayi wali hai
+const seatErr = (err, fallback) =>
+    new Error(err.response?.data?.msg || fallback);
+
+const getSeatCategories = async (subVenueId) => {
+    try {
+        const res = await axiosInstance.get(`organizer/getCategories/${subVenueId}`);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not fetch seat categories");
+    }
+};
+
+const createSeatCategory = async (subVenueId, data) => {
+    try {
+        const res = await axiosInstance.post(`organizer/createCategory/${subVenueId}`, data);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not create category");
+    }
+};
+
+const updateSeatCategory = async (id, data) => {
+    try {
+        const res = await axiosInstance.patch(`organizer/updateCategory/${id}`, data);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not update category");
+    }
+};
+
+const deleteSeatCategory = async (id) => {
+    try {
+        const res = await axiosInstance.delete(`organizer/deleteCategory/${id}`);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not delete category");
+    }
+};
+
+const getSessionPricing = async (sessionId) => {
+    try {
+        const res = await axiosInstance.get(`organizer/getSessionCategories/${sessionId}`);
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not fetch session pricing");
+    }
+};
+
+const saveSessionPricing = async (sessionId, categories) => {
+    try {
+        const res = await axiosInstance.put(`organizer/setSessionCategories/${sessionId}`, { categories });
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not save session pricing");
+    }
+};
+const updateEventStatus = async (id, status) => {
+    try {
+        const res = await axiosInstance.patch(`organizer/updateEventStatus/${id}`, { status });
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not update event status");
+    }
+};
+
+const updateRegistrationStatus = async (sessionId, registrationStatus) => {
+    try {
+        const res = await axiosInstance.patch(`organizer/updateRegistrationStatus/${sessionId}`, { registrationStatus });
+        return res.data;
+    } catch (err) {
+        throw seatErr(err, "could not update registration status");
+    }
+};
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenue
+    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, editSubVenueById,createSubVenue, seatErr,getSeatCategories,createSeatCategory,updateSeatCategory,deleteSeatCategory, getSessionPricing, saveSessionPricing, updateEventStatus, updateRegistrationStatus
 };

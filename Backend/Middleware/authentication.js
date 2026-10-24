@@ -14,9 +14,7 @@ const authenticate = (req, res, next) => {
   let decoded;
   try {
     decoded = verifyAccessToken(accessToken);
-    console.log(decoded);
   } catch (err) {
-    console.log(">>>>>>>>> Token Expired");
     if (err.name === "TokenExpiredError") {
       return res.status(401).json({
         success: false,

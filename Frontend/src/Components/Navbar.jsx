@@ -2,14 +2,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell, faCircleQuestion, faSearch } from "@fortawesome/free-solid-svg-icons";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ FIXED 1: Added missing import
+import { useNavigate } from "react-router-dom"; 
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate(); // ✅ FIXED 2: Initialized navigate hook
+  const navigate = useNavigate(); 
 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -21,6 +21,10 @@ export default function Navbar() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  function openProfile(){
+    navigate(`/${user?.role.toUpperCase() === "USER"?"home":"dashboard"}/me`)
+  }
 
   function handleLogout(){
     handleClose();
@@ -37,10 +41,20 @@ export default function Navbar() {
       .toUpperCase();
   };
 
+  function openBookings(){
+    navigate('/home/mybookings')
+  }
+
+  // const profileRole = () => {
+  //   if (user?.role === "ORGANIZER"){
+  //     return "organizer"
+  //   }
+  //   else if (user?.role === "")
+  // }
   return (
     <>
       <nav className="navbar">
-        <h1>Occasia</h1>
+        <h1 onClick={() => user.role==='USER'?navigate('/home') : navigate('/dashboard')} style={{cursor: "pointer"}}>Occasia</h1>
         {/* <form className="search" role="search">
           <span className="search-icon">
             <FontAwesomeIcon icon={faSearch} />
@@ -52,6 +66,9 @@ export default function Navbar() {
             aria-label="Search"
           />
         </form> */}
+
+  
+
 
         <ul className="nav-right">
           {/* <li>
@@ -82,7 +99,6 @@ export default function Navbar() {
                 aria-expanded={open}
                 onClick={handleClick}
               >
-                {/* ✅ FIXED 4: Using the safe initials handler */}
                 {getInitials()} 
               </div>
               <Menu
@@ -105,6 +121,26 @@ export default function Navbar() {
                   },
                 }}
               >
+                 <MenuItem onClick={openProfile}
+                  sx={{
+                    fontSize: "14px",
+                    py: 1.2,
+                    px: 2,
+                    "&:hover": {
+                      backgroundColor: "var(--color-blush-lightest)",
+                    },
+                  }}
+                >My Profile</MenuItem>
+                 {user.role==='USER' && <MenuItem onClick={openBookings}
+                  sx={{
+                    fontSize: "14px",
+                    py: 1.2,
+                    px: 2,
+                    "&:hover": {
+                      backgroundColor: "var(--color-blush-lightest)",
+                    },
+                  }}
+                >My Bookings</MenuItem>}
                 <MenuItem onClick={handleLogout}
                   sx={{
                     fontSize: "14px",

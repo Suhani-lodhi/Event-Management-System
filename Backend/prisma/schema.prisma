@@ -43,21 +43,38 @@ enum RegistrationStatus {
   CLOSED
 }
 
-model Users {
-  id           Int           @id @default(autoincrement())
-  firstName    String
-  lastName     String
-  phoneNumber  String?
-  email        String        @unique
-  password     String
-  refreshToken String?
-  role         Role          @default(USER)
-  status       AccountStatus @default(ACTIVE)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @default(now()) @updatedAt
-  organizer    Organizer?
-  venues       Venue[]  
+enum BookingStatus {
+  PARTIALLY_CANCELLED     
+  CONFIRMED   
+  CANCELLED
+  EXPIRED
+}
 
+model Users {
+  id             Int           @id @default(autoincrement())
+  firstName      String
+  lastName       String
+  phoneNumber    String?
+  email          String        @unique
+  password       String
+  role           Role          @default(USER)
+  status         AccountStatus @default(ACTIVE)
+  isEmailVeified Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
+  organizer      Organizer?
+  venues         Venue[]
+  emailOtp       EmailOtp?
+  booking Booking[] @relation("User")
+}
+
+model EmailOtp {
+  id         String   @id @default(uuid())
+  userId     Int      @unique
+  codeHash   String
+  attemps    Int      @default(0)
+  lastSentAt DateTime @default(now())
+  user       Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Organizer {
@@ -71,7 +88,7 @@ model Organizer {
   state                String
   country              String
   pincode              Int
-  user                 Users   @relation(fields: [userid], references: [id])
+  user                 Users   @relation(fields: [userid], references: [id], onDelete: Cascade)
   events               Event[]
 }
 
@@ -85,10 +102,11 @@ model Venue {
   country       String
   pincode       Int
   subVenueCount Int        @default(1)
-    userId        Int                                      // NEW
-  user          Users      @relation(fields: [userId], references: [id])  
+  userId        Int        @default(1)
+  user          Users      @relation(fields: [userId], references: [id])
   subVenues     SubVenue[]
-  @@index([userId])  
+
+  @@index([userId])
 }
 
 model SubVenue {
@@ -98,20 +116,21 @@ model SubVenue {
   categoryCount  Int
   capacity       Int?
   seatCategories SeatCategory[]
-  venue          Venue          @relation(fields: [venueId], references: [id])
+  venue          Venue          @relation(fields: [venueId], references: [id], onDelete: Cascade)
   sessions       Session[]
 }
 
 model SeatCategory {
-  id             Int          @id @default(autoincrement())
-  subVenueId     Int
-  categoryName   String
-  categoryDetail String?
-  seatCount      Int
-  rowCount       Int?
-  columnCount    Int?
-  subVenue       SubVenue     @relation(fields: [subVenueId], references: [id])
-  seatDetails    SeatDetail[]
+  id                    Int                    @id @default(autoincrement())
+  subVenueId            Int
+  categoryName          String
+  categoryDetail        String?
+  seatCount             Int
+  rowCount              Int?
+  columnCount           Int?
+  subVenue              SubVenue               @relation(fields: [subVenueId], references: [id], onDelete: Cascade)
+  seatDetails           SeatDetail[]
+  sessionCategoryPrices SessionCategoryPrice[]
 }
 
 model SeatDetail {
@@ -120,7 +139,7 @@ model SeatDetail {
   columnName     String
   columnNumber   Int
   rowNumber      Int
-  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id])
+  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -131,6 +150,7 @@ model Event {
   Title            String
   Description      String?
   currentSessionId Int?          @unique
+  imageUrl         String?
   status           EventStatus?  @default(DRAFTED)
   organizer        Organizer     @relation(fields: [organizerId], references: [id])
   sessions         Session[]
@@ -138,15 +158,58 @@ model Event {
 }
 
 model Session {
-  id                 Int                @id @default(autoincrement())
-  eventId            Int
-  subVenueId         Int
-  startDateTime      DateTime
-  endDateTime        DateTime
-  regStartdateTime   DateTime
-  regEndDateTime     DateTime
-  registrationStatus RegistrationStatus @default(CLOSED)
-  subVenue           SubVenue           @relation(fields: [subVenueId], references: [id])
-  currentFor         Event?             @relation("CurrentSession")
-  event              Event              @relation(fields: [eventId], references: [id])
+  id                    Int                    @id @default(autoincrement())
+  eventId               Int
+  subVenueId            Int
+  startDateTime         DateTime
+  endDateTime           DateTime
+  regStartdateTime      DateTime
+  regEndDateTime        DateTime
+  registrationStatus    RegistrationStatus     @default(CLOSED)
+  subVenue              SubVenue               @relation(fields: [subVenueId], references: [id])
+  currentFor            Event?                 @relation("CurrentSession")
+  event                 Event                  @relation(fields: [eventId], references: [id])
+  sessionCategoryPrices SessionCategoryPrice[]
+  booking Booking[]
+}
+
+model SessionCategoryPrice {
+  id             Int          @id @default(autoincrement())
+  sessionId      Int
+  seatCategoryId Int
+  alias          String
+  price          Decimal      @db.Decimal(10, 2)
+  seatsForSale   Int
+  session        Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id])
+  ticket Tickets[] 
+  @@unique([sessionId, seatCategoryId])
+  @@index([seatCategoryId])
+}
+
+
+
+model Booking {
+  id          Int           @id @default(autoincrement())
+  userId      Int          
+  sessionId   Int
+  status      BookingStatus 
+  totalAmount Decimal       @db.Decimal(10, 2)
+  totalCount  Int
+  paymentRef  String?      
+  createdAt   DateTime      @default(now())
+  user        Users @relation("User",fields:[userId], references: [id])
+  session     Session       @relation(fields: [sessionId], references: [id])
+  ticket       Tickets[]
+
+}
+
+model Tickets {
+  id                     Int      @id @default(autoincrement())
+  bookingId              Int
+  sessionCategoryPriceId Int
+  status                 BookingStatus 
+  unitPrice              Decimal  @db.Decimal(10, 2)  
+  booking                Booking  @relation(fields: [bookingId], references: [id])
+  sessionCategoryPrice   SessionCategoryPrice @relation(fields: [sessionCategoryPriceId], references: [id])
 }

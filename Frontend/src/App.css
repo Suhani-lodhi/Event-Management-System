@@ -19,6 +19,7 @@
   flex-direction: column;
   gap: 1.4rem;
 }
+
 .auth-form input,
 .wizard-card input {
   padding: 0.65rem 0.8rem;
@@ -26,6 +27,7 @@
   border-radius: 8px;
   font-size: 0.95rem;
 }
+
 .auth-form input:focus,
 .wizard-card input:focus {
   outline: 2px solid var(--color-lavender);
@@ -152,6 +154,7 @@ button[type="button"] {
     sans-serif;
   box-sizing: border-box;
 }
+
 .navbar * {
   box-sizing: border-box;
 }
@@ -162,6 +165,7 @@ button[type="button"] {
   max-width: 620px;
   margin-right: 16px;
 }
+
 .search-icon {
   position: absolute;
   top: 50%;
@@ -170,6 +174,7 @@ button[type="button"] {
   color: #6c757d;
   font-size: 14px;
 }
+
 .search input {
   width: 100%;
   padding: 10px 14px 10px 40px;
@@ -179,6 +184,7 @@ button[type="button"] {
   font-size: 14px;
   outline: none;
 }
+
 .search input:focus {
   box-shadow: 0 0 0 2px var(--color-blush-mid);
 }
@@ -191,14 +197,17 @@ button[type="button"] {
   padding: 0;
   list-style: none;
 }
+
 .nav-link {
   color: #495057;
   text-decoration: none;
   font-size: 15px;
 }
+
 .nav-link:hover {
   color: #212529;
 }
+
 .help {
   display: flex;
   align-items: center;
@@ -212,20 +221,23 @@ button[type="button"] {
   text-decoration: none;
   cursor: pointer;
 }
+
 .user-info {
   text-align: right;
   line-height: 1.25;
 }
+
 .user-name {
   font-size: 14px;
   font-weight: 600;
   color: #212529;
 }
+
 .user-role {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   color: #6c757d;
 }
+
 .avatar {
   display: flex;
   align-items: center;
@@ -233,7 +245,7 @@ button[type="button"] {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--color-lavender);
+  background: var(--color-lavander-real);
   color: #ffffff;
   font-weight: 600;
   font-size: 14px;
@@ -288,7 +300,69 @@ button[type="button"] {
   color: var(--color-lavender);
   font-weight: 500;
 }
+
 input {
   margin-top: 5px;
   margin-bottom: 5px;
 }
+
+/* user-navigation */
+
+.user-main {
+  margin: 10px 80px;
+}
+
+.user-nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 30px;
+  background-color: var(--color-blush-light);
+}
+
+.user-nav div a {
+  text-decoration: none;
+  padding: 10px;
+  color: var(--color-lavender);
+}
+
+.ud-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 32px 24px 60px;
+}
+
+
+
+
+
+
+/* status badge */
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.status-pending   { background: var(--color-blush-light); color: #92400e; }
+.status-confirmed { background:  var(--color-blush-light); color: #065f46; }
+.status-cancelled,
+.status-expired   { background:  var(--color-blush-light); color: #991b1b; }
+.status-partially_cancelled   { background:  var(--color-blush-light); color: #886ca3; }
+
+/* countdown */
+.hold-timer {
+  margin: 16px 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--color-blush-light);
+  color: var(--color-lavender-dark);
+  font-weight: 600;
+  text-align: center;
+}
+.hold-timer.urgent  { background: #fff7ed; color: #c2410c; }
+.hold-timer.expired { background: #fee2e2; color: #991b1b; }
+
+
+
