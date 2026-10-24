@@ -1,10 +1,10 @@
 import { StatusCodes } from "http-status-codes";
-import prisma from "../index.js";
+import prisma from "../../index.js";
 import {
   validateCategory,
   validateCategoryForUpdate,
-} from "../Sevices/seatCategory.service.js";
-import fail from "../utils/fail.js";
+} from "../../Sevices/seatCategory.service.js";
+import fail from "../../utils/fail.js";
 
 const updateSubVenueTotals = async (tx, subVenueId) => {
   const { _count, _sum } = await tx.seatCategory.aggregate({
@@ -88,7 +88,6 @@ const getCategoriesBySubVenueId = async (req, res) => {
     const categories = await prisma.seatCategory.findMany({
       where: { subVenueId: Number(req.params.subVenueId) },
       orderBy: { id: "asc" },
-      
     });
     res.status(StatusCodes.OK).json({ categories, success: true });
   } catch (err) {

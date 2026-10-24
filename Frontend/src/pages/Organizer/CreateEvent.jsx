@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import Step1EventForm from "../../Components/Organizer/Step1EventForm";
 import '../Organizer/styles/CreateEvents.css'
 import Step2Session from "../../Components/Organizer/Step2Sessions";
+import Step3Pricing from "../../Components/Organizer/Step3Categories";
 import { useParams } from "react-router-dom";
 
 export default function CreateEvents({addSession, createEvent}) {
@@ -60,8 +61,12 @@ export default function CreateEvents({addSession, createEvent}) {
 
 
       <div hidden={step !== 3}>
-        
+        <Step3Pricing eventId={eventId} step={step} />
       </div>
+
+      {/* <div hidden={step !== 4}>
+        
+      </div> */}
 
      
 

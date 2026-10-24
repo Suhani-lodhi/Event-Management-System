@@ -1,7 +1,7 @@
 // Ek middleware bnana pageda ki eventId uss particular user ki hee hai for organizer dashboard
 
 import { StatusCodes } from "http-status-codes";
-import prisma from "../index.js";
+import prisma from "../../index.js";
 
 const createSession = async (req, res) => {
   try {

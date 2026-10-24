@@ -4,35 +4,50 @@ import { getEventDetails } from "../../api/event";
 import '../Organizer/styles/OrganizerDashboard.css'
 import Table from "../../Components/Organizer/models/Table"
 import { getImageSrc } from "../../utils/imageUrl";
+import { EventStatusToggle } from "../../Components/Organizer/StatusToggles";
 
 export default function EventDetails(){
     const {id}= useParams();
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
+    // bumping this remounts the sessions table with fresh data
+    const [tableVersion, setTableVersion] = useState(0);
     const navigate = useNavigate();
 
-    useEffect(()=>{
-        async function getevent(){
-           try {
-                const data = await getEventDetails(id);
-                // console.log(data.event);
-                setEvent(data.event);
-                console.log("event details -------> ", data.event)
-            }
-            catch (err) {
-                console.log("error occurred in get all events")
-            } finally {
-                setLoading(false);
-            }
+    async function loadEvent(){
+        try {
+            const data = await getEventDetails(id);
+            // console.log(data.event);
+            setEvent(data.event);
+            console.log("event details -------> ", data.event)
         }
-        getevent();
-    },[])
+        catch (err) {
+            console.log("error occurred in get all events")
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(()=>{
+        loadEvent();
+    },[id])
 
 
     function editEvent(id){
         // console.log(id)
         navigate(`../editEvent/${id}`);
 
+    }
+
+    // called after the server accepted a new event status.
+    // Draft and Closed also close registration on every session on the server,
+    // so reload the sessions and rebuild the table to show that.
+    async function handleStatusChange(status){
+        setEvent((prev) => ({ ...prev, status }));
+        if (status === "DRAFTED" || status === "CLOSED") {
+            await loadEvent();
+            setTableVersion((v) => v + 1);
+        }
     }
 
     
@@ -43,6 +58,8 @@ export default function EventDetails(){
 
              {loading ? (
         <p className="od-loading">Loading events...</p>
+      ) : !event ? (
+        <p>Event not found.</p>
       ) : (
            
           <div className="ed-container">
@@ -89,6 +106,12 @@ export default function EventDetails(){
                     <span className="od-tag">{event.genre}</span>
                   )}
                 </div>
+
+                <EventStatusToggle
+                  eventId={event.id}
+                  status={event.status ?? "DRAFTED"}
+                  onChange={handleStatusChange}
+                />
                    
                 </div>
 
@@ -101,7 +124,7 @@ export default function EventDetails(){
             
             <br/>
 
-            <Table sessions={event.sessions} />
+            <Table key={tableVersion} sessions={event.sessions} />
                
           </div>
       )

@@ -11,7 +11,7 @@ import {
   updateVenue,
   getVenuesByOrganizerId,
   createSubVenue,
-} from "../Controllers/venue.js";
+} from "../../Controllers/Organizer_Controllers/venue.js";
 const router = express.Router();
 
 router.get("/venues", getVenues);

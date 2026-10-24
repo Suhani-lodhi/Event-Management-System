@@ -84,7 +84,7 @@ export default function MyTickets(){
         const data = await cancelBooking(booking.id, ticketsToCancel);
         console.log(data);
         toast.success("Tickets cancelled successfully");
-        window.location.reload();
+        navigate('/home/mybookings')
       }
       catch(err){
         toast.error(err.message);

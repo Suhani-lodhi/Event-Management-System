@@ -69,9 +69,10 @@ export default function SessionBookingPage(){
   async function handleProceed() {
   const items = Object.entries(quantities)
     .filter(([, quantity]) => quantity > 0)
-    .map(([sessionCategoryPriceId, quantity]) => ({
+    .map(([sessionCategoryPriceId, quantity,alias]) => ({
       sessionCategoryPriceId: Number(sessionCategoryPriceId),
       quantity,
+      alias
     }));
 
   if (items.length === 0) return;

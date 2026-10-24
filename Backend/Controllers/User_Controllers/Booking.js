@@ -1,8 +1,10 @@
 import prisma from "../../index.js";
+// import { generateOtp } from "../../utils/otpGenerator.js";
+import { sendMail } from "../../utils/mailer.js";
+import { bookingConfirmationTemplate, bookingCancellationTemplate } from "../../utils/mailTemplate.js";
 
 const MAX_PER_CATEGORY = 10;
 const MAX_PER_BOOKING = 20;
-
 
 const parseItems = (items) => {
   if (!Array.isArray(items) || items.length === 0)
@@ -17,9 +19,11 @@ const parseItems = (items) => {
     merged.set(id, (merged.get(id) || 0) + qty);
   }
 
-
   const lines = [...merged.entries()]
-    .map(([sessionCategoryPriceId, quantity]) => ({ sessionCategoryPriceId, quantity }))
+    .map(([sessionCategoryPriceId, quantity]) => ({
+      sessionCategoryPriceId,
+      quantity,
+    }))
     .sort((a, b) => a.sessionCategoryPriceId - b.sessionCategoryPriceId);
 
   const totalCount = lines.reduce((sum, l) => sum + l.quantity, 0);
@@ -32,7 +36,6 @@ const parseItems = (items) => {
   return { lines, totalCount };
 };
 
-
 const buildOrder = async (db, sessionId, items) => {
   const parsed = parseItems(items);
   if (parsed.error) return { error: { status: 400, message: parsed.error } };
@@ -43,14 +46,27 @@ const buildOrder = async (db, sessionId, items) => {
 
   const now = new Date();
   if (now < session.regStartDateTime || now > session.regEndDateTime)
-    return { error: { status: 400, message: "Registration is not open for this session" } };
+    return {
+      error: {
+        status: 400,
+        message: "Registration is not open for this session",
+      },
+    };
 
   const categories = await db.sessionCategoryPrice.findMany({
-    where: { id: { in: lines.map((l) => l.sessionCategoryPriceId) }, sessionId },
+    where: {
+      id: { in: lines.map((l) => l.sessionCategoryPriceId) },
+      sessionId,
+    },
     select: { id: true, alias: true, price: true, seatsForSale: true },
   });
   if (categories.length !== lines.length)
-    return { error: { status: 400, message: "One or more categories do not belong to this session" } };
+    return {
+      error: {
+        status: 400,
+        message: "One or more categories do not belong to this session",
+      },
+    };
 
   const categoryById = new Map(categories.map((c) => [c.id, c]));
 
@@ -61,7 +77,12 @@ const buildOrder = async (db, sessionId, items) => {
     const cat = categoryById.get(sessionCategoryPriceId);
 
     if (cat.seatsForSale < quantity)
-      return { error: { status: 409, message: `Not enough tickets available in "${cat.alias}"` } };
+      return {
+        error: {
+          status: 409,
+          message: `Not enough tickets available in "${cat.alias}"`,
+        },
+      };
 
     const subtotal = cat.price.mul(quantity);
     totalAmount = totalAmount ? totalAmount.add(subtotal) : subtotal;
@@ -69,16 +90,59 @@ const buildOrder = async (db, sessionId, items) => {
     orderLines.push({
       sessionCategoryPriceId,
       alias: cat.alias,
-      unitPrice: cat.price,  
+      unitPrice: cat.price,
       quantity,
-      subtotal,               
+      subtotal,
     });
   }
 
   return { orderLines, totalCount, totalAmount };
 };
+const sendCancellationEmail = async (bookingId, result) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      user: true,
+      session: {
+        include: {
+          event: true,
+          subVenue: { include: { venue: true } },
+        },
+      },
+    },
+  });
+  if (!booking?.user?.email) return;
 
+  const { session } = booking;
+  const { venue } = session.subVenue;
 
+  const { subject, html } = bookingCancellationTemplate({
+    userName: `${booking.user.firstName} ${booking.user.lastName}`,
+    bookingId,
+    eventName: session.event.Title,
+    session,
+    venue: {
+      venueName: venue.venueName,
+      subVenueName: session.subVenue.subVenueName,
+      address: [
+        venue.addressLine1,
+        venue.city,
+        venue.state,
+        venue.country,
+        venue.pincode,
+      ]
+        .filter(Boolean)
+        .join(", "),
+    },
+    items: result.cancelledLines,
+    cancelledCount: result.cancelledCount,
+    refundAmount: result.refundAmount,
+    bookingCancelled: result.bookingCancelled,
+    remainingCount: result.remainingCount,
+  });
+
+  await sendMail({ to: booking.user.email, subject, html });
+};
 
 const getBookingSummary = async (req, res) => {
   try {
@@ -88,8 +152,10 @@ const getBookingSummary = async (req, res) => {
       return res.status(400).json({ message: "sessionId is required" });
 
     const order = await buildOrder(prisma, sessionId, items);
-    console.log(order);
-    if (order.error) return res.status(order.error.status).json({ message: order.error.message });
+    if (order.error)
+      return res
+        .status(order.error.status)
+        .json({ message: order.error.message });
 
     return res.status(200).json({
       sessionId,
@@ -105,12 +171,62 @@ const getBookingSummary = async (req, res) => {
     });
   } catch (err) {
     console.error("getBookingSummary error:", err);
-    return res.status(500).json({ message: "Could not generate booking summary" });
+    return res
+      .status(500)
+      .json({ message: "Could not generate booking summary" });
   }
 };
 
+const sendBookingEmail = async (result) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id: result.bookingId },
+    include: {
+      user: true,
+      session: {
+        include: {
+          event: true,
+          subVenue: { include: { venue: true } },
+        },
+      },
+    },
+  });
+  if (!booking?.user?.email) return;
 
+  const { session } = booking;
+  const { venue } = session.subVenue;
 
+  // console.log(venue);
+
+  const { subject, html } = bookingConfirmationTemplate({
+    userName: `${booking.user.firstName} ${booking.user.lastName}`,
+    bookingId: booking.id,
+    eventName: session.event.Title,
+    session,
+    venue: {
+      venueName: venue.venueName,
+      subVenueName: session.subVenue.subVenueName,
+      address: [
+        venue.addressLine1,
+        venue.city,
+        venue.state,
+        venue.country,
+        venue.pincode,
+      ]
+        .filter(Boolean)
+        .join(", "),
+    },
+    items: result.orderLines.map((l) => ({
+      alias: l.alias,
+      unitPrice: Number(l.unitPrice),
+      quantity: l.quantity,
+      subtotal: Number(l.subtotal),
+    })),
+    totalCount: result.totalCount,
+    totalAmount: Number(result.totalAmount),
+  });
+
+  await sendMail({ to: booking.user.email, subject, html });
+};
 const payForBooking = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -120,11 +236,9 @@ const payForBooking = async (req, res) => {
       return res.status(400).json({ message: "sessionId is required" });
 
     const result = await prisma.$transaction(async (tx) => {
-    
       const order = await buildOrder(tx, sessionId, items);
       if (order.error) return { error: order.error };
 
-      
       for (const line of order.orderLines) {
         const r = await tx.sessionCategoryPrice.updateMany({
           where: {
@@ -136,7 +250,6 @@ const payForBooking = async (req, res) => {
         });
 
         if (r.count === 0) {
-         
           const err = new Error(`Tickets in "${line.alias}" just sold out`);
           err.code = "OUT_OF_STOCK";
           throw err;
@@ -166,13 +279,26 @@ const payForBooking = async (req, res) => {
         select: { id: true },
       });
 
-      return { bookingId: booking.id };
+      return {
+        bookingId: booking.id,
+        orderLines: order.orderLines,
+        totalCount: order.totalCount,
+        totalAmount: order.totalAmount,
+      };
     });
 
     if (result.error)
-      return res.status(result.error.status).json({ message: result.error.message });
+      return res
+        .status(result.error.status)
+        .json({ message: result.error.message });
 
-    return res.status(201).json({ message: "Booking confirmed", bookingId: result.bookingId });
+    sendBookingEmail(result).catch((e) =>
+      console.error("booking email failed:", e),
+    );
+
+    return res
+      .status(201)
+      .json({ message: "Booking confirmed", bookingId: result.bookingId });
   } catch (err) {
     if (err.code === "OUT_OF_STOCK")
       return res.status(409).json({ message: err.message });
@@ -181,6 +307,22 @@ const payForBooking = async (req, res) => {
     return res.status(500).json({ message: "Could not complete booking" });
   }
 };
+
+// const getBookingsByUserId = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const booking = await prisma.booking.findMany({
+//       where: { userId },
+//       include: { ticket: true },
+//     });
+
+//     if (!booking) return res.status(404).json({ message: "Booking not found" });
+//     return res.status(200).json({ booking });
+//   } catch (err) {
+//     console.error("getBookings error:", err);
+//     return res.status(500).json({ message: "Could not fetch booking" });
+//   }
+// };
 
 const getBookingsByUserId = async (req, res) => {
   try {
@@ -201,30 +343,30 @@ const getBookingsByUserId = async (req, res) => {
             id: true,
             startDateTime: true,
             endDateTime: true,
-            event: { select: { id: true, Title: true, imageUrl:true } },  
-            subVenue:{
-              select:{
-                id:true,
-                subVenueName:true,
+            event: { select: { id: true, Title: true, imageUrl: true } },
+            subVenue: {
+              select: {
+                id: true,
+                subVenueName: true,
                 venue: {
                   select: {
                     id: true,
                     venueName: true,
-                    addressLine1:true,
-                    city:true,
-                    state:true,
+                    addressLine1: true,
+                    city: true,
+                    state: true,
                     country: true,
-                    pincode: true
-                  }
-                }
-              }
-            } 
+                    pincode: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
     });
 
-
+    console.log("bookingsss dataaa ----------->", bookings);
 
     return res.status(200).json({
       bookings: bookings.map((b) => ({
@@ -239,7 +381,7 @@ const getBookingsByUserId = async (req, res) => {
           startDateTime: b.session.startDateTime,
           endDateTime: b.session.endDateTime,
         },
-        subVenue: b.session.subVenue, 
+        subVenue: b.session.subVenue,
       })),
     });
   } catch (err) {
@@ -277,17 +419,22 @@ const cancelBooking = async (req, res) => {
         where: { id: bookingId, userId },
         include: { session: true },
       });
-      if (!booking) return { error: { status: 404, message: "Booking not found" } };
+      if (!booking)
+        return { error: { status: 404, message: "Booking not found" } };
 
       if (booking.status === "CANCELLED")
-        return { error: { status: 409, message: "Booking is already cancelled" } };
+        return {
+          error: { status: 409, message: "Booking is already cancelled" },
+        };
 
       // CHANGED: only CONFIRMED or PARTIALLY_CANCELLED bookings can be cancelled further
       if (!["CONFIRMED", "PARTIALLY_CANCELLED"].includes(booking.status))
         return { error: { status: 409, message: "This booking cannot be cancelled" } };
 
       if (new Date() >= booking.session.startDateTime)
-        return { error: { status: 400, message: "This session has already started" } };
+        return {
+          error: { status: 400, message: "This session has already started" },
+        };
 
       const tickets = await tx.tickets.findMany({
         where: {
@@ -295,17 +442,25 @@ const cancelBooking = async (req, res) => {
           status: "CONFIRMED",
           ...(ticketIds ? { id: { in: ticketIds } } : {}),
         },
-        select: { id: true, sessionCategoryPriceId: true, unitPrice: true },
+        select: {
+          id: true,
+          sessionCategoryPriceId: true,
+          unitPrice: true,
+          sessionCategoryPrice: { select: { alias: true } }, // added
+        },
       });
 
       if (tickets.length === 0)
-        return { error: { status: 409, message: "No active tickets to cancel" } };
+        return {
+          error: { status: 409, message: "No active tickets to cancel" },
+        };
 
       if (ticketIds && tickets.length !== new Set(ticketIds).size)
         return {
           error: {
             status: 400,
-            message: "Some tickets do not belong to this booking or are already cancelled",
+            message:
+              "Some tickets do not belong to this booking or are already cancelled",
           },
         };
 
@@ -314,19 +469,33 @@ const cancelBooking = async (req, res) => {
         data: { status: "CANCELLED" },
       });
       if (claimed.count !== tickets.length) {
-        const err = new Error("Tickets were changed by another request. Please try again.");
+        const err = new Error(
+          "Tickets were changed by another request. Please try again.",
+        );
         err.code = "CONFLICT";
         throw err;
       }
 
       const perCategory = new Map();
+      const cancelledLines = new Map(); // added
       let refundAmount = tickets[0].unitPrice.mul(0);
       for (const t of tickets) {
         perCategory.set(
           t.sessionCategoryPriceId,
-          (perCategory.get(t.sessionCategoryPriceId) || 0) + 1
+          (perCategory.get(t.sessionCategoryPriceId) || 0) + 1,
         );
         refundAmount = refundAmount.add(t.unitPrice);
+
+        // added: group cancelled tickets per category for the email
+        const line = cancelledLines.get(t.sessionCategoryPriceId) || {
+          alias: t.sessionCategoryPrice.alias,
+          unitPrice: Number(t.unitPrice),
+          quantity: 0,
+          subtotal: 0,
+        };
+        line.quantity += 1;
+        line.subtotal += Number(t.unitPrice);
+        cancelledLines.set(t.sessionCategoryPriceId, line);
       }
 
       const categoryIds = [...perCategory.keys()].sort((a, b) => a - b);
@@ -351,32 +520,39 @@ const cancelBooking = async (req, res) => {
       return {
         cancelledCount: tickets.length,
         refundAmount: Number(refundAmount),
+        bookingCancelled: remaining === 0,
+        cancelledLines: [...cancelledLines.values()], // added
+        remainingCount: remaining, // added
         bookingStatus: newStatus,               // CHANGED: replaces bookingCancelled
       };
     });
 
     if (result.error)
-      return res.status(result.error.status).json({ message: result.error.message });
+      return res
+        .status(result.error.status)
+        .json({ message: result.error.message });
+
+    // added: fire and forget, a mail failure must not fail the cancellation
+    sendCancellationEmail(bookingId, result).catch((e) =>
+      console.error("cancellation email failed:", e),
+    );
 
     return res.status(200).json({
-      message:
-        result.bookingStatus === "CANCELLED"
-          ? "Booking cancelled"
-          : "Selected tickets cancelled",
+      message: result.bookingCancelled
+        ? "Booking cancelled"
+        : "Selected tickets cancelled",
       cancelledCount: result.cancelledCount,
       refundAmount: result.refundAmount,
       bookingStatus: result.bookingStatus,      
       bookingCancelled: result.bookingStatus === "CANCELLED", 
     });
   } catch (err) {
-    if (err.code === "CONFLICT") return res.status(409).json({ message: err.message });
+    if (err.code === "CONFLICT")
+      return res.status(409).json({ message: err.message });
     console.error("cancelBooking error:", err);
     return res.status(500).json({ message: "Could not cancel booking" });
   }
 };
-
-
-
 const getTickets = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -399,7 +575,9 @@ const getTickets = async (req, res) => {
             id: true,
             startDateTime: true,
             endDateTime: true,
-            event: { select: { id: true, Title: true, imageUrl: true, status: true } },
+            event: {
+              select: { id: true, Title: true, imageUrl: true, status: true },
+            },
             subVenue: {
               select: {
                 id: true,
@@ -431,7 +609,11 @@ const getTickets = async (req, res) => {
                 id: true,
                 alias: true,
                 seatCategory: {
-                  select: { id: true, categoryName: true, categoryDetail: true },
+                  select: {
+                    id: true,
+                    categoryName: true,
+                    categoryDetail: true,
+                  },
                 },
               },
             },
@@ -499,5 +681,12 @@ const getTickets = async (req, res) => {
   }
 };
 
+// export { getBookingSummary, payForBooking, getBookings, getBookingsByUserId };
 
-export { getBookingSummary, payForBooking, getTickets, getBookingsByUserId, cancelBooking}
+export {
+  getBookingSummary,
+  payForBooking,
+  getTickets,
+  getBookingsByUserId,
+  cancelBooking,
+};

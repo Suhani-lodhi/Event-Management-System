@@ -64,7 +64,7 @@ button {
 }
 
 button:hover {
-  background: var(--color-lavender-dark);
+  background: var(--color-lavender);
   border-color: var(--color-lavender-dark);
 }
 
@@ -85,7 +85,6 @@ button:disabled {
   transform: none;
 }
 
-/* Secondary: light button with a blush border */
 button.btn-secondary {
   background: #ffffff;
   border-color: var(--color-blush-mid);
