@@ -4,7 +4,7 @@ import { getEventDetails } from "../../api/event";
 import '../Organizer/styles/OrganizerDashboard.css'
 import Table from "../../Components/Organizer/models/Table"
 import { getImageSrc } from "../../utils/imageUrl";
-import { EventStatusToggle } from "../Organizer/StatusToggles";
+import { EventStatusToggle } from "../../Components/Organizer/StatusToggles";
 
 export default function EventDetails(){
     const {id}= useParams();
