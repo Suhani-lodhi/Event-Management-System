@@ -1,5 +1,4 @@
 import prisma from "../../index.js";
-// import { generateOtp } from "../../utils/otpGenerator.js";
 import { sendMail } from "../../utils/mailer.js";
 import {
   bookingConfirmationTemplate,
@@ -40,7 +39,9 @@ const parseItems = (items) => {
 };
 
 const buildOrder = async (db, sessionId, items) => {
+  console.log(items);
   const parsed = parseItems(items);
+  console.log(parsed);
   if (parsed.error) return { error: { status: 400, message: parsed.error } };
   const { lines, totalCount } = parsed;
 

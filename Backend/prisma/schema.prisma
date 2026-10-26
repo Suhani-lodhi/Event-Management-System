@@ -50,6 +50,11 @@ enum BookingStatus {
   EXPIRED
 }
 
+enum CancellationStatus {
+  REFUND
+  PENDING
+}
+
 model Users {
   id             Int           @id @default(autoincrement())
   firstName      String
@@ -66,6 +71,7 @@ model Users {
   venues         Venue[]
   emailOtp       EmailOtp?
   booking Booking[] @relation("User")
+  cancellation  Cancellation[] 
 }
 
 model EmailOtp {
@@ -201,7 +207,7 @@ model Booking {
   user        Users @relation("User",fields:[userId], references: [id])
   session     Session       @relation(fields: [sessionId], references: [id])
   ticket       Tickets[]
-
+  cancellation  Cancellation[]
 }
 
 model Tickets {
@@ -210,6 +216,26 @@ model Tickets {
   sessionCategoryPriceId Int
   status                 BookingStatus 
   unitPrice              Decimal  @db.Decimal(10, 2)  
+  cancellationId         String?  @db.Uuid 
   booking                Booking  @relation(fields: [bookingId], references: [id])
   sessionCategoryPrice   SessionCategoryPrice @relation(fields: [sessionCategoryPriceId], references: [id])
+  cancellation   Cancellation? @relation(fields: [cancellationId], references: [id])
+  @@index([cancellationId])
 }
+
+model Cancellation {
+  id           String      @id @default(uuid()) @db.Uuid
+  bookingId    Int
+  userId       Int
+  ticketCount  Int
+  refundAmount Decimal  @db.Decimal(10, 2)
+  refundRef    String?
+  status       CancellationStatus
+  createdAt    DateTime @default(now())
+  tickets      Tickets[]
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  user    Users   @relation(fields: [userId], references: [id])
+  @@index([bookingId])
+}
+
