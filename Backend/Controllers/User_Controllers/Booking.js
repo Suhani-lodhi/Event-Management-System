@@ -1,5 +1,4 @@
 import prisma from "../../index.js";
-// import { generateOtp } from "../../utils/otpGenerator.js";
 import { sendMail } from "../../utils/mailer.js";
 import { bookingConfirmationTemplate, bookingCancellationTemplate } from "../../utils/mailTemplate.js";
 
@@ -37,7 +36,9 @@ const parseItems = (items) => {
 };
 
 const buildOrder = async (db, sessionId, items) => {
+  console.log(items);
   const parsed = parseItems(items);
+  console.log(parsed);
   if (parsed.error) return { error: { status: 400, message: parsed.error } };
   const { lines, totalCount } = parsed;
 
@@ -195,7 +196,6 @@ const sendBookingEmail = async (result) => {
   const { session } = booking;
   const { venue } = session.subVenue;
 
-  // console.log(venue);
 
   const { subject, html } = bookingConfirmationTemplate({
     userName: `${booking.user.firstName} ${booking.user.lastName}`,
@@ -308,21 +308,6 @@ const payForBooking = async (req, res) => {
   }
 };
 
-// const getBookingsByUserId = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const booking = await prisma.booking.findMany({
-//       where: { userId },
-//       include: { ticket: true },
-//     });
-
-//     if (!booking) return res.status(404).json({ message: "Booking not found" });
-//     return res.status(200).json({ booking });
-//   } catch (err) {
-//     console.error("getBookings error:", err);
-//     return res.status(500).json({ message: "Could not fetch booking" });
-//   }
-// };
 
 const getBookingsByUserId = async (req, res) => {
   try {
