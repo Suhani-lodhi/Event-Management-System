@@ -86,6 +86,9 @@ export default function SessionBookingPage(){
     return (
         <>
          <div className="session-booking">
+          <button className="backBtn" onClick={() => navigate(-1)}> 
+        &#8249; Back 
+        </button>
       <h1>Select Tickets</h1>
 
       <div className="ticket-list">

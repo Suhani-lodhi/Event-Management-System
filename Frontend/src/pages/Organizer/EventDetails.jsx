@@ -5,6 +5,8 @@ import '../Organizer/styles/OrganizerDashboard.css'
 import Table from "../../Components/Organizer/models/Table"
 import { getImageSrc } from "../../utils/imageUrl";
 import { EventStatusToggle } from "../../Components/Organizer/StatusToggles";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartLine } from "@fortawesome/free-solid-svg-icons";
 
 export default function EventDetails(){
     const {id}= useParams();
@@ -50,6 +52,15 @@ export default function EventDetails(){
         }
     }
 
+    function showStatistics(eventId, sessionId){
+    navigate('/dashboard/bookingStats', {
+      state: {eventId, sessionId}
+    })
+  }
+
+  function showSessionStatistic(sessionId){
+    showStatistics(event.id, sessionId);
+  }
     
 
 
@@ -63,10 +74,19 @@ export default function EventDetails(){
       ) : (
            
           <div className="ed-container">
-            <div className="ed-header">
+            {/* <div className="ed-header">
                 <h1>Event Details</h1>
                 <p>View your event details here</p>
-            </div>
+            </div> */}
+
+          
+
+          <button className="backBtn" onClick={() => navigate(-1)}> 
+        &#8249; Back 
+      </button>
+
+
+
 
                 <div className="ed-card">
                   <div className="ed-banner">
@@ -90,6 +110,7 @@ export default function EventDetails(){
                     <div className="ed-event-top">
                   <h1>{event.Title}</h1>
                   <div >
+                    <FontAwesomeIcon icon={faChartLine} onClick={() => showStatistics(event.id)} style={{cursor: "pointer"}}/>
                     <span className={`od-status od-status-${event.status?.toLowerCase()}`}>
                     {event.status}
                   </span>
@@ -124,7 +145,7 @@ export default function EventDetails(){
             
             <br/>
 
-            <Table key={tableVersion} sessions={event.sessions} />
+            <Table key={tableVersion} sessions={event.sessions} showSessionStatistic={showSessionStatistic}/>
                
           </div>
       )

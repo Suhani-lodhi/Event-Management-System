@@ -94,9 +94,8 @@ export default function ParticipantEventDetails() {
 
   return (
     <div className="page">
-      <button className="backBtn" onClick={() => navigate("/user")}> 
-        {/* // mere hisaab se nagvigate(-1) we have other pages apart from the/user reidrecting  to /getEvent/1 */}
-        &#8249; Back to events
+      <button className="backBtn" onClick={() => navigate(-1)}> 
+        &#8249; Back 
       </button>
 
     {console.log(event)}

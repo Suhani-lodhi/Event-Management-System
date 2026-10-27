@@ -109,7 +109,9 @@ export default function MyTickets(){
     return (
         <>
            <div className="my-tickets">
-
+       <button className="backBtn" onClick={() => navigate(-1)}> 
+        &#8249; Back 
+      </button>
             
       <div className="tickets-info-card" >
         {event?.imageUrl && (

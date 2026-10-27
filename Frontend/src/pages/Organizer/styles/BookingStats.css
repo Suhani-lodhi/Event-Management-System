@@ -1,0 +1,179 @@
+.bs-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px clamp(14px, 3vw, 24px) 60px;
+  box-sizing: border-box;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: #1a1a1a;
+}
+
+.bs-page * {
+  box-sizing: border-box;
+}
+
+.bs-page h1 {
+  margin: 0 0 20px;
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 700;
+}
+
+/* ---------- filters ---------- */
+.bs-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 14px 16px;
+  align-items: end;
+  padding: clamp(14px, 3vw, 20px);
+  margin-bottom: 24px;
+  background: #ffffff;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 14px;
+}
+
+.bs-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bs-filter label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+/* overrides the global "select { width: 30% }" rule */
+.bs-filter select {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.bs-filter select:focus {
+  outline: none;
+  border-color: var(--color-lavender);
+}
+
+.bs-filter select:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.bs-btn {
+  height: 42px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-lavender);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bs-btn:hover {
+  background: var(--color-lavender-dark);
+}
+
+/* ---------- summary cards ---------- */
+.bs-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.bs-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  background: #ffffff;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.bs-card span {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.bs-card strong {
+  font-size: clamp(20px, 3vw, 26px);
+  font-weight: 700;
+  color: #1a1a1a;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- table ---------- */
+.bs-table-wrap {
+  overflow-x: auto;                       /* scrolls sideways on phones instead of breaking the page */
+  background: #ffffff;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 14px;
+}
+
+.bs-table {
+  width: 100%;
+  min-width: 620px;                       /* keeps columns readable, the wrapper scrolls below this */
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.bs-table th {
+  padding: 12px 16px;
+  background: var(--color-blush-lightest);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: left;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.bs-table td {
+  padding: 14px 16px;
+  border-top: 1px solid #f0f1f3;
+  white-space: nowrap;
+}
+
+.bs-table tbody tr:hover {
+  background: #fafafa;
+}
+
+/* numbers line up on the right */
+.bs-table th:not(:first-child),
+.bs-table td:not(:first-child) {
+  text-align: right;
+}
+
+.bs-table td:first-child {
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .bs-btn {
+    width: 100%;
+  }
+
+  .bs-table th,
+  .bs-table td {
+    padding: 10px 12px;
+  }
+}

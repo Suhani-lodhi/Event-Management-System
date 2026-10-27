@@ -125,7 +125,10 @@ export default function TicketBookingPage() {
   }
 
   return (
+    <>
+   
     <div className="booking-summary-page">
+      
       <h1>Booking Summary</h1>
 
       <p className={`hold-timer ${secondsLeft <= 120 ? "urgent" : ""}`}>
@@ -158,5 +161,6 @@ export default function TicketBookingPage() {
       <button onClick={handleCancel}>Cancel</button>
       </div>
     </div>
+    </>
   );
 }

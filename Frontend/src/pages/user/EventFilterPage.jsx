@@ -80,9 +80,6 @@ export default function EventFilterPage(){
     )
 }
 
-// function searchCalled(e){
-//     console.log(e.target.value);
-// }
 
 
   const hasFilters = selectedCategories.length || selectedGenres.length;

@@ -12,7 +12,6 @@ import img3 from './images/img3.jpeg';
 
 const images = [img1, img2, img3];
 
-// Loop mode needs more slides than slidesPerView, so repeat the list
 const slides = [...images, ...images];
 
 export default function FloatingImage() {

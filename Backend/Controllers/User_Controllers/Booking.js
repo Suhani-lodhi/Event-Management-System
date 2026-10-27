@@ -449,17 +449,6 @@ const cancelBooking = async (req, res) => {
           },
         };
 
-      const claimed = await tx.tickets.updateMany({
-        where: { id: { in: tickets.map((t) => t.id) }, status: "CONFIRMED" },
-        data: { status: "CANCELLED" },
-      });
-      if (claimed.count !== tickets.length) {
-        const err = new Error(
-          "Tickets were changed by another request. Please try again.",
-        );
-        err.code = "CONFLICT";
-        throw err;
-      }
 
       const perCategory = new Map();
       const cancelledLines = new Map(); // added
@@ -483,6 +472,34 @@ const cancelBooking = async (req, res) => {
         cancelledLines.set(t.sessionCategoryPriceId, line);
       }
 
+
+      const cancellation = await tx.cancellation.create({
+        data: {
+          bookingId,
+          userId,
+          ticketCount: tickets.length,
+          refundAmount,
+          status: 'REFUND'
+        },
+        select :{
+            id: true
+        }
+      })
+      
+       const claimed = await tx.tickets.updateMany({
+        where: { id: { in: tickets.map((t) => t.id) }, status: "CONFIRMED" },
+        data: { status: "CANCELLED", cancellationId: cancellation.id },
+      });
+
+
+      if (claimed.count !== tickets.length) {
+        const err = new Error(
+          "Tickets were changed by another request. Please try again.",
+        );
+        err.code = "CONFLICT";
+        throw err;
+      }
+
       const categoryIds = [...perCategory.keys()].sort((a, b) => a - b);
       for (const categoryId of categoryIds) {
         await tx.sessionCategoryPrice.update({
@@ -491,7 +508,7 @@ const cancelBooking = async (req, res) => {
         });
       }
 
-      // CHANGED: always update the booking status, never leave it as CONFIRMED
+      
       const remaining = await tx.tickets.count({
         where: { bookingId, status: "CONFIRMED" },
       });
@@ -503,12 +520,13 @@ const cancelBooking = async (req, res) => {
       });
 
       return {
+        cancellationId: cancellation.id,
         cancelledCount: tickets.length,
         refundAmount: Number(refundAmount),
         bookingCancelled: remaining === 0,
-        cancelledLines: [...cancelledLines.values()], // added
+        cancelledLines: [...cancelledLines.values()], 
         remainingCount: remaining, // added
-        bookingStatus: newStatus,               // CHANGED: replaces bookingCancelled
+        bookingStatus: newStatus,               
       };
     });
 
@@ -517,7 +535,6 @@ const cancelBooking = async (req, res) => {
         .status(result.error.status)
         .json({ message: result.error.message });
 
-    // added: fire and forget, a mail failure must not fail the cancellation
     sendCancellationEmail(bookingId, result).catch((e) =>
       console.error("cancellation email failed:", e),
     );
@@ -538,6 +555,9 @@ const cancelBooking = async (req, res) => {
     return res.status(500).json({ message: "Could not cancel booking" });
   }
 };
+
+
+
 const getTickets = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -548,7 +568,7 @@ const getTickets = async (req, res) => {
       return res.status(400).json({ message: "Invalid booking id" });
 
     const booking = await prisma.booking.findFirst({
-      where: { id: bookingId, userId }, // owner check built in
+      where: { id: bookingId, userId }, 
       select: {
         id: true,
         status: true,
@@ -666,7 +686,7 @@ const getTickets = async (req, res) => {
   }
 };
 
-// export { getBookingSummary, payForBooking, getBookings, getBookingsByUserId };
+
 
 export {
   getBookingSummary,

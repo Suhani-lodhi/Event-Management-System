@@ -17,6 +17,8 @@ import { deleteSessionById, updateSessionById, getVenues, getSubVenues } from '.
 import ConfirmCreateDialog from './ConfirmCreateDialog';
 import { toast } from 'react-toastify';
 import { RegistrationSwitch } from '../StatusToggles';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChartLine } from '@fortawesome/free-solid-svg-icons';
 
 const columns = [
   { id: 'index', label: '#', minWidth: 50 },
@@ -58,7 +60,7 @@ const statusColor = {
   UPCOMING: 'default',
 };
 
-export default function SessionsTable({ sessions = [] }) {
+export default function SessionsTable({ sessions = [], showSessionStatistic}) {
   const [Sessions, setSessions] = useState(sessions);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -368,7 +370,8 @@ export default function SessionsTable({ sessions = [] }) {
                           if (column.id === 'index') {
                             return (
                               <TableCell key={column.id}>
-                                {page * rowsPerPage + i + 1}
+                                {/* {page * rowsPerPage + i + 1} */}
+                                <FontAwesomeIcon icon={faChartLine} onClick={() => showSessionStatistic(session.id)} style={{cursor: "pointer"}}/>
                               </TableCell>
                             );
                           }

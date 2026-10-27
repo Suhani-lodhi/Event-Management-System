@@ -38,6 +38,15 @@ export default function MyBookings(){
        <div className="my-bookings">
   <h1>My Bookings</h1>
 
+  <div>
+    <div>
+         Confirm Booking
+    </div>
+    <div>
+         Cancelled Booking
+    </div>
+  </div>
+
   {bookings?.length === 0 ? (
     <p className="my-bookings-empty">You have no bookings yet.</p>
   ) : (
@@ -63,7 +72,7 @@ export default function MyBookings(){
 
       <div className="booking-card-body">
         <div className="booking-card-head">
-          <h3 onClick={() => navigate('/home/getEvent/'+event.id)} style={{cursor: "pointer"}}>{b.event.Title.trim()}</h3>
+          <h3 onClick={() => navigate('/home/getEvent/'+b.event.id)} style={{cursor: "pointer"}}>{b.event.Title.trim()}</h3>
           <span className={`status-badge status-${b.status.toLowerCase()}`}>{b.status}</span>
         </div>
 

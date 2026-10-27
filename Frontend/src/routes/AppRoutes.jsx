@@ -23,6 +23,7 @@ import SessionBookingPage from '../pages/user/SessionBookingPage';
 import TicketBookingPage from '../pages/user/TicketBookingPage';
 import MyBookings from '../pages/user/MyBookings';
 import MyTickets from '../pages/user/MyTickets';
+import BookingStats from '../pages/Organizer/BookingStats';
 
 
 const ROLES = {
@@ -119,6 +120,7 @@ export default function AppRoutes() {
         <Route path="myVenues" element={<Venues/>}/>
         <Route path="venue/:id" element ={<ViewVenue/>} />
         <Route path="editVenue/:id" element={<Venues/>} />
+        <Route path="bookingStats" element={<BookingStats/>} />
       </Route>
 
 

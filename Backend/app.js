@@ -11,6 +11,7 @@ import sessionRouter from "./Routes/Organizer_Routes/session.js";
 import venueRouter from "./Routes/Organizer_Routes/venues.js";
 import profileRouter from "./Routes/profile.js";
 import userEventRouter from "./Routes/User_Routes/event.js";
+import BookingRouter from "./Routes/Organizer_Routes/booking.js";
 import userEventBookingRouter from "./Routes/User_Routes/eventBooking.js";
 import categoryRouter from "./Routes/Organizer_Routes/seatCategory.js";
 import cookieParser from "cookie-parser";
@@ -33,6 +34,7 @@ app.use("/organizer", authenticate, authorize("ORGANIZER"), eventRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), venueRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), categoryRouter);
+app.use("/organizer", authenticate, authorize("ORGANIZER"), BookingRouter);
 
 app.use("/user", authenticate, authorize("USER"), userEventRouter);
 app.use("/user", authenticate, authorize("USER"), userEventBookingRouter);

@@ -76,6 +76,16 @@ const createSession = async (id, session) => {
     }
 };
 
+const getSessionsByEventId = async (eventId) =>{
+  try{
+    const res = await axiosInstance.get('organizer/getSessions/'+eventId);
+    return res.data;
+  }
+  catch(err){
+    throw new Error("cannot get sessions")
+  }
+}
+
 const updateSessionById = async (id, data) => {
     try{
         const res = await axiosInstance.patch(`organizer/updateSession/${id}`, data);
@@ -203,7 +213,7 @@ const createSubVenue = async (id, data) =>{
     }
 }
 
-// nayi wali hai
+
 const seatErr = (err, fallback) =>
     new Error(err.response?.data?.msg || fallback);
 
@@ -277,7 +287,31 @@ const updateRegistrationStatus = async (sessionId, registrationStatus) => {
         throw seatErr(err, "could not update registration status");
     }
 };
+
+
+
+// Booking apis call
+
+const getBookingStats = async (filters) =>{
+    console.log(filters)
+  try{
+    const res = await axiosInstance.get("/organizer/getBookingStats",{
+    params: filters
+  })
+  return res.data;
+  }
+  catch(err){
+    throw new Error("could not fetch booking stats");
+  }
+}
+
+
+
+
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
-    deleteEventById, updateEvent, deleteSessionById, updateSessionById,
-    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, editSubVenueById,createSubVenue, seatErr,getSeatCategories,createSeatCategory,updateSeatCategory,deleteSeatCategory, getSessionPricing, saveSessionPricing, updateEventStatus, updateRegistrationStatus
+    deleteEventById, updateEvent, getSessionsByEventId, deleteSessionById, updateSessionById,
+    createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, 
+    editSubVenueById,createSubVenue, seatErr,getSeatCategories,createSeatCategory,updateSeatCategory,
+    deleteSeatCategory, getSessionPricing, saveSessionPricing, updateEventStatus, updateRegistrationStatus,
+    getBookingStats
 };
