@@ -3,9 +3,9 @@ import { StatusCodes } from "http-status-codes";
 
 const getEventById = async (req, res) => {
   try {
-    const eventId = Number(req.params.id);
+    const eventId = req.params.id;
 
-    if (!Number.isInteger(eventId)) {
+    if (!eventId) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         msg: "invalid event id",
         success: false,

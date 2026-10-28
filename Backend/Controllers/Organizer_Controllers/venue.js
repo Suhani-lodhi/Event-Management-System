@@ -136,10 +136,10 @@ const createVenue = async (req, res) => {
 };
 const createSubVenue = async (req, res) => {
   try {
-    const venueId = Number(req.params.id);
+    const venueId = req.params.id;
     const { subVenueName, categoryCount, capacity } = req.body;
 
-    if (Number.isNaN(venueId)) {
+    if (!venueId) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         msg: "Invalid venue id",
         success: false,
@@ -188,7 +188,7 @@ const createSubVenue = async (req, res) => {
 
 const getVenueById = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
 
     const venue = await prisma.venue.findUnique({
       where: { id },
@@ -214,7 +214,7 @@ const getVenueById = async (req, res) => {
 
 const updateVenue = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const { venueName, addressLine1, city, state, country, pincode } = req.body;
 
     const venue = await prisma.venue.update({
@@ -250,8 +250,8 @@ const updateVenue = async (req, res) => {
 };
 const deleteVenue = async (req, res) => {
   try {
-    const venueId = Number(req.params.id);
-    if (!Number.isInteger(venueId)) {
+    const venueId = req.params.id;
+    if (!venueId) {
       return fail(res, StatusCodes.BAD_REQUEST, "invalid venue id");
     }
 
@@ -330,7 +330,7 @@ const getSubVenuesByVenueId = async (req, res) => {
     const { venueId } = req.params;
 
     const subVenues = await prisma.subVenue.findMany({
-      where: { venueId: Number(venueId) },
+      where: { venueId: venueId },
     });
 
     if (!subVenues) {
@@ -352,7 +352,7 @@ const getSubVenuesBySubVenueId = async (req, res) => {
   try {
     const { subVenueId } = req.params;
     const subVenues = await prisma.subVenue.findMany({
-      where: { id: Number(subVenueId) },
+      where: { id: subVenueId },
       include: { venue: true },
     });
     if (!subVenues) {
@@ -373,9 +373,9 @@ const getSubVenuesBySubVenueId = async (req, res) => {
 
 const updateSubVenue = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
 
-    if (Number.isNaN(id)) {
+    if (!id) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         msg: "Invalid subvenue id",
         success: false,
@@ -408,9 +408,9 @@ const updateSubVenue = async (req, res) => {
 };
 const deleteSubVenue = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
 
-    if (Number.isNaN(id)) {
+    if (!id) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         msg: "Invalid subvenue id",
         success: false,

@@ -5,7 +5,7 @@ import prisma from "../index.js";
 const getProfile = async (req, res) => {
   const user = await prisma.users.findUnique({
     where: { id: req.user.id },
-    // where: { id: Number(req.params.id) },
+
     select: {
       id: true,
       firstName: true,
@@ -32,7 +32,7 @@ const updateProfile = async (req, res) => {
 
   const existing = await prisma.users.findUnique({
     where: { id: req.user.id },
-    // where: { id: Number(req.params.id) },
+
     select: { organizer: { select: { id: true } } },
   });
   if (!existing)
@@ -41,7 +41,7 @@ const updateProfile = async (req, res) => {
       .json({ message: "User not found" });
 
   const updated = await prisma.users.update({
-    // where: { id: Number(req.params.id) },
+
     where: { id: req.user.id },
     data: {
       ...userData,

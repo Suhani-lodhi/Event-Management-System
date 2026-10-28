@@ -8,10 +8,10 @@ const REGISTRATION_STATUSES = ["OPEN", "CLOSED"];
 
 const updateEventStatus = async (req, res) => {
   try {
-    const eventId = Number(req.params.id);
+    const eventId = req.params.id;
     const { status } = req.body;
 
-    if (!Number.isInteger(eventId)) {
+    if (!eventId) {
       return fail(res, StatusCodes.BAD_REQUEST, "invalid event id");
     }
     if (!EVENT_STATUSES.includes(status)) {
@@ -81,10 +81,10 @@ const updateEventStatus = async (req, res) => {
 
 const updateRegistrationStatus = async (req, res) => {
   try {
-    const sessionId = Number(req.params.sessionId);
+    const sessionId = req.params.sessionId;
     const { registrationStatus } = req.body;
 
-    if (!Number.isInteger(sessionId)) {
+    if (!sessionId) {
       return fail(res, StatusCodes.BAD_REQUEST, "invalid session id");
     }
     if (!REGISTRATION_STATUSES.includes(registrationStatus)) {

@@ -1,4 +1,3 @@
-
 export const buildSessionPricing = (items, categories) => {
   if (!Array.isArray(items)) return { error: "categories must be an array" };
 
@@ -7,7 +6,7 @@ export const buildSessionPricing = (items, categories) => {
 
   for (const item of items) {
     const category = categories.find(
-      (c) => c.id === Number(item.seatCategoryId),
+      (c) => String(c.id) === String(item.seatCategoryId),
     );
     if (!category) {
       return {

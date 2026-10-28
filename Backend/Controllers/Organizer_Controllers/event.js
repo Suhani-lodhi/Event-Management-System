@@ -62,7 +62,7 @@ const getEventById = async (req, res) => {
     const { id } = req.params;
 
     const event = await prisma.event.findUnique({
-      where: { id: Number(id) },
+      where: { id: id },
       include: {
         sessions: { include: { subVenue: { include: { venue: true } } } },
         currentSession: true,
@@ -94,10 +94,10 @@ const getEventByOrganizerId = async (req, res) => {
     // console.log(">>>>>>>>>uhjghvghcvfg>>>>>>>>>>>", req.user.id, id);
 
     const organizer = await prisma.organizer.findUnique({
-      where: { userid: Number(id) },
+      where: { userid: id },
     });
     const event = await prisma.event.findMany({
-      where: { organizerId: Number(organizer.id) },
+      where: { organizerId: organizer.id },
       include: { sessions: true, organizer: true },
     });
     // console.log(">>>>>>>event>>>>>", event);
@@ -122,7 +122,7 @@ const getEventByOrganizerId = async (req, res) => {
 const updateEventById = async (req, res) => {
   try {
     const { id } = req.params;
-    const eventId = Number(id);
+    const eventId = id;
 
     const { category, genre, Title, Description } = req.body;
     // const { userId } = req.body;
@@ -150,7 +150,7 @@ const updateEventById = async (req, res) => {
     }
 
     const updated = await prisma.event.update({
-      where: { id: Number(id) },
+      where: { id: id },
       data: {
         ...(category && { category }),
         ...(genre && { genre }),
@@ -181,7 +181,7 @@ const updateEventById = async (req, res) => {
 const deleteEventById = async (req, res) => {
   try {
     const { id } = req.params;
-    const eventId = Number(id);
+    const eventId = id;
     const userId = req.user.id;
     // const { userId } = req.body;
 

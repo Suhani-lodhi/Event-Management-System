@@ -16,7 +16,7 @@ const parseItems = (items) => {
   for (const it of items) {
     const id = it?.sessionCategoryPriceId;
     const qty = it?.quantity;
-    if (!Number.isInteger(id) || !Number.isInteger(qty) || qty < 1)
+    if (!id || !Number.isInteger(qty) || qty < 1)
       return { error: "Invalid category or quantity" };
     merged.set(id, (merged.get(id) || 0) + qty);
   }
@@ -155,7 +155,7 @@ const getBookingSummary = async (req, res) => {
     const { sessionId, items } = req.body;
     console.log("booking summary--------------> ", items);
 
-    if (!Number.isInteger(sessionId))
+    if (!sessionId)
       return res.status(400).json({ message: "sessionId is required" });
 
     const order = await buildOrder(prisma, sessionId, items);
@@ -238,7 +238,7 @@ const payForBooking = async (req, res) => {
     const userId = req.user.id;
     const { sessionId, items } = req.body;
 
-    if (!Number.isInteger(sessionId))
+    if (!sessionId)
       return res.status(400).json({ message: "sessionId is required" });
 
     const result = await prisma.$transaction(async (tx) => {
@@ -383,8 +383,8 @@ const cancelBooking = async (req, res) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
-    const bookingId = Number(req.params.id);
-    if (!Number.isInteger(bookingId))
+    const bookingId = req.params.id;
+    if (!bookingId)
       return res.status(400).json({ message: "Invalid booking id" });
 
     const { ticketIds } = req.body ?? {};
@@ -398,8 +398,7 @@ const cancelBooking = async (req, res) => {
     if (ticketIds !== undefined) {
       if (
         !Array.isArray(ticketIds) ||
-        ticketIds.length === 0 ||
-        !ticketIds.every(Number.isInteger)
+        ticketIds.length === 0
       )
         return res.status(400).json({ message: "Invalid ticketIds" });
     }
@@ -552,8 +551,8 @@ const getTickets = async (req, res) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
-    const bookingId = Number(req.params.id);
-    if (!Number.isInteger(bookingId))
+    const bookingId = req.params.id;
+    if (!bookingId)
       return res.status(400).json({ message: "Invalid booking id" });
 
     const booking = await prisma.booking.findFirst({

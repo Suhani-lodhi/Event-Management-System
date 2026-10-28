@@ -383,7 +383,7 @@ export default function SessionsTable({ sessions = [] }) {
                             const status = getRegistrationStatus(session);
                             return (
                               <TableCell key={column.id}>
-                                <Stack spacing={1} alignItems="flex-start">
+                                <Stack spacing={1} alignitems="flex-start">
                                   <RegistrationSwitch
                                     sessionId={session.id}
                                     status={session.registrationStatus}
