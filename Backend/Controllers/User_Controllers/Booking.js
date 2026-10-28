@@ -1,6 +1,9 @@
 import prisma from "../../index.js";
 import { sendMail } from "../../utils/mailer.js";
-import { bookingConfirmationTemplate, bookingCancellationTemplate } from "../../utils/mailTemplate.js";
+import {
+  bookingConfirmationTemplate,
+  bookingCancellationTemplate,
+} from "../../utils/mailTemplate.js";
 
 const MAX_PER_CATEGORY = 10;
 const MAX_PER_BOOKING = 20;
@@ -13,7 +16,7 @@ const parseItems = (items) => {
   for (const it of items) {
     const id = it?.sessionCategoryPriceId;
     const qty = it?.quantity;
-    if (!Number.isInteger(id) || !Number.isInteger(qty) || qty < 1)
+    if (!id || !Number.isInteger(qty) || qty < 1)
       return { error: "Invalid category or quantity" };
     merged.set(id, (merged.get(id) || 0) + qty);
   }
@@ -61,6 +64,7 @@ const buildOrder = async (db, sessionId, items) => {
     },
     select: { id: true, alias: true, price: true, seatsForSale: true },
   });
+
   if (categories.length !== lines.length)
     return {
       error: {
@@ -99,6 +103,7 @@ const buildOrder = async (db, sessionId, items) => {
 
   return { orderLines, totalCount, totalAmount };
 };
+
 const sendCancellationEmail = async (bookingId, result) => {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
@@ -149,7 +154,8 @@ const getBookingSummary = async (req, res) => {
   try {
     const { sessionId, items } = req.body;
     console.log("booking summary--------------> ", items);
-    if (!Number.isInteger(sessionId))
+
+    if (!sessionId)
       return res.status(400).json({ message: "sessionId is required" });
 
     const order = await buildOrder(prisma, sessionId, items);
@@ -196,7 +202,6 @@ const sendBookingEmail = async (result) => {
   const { session } = booking;
   const { venue } = session.subVenue;
 
-
   const { subject, html } = bookingConfirmationTemplate({
     userName: `${booking.user.firstName} ${booking.user.lastName}`,
     bookingId: booking.id,
@@ -227,12 +232,13 @@ const sendBookingEmail = async (result) => {
 
   await sendMail({ to: booking.user.email, subject, html });
 };
+
 const payForBooking = async (req, res) => {
   try {
     const userId = req.user.id;
     const { sessionId, items } = req.body;
 
-    if (!Number.isInteger(sessionId))
+    if (!sessionId)
       return res.status(400).json({ message: "sessionId is required" });
 
     const result = await prisma.$transaction(async (tx) => {
@@ -248,7 +254,6 @@ const payForBooking = async (req, res) => {
           },
           data: { seatsForSale: { decrement: line.quantity } },
         });
-
         if (r.count === 0) {
           const err = new Error(`Tickets in "${line.alias}" just sold out`);
           err.code = "OUT_OF_STOCK";
@@ -302,12 +307,10 @@ const payForBooking = async (req, res) => {
   } catch (err) {
     if (err.code === "OUT_OF_STOCK")
       return res.status(409).json({ message: err.message });
-
     console.error("payForBooking error:", err);
     return res.status(500).json({ message: "Could not complete booking" });
   }
 };
-
 
 const getBookingsByUserId = async (req, res) => {
   try {
@@ -380,21 +383,22 @@ const cancelBooking = async (req, res) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
-    const bookingId = Number(req.params.id);
-    if (!Number.isInteger(bookingId))
+    const bookingId = req.params.id;
+    if (!bookingId)
       return res.status(400).json({ message: "Invalid booking id" });
 
-
     const { ticketIds } = req.body ?? {};
-
-    console.log("cancel body:", JSON.stringify(req.body), "ticketIds:", ticketIds);
-
+    console.log(
+      "cancel body:",
+      JSON.stringify(req.body),
+      "ticketIds:",
+      ticketIds,
+    );
 
     if (ticketIds !== undefined) {
       if (
         !Array.isArray(ticketIds) ||
-        ticketIds.length === 0 ||
-        !ticketIds.every(Number.isInteger)
+        ticketIds.length === 0
       )
         return res.status(400).json({ message: "Invalid ticketIds" });
     }
@@ -412,9 +416,11 @@ const cancelBooking = async (req, res) => {
           error: { status: 409, message: "Booking is already cancelled" },
         };
 
-      // CHANGED: only CONFIRMED or PARTIALLY_CANCELLED bookings can be cancelled further
+      // only CONFIRMED or PARTIALLY_CANCELLED bookings can be cancelled further
       if (!["CONFIRMED", "PARTIALLY_CANCELLED"].includes(booking.status))
-        return { error: { status: 409, message: "This booking cannot be cancelled" } };
+        return {
+          error: { status: 409, message: "This booking cannot be cancelled" },
+        };
 
       if (new Date() >= booking.session.startDateTime)
         return {
@@ -431,7 +437,7 @@ const cancelBooking = async (req, res) => {
           id: true,
           sessionCategoryPriceId: true,
           unitPrice: true,
-          sessionCategoryPrice: { select: { alias: true } }, // added
+          sessionCategoryPrice: { select: { alias: true } },
         },
       });
 
@@ -451,8 +457,9 @@ const cancelBooking = async (req, res) => {
 
 
       const perCategory = new Map();
-      const cancelledLines = new Map(); // added
+      const cancelledLines = new Map();
       let refundAmount = tickets[0].unitPrice.mul(0);
+
       for (const t of tickets) {
         perCategory.set(
           t.sessionCategoryPriceId,
@@ -460,7 +467,7 @@ const cancelBooking = async (req, res) => {
         );
         refundAmount = refundAmount.add(t.unitPrice);
 
-        // added: group cancelled tickets per category for the email
+        // group cancelled tickets per category for the email
         const line = cancelledLines.get(t.sessionCategoryPriceId) || {
           alias: t.sessionCategoryPrice.alias,
           unitPrice: Number(t.unitPrice),
@@ -509,6 +516,7 @@ const cancelBooking = async (req, res) => {
       }
 
       
+      // always update the booking status, never leave it as CONFIRMED
       const remaining = await tx.tickets.count({
         where: { bookingId, status: "CONFIRMED" },
       });
@@ -524,9 +532,9 @@ const cancelBooking = async (req, res) => {
         cancelledCount: tickets.length,
         refundAmount: Number(refundAmount),
         bookingCancelled: remaining === 0,
-        cancelledLines: [...cancelledLines.values()], 
-        remainingCount: remaining, // added
-        bookingStatus: newStatus,               
+        cancelledLines: [...cancelledLines.values()],
+        remainingCount: remaining,
+        bookingStatus: newStatus,
       };
     });
 
@@ -535,6 +543,7 @@ const cancelBooking = async (req, res) => {
         .status(result.error.status)
         .json({ message: result.error.message });
 
+    // fire and forget, a mail failure must not fail the cancellation
     sendCancellationEmail(bookingId, result).catch((e) =>
       console.error("cancellation email failed:", e),
     );
@@ -545,8 +554,8 @@ const cancelBooking = async (req, res) => {
         : "Selected tickets cancelled",
       cancelledCount: result.cancelledCount,
       refundAmount: result.refundAmount,
-      bookingStatus: result.bookingStatus,      
-      bookingCancelled: result.bookingStatus === "CANCELLED", 
+      bookingStatus: result.bookingStatus,
+      bookingCancelled: result.bookingStatus === "CANCELLED",
     });
   } catch (err) {
     if (err.code === "CONFLICT")
@@ -563,8 +572,8 @@ const getTickets = async (req, res) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
 
-    const bookingId = Number(req.params.id);
-    if (!Number.isInteger(bookingId))
+    const bookingId = req.params.id;
+    if (!bookingId)
       return res.status(400).json({ message: "Invalid booking id" });
 
     const booking = await prisma.booking.findFirst({
@@ -603,7 +612,7 @@ const getTickets = async (req, res) => {
           },
         },
         ticket: {
-          where: { status: "CONFIRMED" }, 
+          where: { status: "CONFIRMED" },
           orderBy: { id: "asc" },
           select: {
             id: true,
@@ -630,11 +639,9 @@ const getTickets = async (req, res) => {
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
     const grouped = new Map();
-
     for (const t of booking.ticket) {
       const key = t.sessionCategoryPrice.id;
       const unitPrice = Number(t.unitPrice);
-
       let line = grouped.get(key);
       if (!line) {
         line = {
@@ -647,13 +654,12 @@ const getTickets = async (req, res) => {
         };
         grouped.set(key, line);
       }
-
       line.quantity += 1;
       line.subtotal += unitPrice;
       line.ticketIds.push(t.id);
     }
+    const ticketSummaryWithIds = [...grouped.values()];
 
-    const ticketSummaryWithIds = [...grouped.values()]; 
     return res.status(200).json({
       booking: {
         id: booking.id,
@@ -678,14 +684,13 @@ const getTickets = async (req, res) => {
         categoryDetail: t.sessionCategoryPrice.seatCategory?.categoryDetail,
         sessionCategoryPriceId: t.sessionCategoryPrice.id,
       })),
-      ticketSummary: ticketSummaryWithIds, 
+      ticketSummary: ticketSummaryWithIds,
     });
   } catch (err) {
     console.error("getTickets error:", err);
     return res.status(500).json({ message: "Could not fetch Tickets" });
   }
 };
-
 
 
 export {

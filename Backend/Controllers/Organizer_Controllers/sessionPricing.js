@@ -6,7 +6,7 @@ import fail from "../../utils/fail.js";
 const getSessionCategoryPricing = async (req, res) => {
   try {
     const categories = await prisma.sessionCategoryPrice.findMany({
-      where: { sessionId: Number(req.params.sessionId) },
+      where: { sessionId: req.params.sessionId },
       include: { seatCategory: true },
       orderBy: { id: "asc" },
     });
@@ -25,7 +25,7 @@ const getSessionCategoryPricing = async (req, res) => {
 // Replaces the session's pricing. Categories left out are not sold.
 const setSessionCategoryPricing = async (req, res) => {
   try {
-    const sessionId = Number(req.params.sessionId);
+    const sessionId = req.params.sessionId;
 
     const organizer = await prisma.organizer.findUnique({
       where: { userid: req.user.id },

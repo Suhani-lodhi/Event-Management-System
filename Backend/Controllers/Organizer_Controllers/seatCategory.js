@@ -20,7 +20,7 @@ const updateSubVenueTotals = async (tx, subVenueId) => {
 
 const loadOwnCategory = async (req, res) => {
   const category = await prisma.seatCategory.findUnique({
-    where: { id: Number(req.params.categoryId) },
+    where: { id: req.params.categoryId },
     include: { subVenue: { include: { venue: true } } },
   });
   if (!category) {
@@ -36,7 +36,7 @@ const loadOwnCategory = async (req, res) => {
 
 const createSeatCategory = async (req, res) => {
   try {
-    const subVenueId = Number(req.params.subVenueId);
+    const subVenueId = req.params.subVenueId;
     const error = validateCategory(req.body);
     if (error) return fail(res, StatusCodes.BAD_REQUEST, error);
 
@@ -58,7 +58,7 @@ const createSeatCategory = async (req, res) => {
           subVenueId,
           categoryName: categoryName.trim(),
           categoryDetail,
-          seatCount: Number(seatCount),
+          seatCount: seatCount,
         },
       });
       const updatedSubVenue = await updateSubVenueTotals(tx, subVenueId);
@@ -86,7 +86,7 @@ const createSeatCategory = async (req, res) => {
 const getCategoriesBySubVenueId = async (req, res) => {
   try {
     const categories = await prisma.seatCategory.findMany({
-      where: { subVenueId: Number(req.params.subVenueId) },
+      where: { subVenueId: req.params.subVenueId },
       orderBy: { id: "asc" },
     });
     res.status(StatusCodes.OK).json({ categories, success: true });
@@ -110,7 +110,7 @@ const updateSeatCategory = async (req, res) => {
     const data = {};
     if (categoryName !== undefined) data.categoryName = categoryName.trim();
     if (categoryDetail !== undefined) data.categoryDetail = categoryDetail;
-    if (seatCount !== undefined) data.seatCount = Number(seatCount);
+    if (seatCount !== undefined) data.seatCount = seatCount;
 
     if (Object.keys(data).length === 0) {
       return fail(res, StatusCodes.BAD_REQUEST, "nothing to update");

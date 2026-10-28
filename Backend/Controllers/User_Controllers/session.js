@@ -5,9 +5,9 @@ const VISIBLE_STATUSES = ["COMING_SOON", "ACTIVE", "CLOSED", "DRAFTED"];
 
 const getSessionById = async (req, res) => {
   try {
-    const sessionId = Number(req.params.id);
+    const sessionId = req.params.id;
 
-    if (!Number.isInteger(sessionId) || sessionId <= 0) {
+    if (!sessionId) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         msg: "invalid session id",
         success: false,

@@ -37,7 +37,7 @@ export function validatePricingRows(rows, categories) {
 // alias and seatsForSale are left out when empty
 export const toPricingPayload = (rows) =>
   rows.map((r) => ({
-    seatCategoryId: Number(r.seatCategoryId),
+    seatCategoryId: r.seatCategoryId,
     price: Number(r.price),
     ...(r.alias.trim() ? { alias: r.alias.trim() } : {}),
     ...(r.seatsForSale !== "" ? { seatsForSale: Number(r.seatsForSale) } : {}),

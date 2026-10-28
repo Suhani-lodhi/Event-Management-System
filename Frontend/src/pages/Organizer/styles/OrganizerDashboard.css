@@ -12,7 +12,7 @@
 /* Banner */
 .od-banner {
   display: flex;
-  flex-wrap: wrap;                     
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 18px 24px;
@@ -89,7 +89,6 @@
   border-bottom: 1px solid var(--color-blush-mid);
 }
 
-
 .od-event-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
@@ -121,7 +120,7 @@
 
 .od-event-top {
   display: flex;
-  flex-wrap: wrap;                      
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 6px 12px;
@@ -215,7 +214,7 @@
 
 select {
   width: 30%;
-  min-width: 180px;                    
+  min-width: 180px;
   max-width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--color-blush-mid);
@@ -288,10 +287,10 @@ select:focus {
 
 .ed-banner-img {
   display: block;
-  height: clamp(200px, 45vw, 400px);    
+  height: clamp(200px, 45vw, 400px);
   width: auto;
-  max-width: 100%;                      
-  object-fit: cover;                    
+  max-width: 100%;
+  object-fit: cover;
   border-radius: 14px;
   margin-bottom: 10px;
 }
@@ -332,13 +331,11 @@ select:focus {
   color: #9ca3af;
 }
 
-
 @media (max-width: 700px) {
   .od-banner {
     flex-direction: column;
     align-items: stretch;
   }
-
 
   .od-event-card {
     flex-direction: column;
@@ -437,9 +434,7 @@ select:focus {
 .st-switch input:focus-visible + .st-slider {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
-
 }
-
 
 @media (max-width: 1000px) {
   .od-page {

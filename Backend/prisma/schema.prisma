@@ -56,7 +56,7 @@ enum CancellationStatus {
 }
 
 model Users {
-  id             Int           @id @default(autoincrement())
+  id             String        @id @default(uuid()) @db.Uuid
   firstName      String
   lastName       String
   phoneNumber    String?
@@ -76,7 +76,7 @@ model Users {
 
 model EmailOtp {
   id         String   @id @default(uuid())
-  userId     Int      @unique
+  userId     String   @unique @db.Uuid
   codeHash   String
   attemps    Int      @default(0)
   lastSentAt DateTime @default(now())
@@ -84,8 +84,8 @@ model EmailOtp {
 }
 
 model Organizer {
-  id                   Int     @id @default(autoincrement())
-  userid               Int     @unique
+  id                   String  @id @default(uuid()) @db.Uuid
+  userid               String  @unique @db.Uuid
   displayName          String
   companyName          String
   alternatePhoneNumber String?
@@ -99,7 +99,7 @@ model Organizer {
 }
 
 model Venue {
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid()) @db.Uuid
 
   venueName     String
   addressLine1  String
@@ -108,7 +108,7 @@ model Venue {
   country       String
   pincode       Int
   subVenueCount Int        @default(1)
-  userId        Int        @default(1)
+  userId        String     @db.Uuid
   user          Users      @relation(fields: [userId], references: [id])
   subVenues     SubVenue[]
 
@@ -116,8 +116,8 @@ model Venue {
 }
 
 model SubVenue {
-  id             Int            @id @default(autoincrement())
-  venueId        Int
+  id             String         @id @default(uuid()) @db.Uuid
+  venueId        String         @db.Uuid
   subVenueName   String?
   categoryCount  Int
   capacity       Int?
@@ -127,8 +127,8 @@ model SubVenue {
 }
 
 model SeatCategory {
-  id                    Int                    @id @default(autoincrement())
-  subVenueId            Int
+  id                    String                 @id @default(uuid()) @db.Uuid
+  subVenueId            String                 @db.Uuid
   categoryName          String
   categoryDetail        String?
   seatCount             Int
@@ -140,8 +140,8 @@ model SeatCategory {
 }
 
 model SeatDetail {
-  id             Int          @id @default(autoincrement())
-  seatCategoryId Int
+  id             String       @id @default(uuid()) @db.Uuid
+  seatCategoryId String       @db.Uuid
   columnName     String
   columnNumber   Int
   rowNumber      Int
@@ -149,13 +149,13 @@ model SeatDetail {
 }
 
 model Event {
-  id               Int           @id @default(autoincrement())
-  organizerId      Int
+  id               String        @id @default(uuid()) @db.Uuid
+  organizerId      String        @db.Uuid
   category         EventCategory
   genre            EventGenre
   Title            String
   Description      String?
-  currentSessionId Int?          @unique
+  currentSessionId String?       @unique @db.Uuid
   imageUrl         String?
   status           EventStatus?  @default(DRAFTED)
   organizer        Organizer     @relation(fields: [organizerId], references: [id])
@@ -164,9 +164,9 @@ model Event {
 }
 
 model Session {
-  id                    Int                    @id @default(autoincrement())
-  eventId               Int
-  subVenueId            Int
+  id                    String                 @id @default(uuid()) @db.Uuid
+  eventId               String                 @db.Uuid
+  subVenueId            String                 @db.Uuid
   startDateTime         DateTime
   endDateTime           DateTime
   regStartdateTime      DateTime
@@ -180,9 +180,9 @@ model Session {
 }
 
 model SessionCategoryPrice {
-  id             Int          @id @default(autoincrement())
-  sessionId      Int
-  seatCategoryId Int
+  id             String       @id @default(uuid()) @db.Uuid
+  sessionId      String       @db.Uuid
+  seatCategoryId String       @db.Uuid
   alias          String
   price          Decimal      @db.Decimal(10, 2)
   seatsForSale   Int
@@ -196,9 +196,9 @@ model SessionCategoryPrice {
 
 
 model Booking {
-  id          Int           @id @default(autoincrement())
-  userId      Int          
-  sessionId   Int
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String        @db.Uuid
+  sessionId   String        @db.Uuid
   status      BookingStatus 
   totalAmount Decimal       @db.Decimal(10, 2)
   totalCount  Int
@@ -211,9 +211,9 @@ model Booking {
 }
 
 model Tickets {
-  id                     Int      @id @default(autoincrement())
-  bookingId              Int
-  sessionCategoryPriceId Int
+  id                     String   @id @default(uuid()) @db.Uuid
+  bookingId              String   @db.Uuid
+  sessionCategoryPriceId String   @db.Uuid
   status                 BookingStatus 
   unitPrice              Decimal  @db.Decimal(10, 2)  
   cancellationId         String?  @db.Uuid 
@@ -225,8 +225,8 @@ model Tickets {
 
 model Cancellation {
   id           String      @id @default(uuid()) @db.Uuid
-  bookingId    Int
-  userId       Int
+  bookingId    String      @db.Uuid
+  userId       String      @db.Uuid
   ticketCount  Int
   refundAmount Decimal  @db.Decimal(10, 2)
   refundRef    String?
@@ -238,4 +238,3 @@ model Cancellation {
   user    Users   @relation(fields: [userId], references: [id])
   @@index([bookingId])
 }
-

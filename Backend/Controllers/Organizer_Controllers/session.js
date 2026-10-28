@@ -23,7 +23,7 @@ const createSession = async (req, res) => {
       // where: { userid: req.body.id },
     });
     const event = await prisma.event.findUnique({
-      where: { id: Number(eventId) },
+      where: { id: eventId },
     });
 
     if (!event) {
@@ -51,11 +51,11 @@ const createSession = async (req, res) => {
         regEndDateTime,
       } = sessionsInput[i];
 
-      const subVenueIdNum = Number(subVenueId);
+     
 
       if (
         // !subVenueId ||
-        !Number.isInteger(subVenueIdNum) ||
+        !subVenueId ||
         !startDateTime ||
         !endDateTime ||
         !regStartdateTime ||
@@ -80,7 +80,7 @@ const createSession = async (req, res) => {
       }
 
       validated.push({
-        subVenueId: subVenueIdNum,
+        subVenueId: subVenueId,
         start,
         end,
         regStart,
@@ -104,7 +104,7 @@ const createSession = async (req, res) => {
       validated.map((v) =>
         prisma.session.create({
           data: {
-            eventId: Number(eventId),
+            eventId: eventId,
             subVenueId: v.subVenueId,
             startDateTime: v.start,
             endDateTime: v.end,
@@ -134,7 +134,7 @@ const getSessionsByEventId = async (req, res) => {
     console.log("ID-------------------", eventId);
 
     const sessions = await prisma.session.findMany({
-      where: { eventId: Number(eventId) },
+      where: { eventId: eventId },
       orderBy: { startDateTime: "asc" },
       include: { subVenue: true },
     });
@@ -146,7 +146,7 @@ const getSessionsByEventId = async (req, res) => {
       msg: "could not fetch sessions",
       success: false,
     });
-  } 
+  }
 };
 
 const getSessionById = async (req, res) => {
@@ -154,7 +154,7 @@ const getSessionById = async (req, res) => {
     const { sessionId } = req.params;
 
     const session = await prisma.session.findUnique({
-      where: { id: Number(sessionId) },
+      where: { id: sessionId },
     });
 
     if (!session) {
@@ -192,7 +192,7 @@ const updateSessionById = async (req, res) => {
       // where: { userid: id },
     });
     const session = await prisma.session.findUnique({
-      where: { id: Number(sessionId) },
+      where: { id: sessionId },
       include: { event: true },
     });
 
@@ -233,7 +233,7 @@ const updateSessionById = async (req, res) => {
     }
 
     const updated = await prisma.session.update({
-      where: { id: Number(sessionId) },
+      where: { id: sessionId },
       data: {
         ...(subVenueId && { subVenueId }),
         startDateTime: nextStart,
@@ -260,10 +260,10 @@ const updateSessionById = async (req, res) => {
 
 const deleteSessionById = async (req, res) => {
   try {
-    const sessionId = Number(req.params.sessionId);
+    const sessionId = req.params.sessionId;
     // const { id } = req.body;
 
-    if (!Number.isInteger(sessionId) || sessionId <= 0) {
+    if (!sessionId) {
       return res.status(StatusCodes.BAD_REQUEST).json({
         msg: "Invalid session id",
         success: false,
