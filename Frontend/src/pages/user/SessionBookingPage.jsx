@@ -18,8 +18,9 @@ export default function SessionBookingPage(){
    useEffect(()=>{
     async function getPricingDetails(){
        try{
+        // console.log(id)
          const data = await getPricingDetailsOfSession(id);
-        console.log(data.categories);
+        // console.log(data.categories);
         setTicketDetails(data.categories);
        }
        catch(err){
@@ -69,14 +70,15 @@ export default function SessionBookingPage(){
   async function handleProceed() {
   const items = Object.entries(quantities)
     .filter(([, quantity]) => quantity > 0)
-    .map(([sessionCategoryPriceId, quantity,alias]) => ({
-      sessionCategoryPriceId: Number(sessionCategoryPriceId),
+    .map(([sessionCategoryPriceId, quantity]) => ({
+      sessionCategoryPriceId: sessionCategoryPriceId,
       quantity,
-      alias
     }));
 
   if (items.length === 0) return;
+  // console.log(id, items)
 
+  // console.log(`home/event/tickets/${id}/booking`)
   navigate(`/home/event/tickets/${id}/booking`, { state: { items } });
 }
 
@@ -90,6 +92,7 @@ export default function SessionBookingPage(){
 
       <div className="ticket-list">
         {ticketDetails.map((ticket) => {
+          console.log(ticket)
           const soldOut = ticket.seatsForSale <= 0;
           const qty = quantities[ticket.id] || 0;
           const atLimit =

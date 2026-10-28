@@ -17,7 +17,7 @@ const formatTime = (total) => {
 
 export default function TicketBookingPage() {
   const { id } = useParams();                 
-  const sessionId = Number(id);
+  const sessionId = id;
   const { state } = useLocation();
   const items = state?.items;                 
   const navigate = useNavigate();

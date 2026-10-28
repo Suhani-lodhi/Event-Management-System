@@ -52,6 +52,7 @@ const getPricingDetailsOfSession = async (sessionId) =>{
 
 const getBookingSummary = async (payload) => {
   try {
+
     const res = await axiosInstance.post("/user/bookingSummary", payload); // same axios setup as your other calls
     return res.data;
   } catch (err) {
