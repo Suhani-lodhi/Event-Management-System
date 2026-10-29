@@ -153,6 +153,7 @@ const sendCancellationEmail = async (bookingId, result) => {
 const getBookingSummary = async (req, res) => {
   try {
     const { sessionId, items } = req.body;
+    console.log(sessionId, "booking.js ...........");
     console.log("booking summary--------------> ", items);
 
     if (!sessionId)
@@ -396,10 +397,7 @@ const cancelBooking = async (req, res) => {
     );
 
     if (ticketIds !== undefined) {
-      if (
-        !Array.isArray(ticketIds) ||
-        ticketIds.length === 0
-      )
+      if (!Array.isArray(ticketIds) || ticketIds.length === 0)
         return res.status(400).json({ message: "Invalid ticketIds" });
     }
 

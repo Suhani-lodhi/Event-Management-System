@@ -1,26 +1,26 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../../index.js";
-import fail from "../../utils/fail.js";
-
-const EVENT_STATUSES = ["DRAFTED", "COMING_SOON", "ACTIVE", "CLOSED"];
-const REGISTRATION_STATUSES = ["OPEN", "CLOSED"];
-
+import {
+  assertFound,
+  assertOwner,
+  sendError,
+} from "../../utils/serviceError.js";
+import {
+  validateEventStatus,
+  validateRegistrationStatus,
+  assertCanPublish,
+  assertCanOpenRegistration,
+  shouldCloseSessions,
+} from "../../Sevices/Organizer_Services/eventStatus.service.js";
+import { findOrganizer } from "./utils/findOrganizer.js";
 
 const updateEventStatus = async (req, res) => {
   try {
     const eventId = req.params.id;
     const { status } = req.body;
+    validateEventStatus(eventId, status);
 
-    if (!eventId) {
-      return fail(res, StatusCodes.BAD_REQUEST, "invalid event id");
-    }
-    if (!EVENT_STATUSES.includes(status)) {
-      return fail(res, StatusCodes.BAD_REQUEST, "invalid event status");
-    }
-
-    const organizer = await prisma.organizer.findUnique({
-      where: { userid: req.user.id },
-    });
+    const organizer = await findOrganizer(req.user.id);
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -30,26 +30,9 @@ const updateEventStatus = async (req, res) => {
       },
     });
 
-    if (!event) return fail(res, StatusCodes.NOT_FOUND, "event not found");
-    if (!organizer || event.organizerId !== organizer.id) {
-      return fail(res, StatusCodes.FORBIDDEN, "not authorized to update this event");
-    }
-
-    const goingLive = status === "COMING_SOON" || status === "ACTIVE";
-    if (goingLive) {
-      const hasPricedSession = event.sessions.some(
-        (s) => s._count.sessionCategoryPrices > 0,
-      );
-      if (!hasPricedSession) {
-        return fail(
-          res,
-          StatusCodes.CONFLICT,
-          "add at least one session with pricing before publishing the event",
-        );
-      }
-    }
-
-    const closesRegistration = status === "DRAFTED" || status === "CLOSED";
+    assertFound(event, "event not found");
+    assertOwner(event, organizer, "not authorized to update this event");
+    assertCanPublish(event, status);
 
     const [updated] = await prisma.$transaction([
       prisma.event.update({
@@ -57,7 +40,7 @@ const updateEventStatus = async (req, res) => {
         data: { status },
         select: { id: true, status: true },
       }),
-      ...(closesRegistration
+      ...(shouldCloseSessions(status)
         ? [
             prisma.session.updateMany({
               where: { eventId },
@@ -73,27 +56,17 @@ const updateEventStatus = async (req, res) => {
       success: true,
     });
   } catch (err) {
-    console.error(err);
-    fail(res, StatusCodes.INTERNAL_SERVER_ERROR, "could not update event status");
+    sendError(res, err, "could not update event status");
   }
 };
 
-
 const updateRegistrationStatus = async (req, res) => {
   try {
-    const sessionId = req.params.sessionId;
+    const { sessionId } = req.params;
     const { registrationStatus } = req.body;
+    validateRegistrationStatus(sessionId, registrationStatus);
 
-    if (!sessionId) {
-      return fail(res, StatusCodes.BAD_REQUEST, "invalid session id");
-    }
-    if (!REGISTRATION_STATUSES.includes(registrationStatus)) {
-      return fail(res, StatusCodes.BAD_REQUEST, "invalid registration status");
-    }
-
-    const organizer = await prisma.organizer.findUnique({
-      where: { userid: req.user.id },
-    });
+    const organizer = await findOrganizer(req.user.id);
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
       include: {
@@ -102,28 +75,13 @@ const updateRegistrationStatus = async (req, res) => {
       },
     });
 
-    if (!session) return fail(res, StatusCodes.NOT_FOUND, "session not found");
-    if (!organizer || session.event.organizerId !== organizer.id) {
-      return fail(res, StatusCodes.FORBIDDEN, "not authorized to update this session");
-    }
-
-    if (registrationStatus === "OPEN") {
-      const eventStatus = session.event.status ?? "DRAFTED";
-      if (eventStatus === "DRAFTED" || eventStatus === "CLOSED") {
-        return fail(
-          res,
-          StatusCodes.CONFLICT,
-          "publish the event before opening registration",
-        );
-      }
-      if (session._count.sessionCategoryPrices === 0) {
-        return fail(
-          res,
-          StatusCodes.CONFLICT,
-          "set pricing for this session before opening registration",
-        );
-      }
-    }
+    assertFound(session, "session not found");
+    assertOwner(
+      session.event,
+      organizer,
+      "not authorized to update this session",
+    );
+    assertCanOpenRegistration(session, registrationStatus);
 
     const updated = await prisma.session.update({
       where: { id: sessionId },
@@ -137,8 +95,7 @@ const updateRegistrationStatus = async (req, res) => {
       success: true,
     });
   } catch (err) {
-    console.error(err);
-    fail(res, StatusCodes.INTERNAL_SERVER_ERROR, "could not update registration status");
+    sendError(res, err, "could not update registration status");
   }
 };
 
