@@ -33,14 +33,16 @@ enum EventGenre {
 
 enum EventStatus {
   DRAFTED
-  COMING_SOON
+  PUBLISHED
   ACTIVE
   CLOSED
+  CANCELLED
 }
 
 enum RegistrationStatus {
   OPEN
   CLOSED
+  SCHEDULED
 }
 
 enum BookingStatus {
@@ -158,9 +160,11 @@ model Event {
   currentSessionId String?       @unique @db.Uuid
   imageUrl         String?
   status           EventStatus?  @default(DRAFTED)
+  activeAt         DateTime?
   organizer        Organizer     @relation(fields: [organizerId], references: [id])
   sessions         Session[]
   currentSession   Session?      @relation("CurrentSession", fields: [currentSessionId], references: [id])
+  @@index([status, activeAt])
 }
 
 model Session {
@@ -171,12 +175,16 @@ model Session {
   endDateTime           DateTime
   regStartdateTime      DateTime
   regEndDateTime        DateTime
-  registrationStatus    RegistrationStatus     @default(CLOSED)
+  status                EventStatus        @default(DRAFTED)
+  registrationStatus    RegistrationStatus @default(SCHEDULED)
   subVenue              SubVenue               @relation(fields: [subVenueId], references: [id])
   currentFor            Event?                 @relation("CurrentSession")
   event                 Event                  @relation(fields: [eventId], references: [id])
   sessionCategoryPrices SessionCategoryPrice[]
   booking Booking[]
+  @@index([eventId, status])
+  @@index([registrationStatus, regStartdateTime])
+  @@index([registrationStatus, regEndDateTime])
 }
 
 model SessionCategoryPrice {
