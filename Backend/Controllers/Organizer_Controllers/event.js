@@ -1,44 +1,28 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../../index.js";
-import fs from "fs/promises";
-import path from "path";
-import { removeUploadedFile, removeFile } from "../../utils/imagehandle.js";
+import {
+  validateCreateEvent,
+  assertFound,
+  assertOwner,
+  buildEventData,
+  buildUpdateData,
+  removeOldImage,
+  handleError,
+} from "../../Sevices/Organizer_Services/event.service.js";
+import { findOrganizer } from "./utils/findOrganizer.js";
+
 
 const createEvent = async (req, res) => {
   try {
-    const { category, genre, Title, Description } = req.body;
+    validateCreateEvent(req.body);
 
-    if (!category || !genre || !Title) {
-      await removeUploadedFile(req.file);
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        msg: "required info not found",
-        success: false,
-      });
-    }
-    console.log(req.user.id);
-    const organizer = await prisma.organizer.findUnique({
-      where: { userid: req.user.id },
-      // where: { userid: id },
-    });
-
-    if (!organizer) {
-      await removeUploadedFile(req.file);
-      return res.status(StatusCodes.NOT_FOUND).json({
-        msg: "invalid organizer: organizer not found",
-        success: false,
-      });
-    }
-
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    const organizer = await findOrganizer(req.user.id);
+    assertFound(organizer, "invalid organizer: organizer not found");
 
     const event = await prisma.event.create({
       data: {
         organizerId: organizer.id,
-        category,
-        genre,
-        Title,
-        Description: Description || null,
-        imageUrl: imageUrl,
+        ...buildEventData(req.body, req.file),
       },
     });
 
@@ -48,121 +32,75 @@ const createEvent = async (req, res) => {
       success: true,
     });
   } catch (err) {
-    await removeUploadedFile(req.file);
-    console.error(err);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "could not create event",
-      success: false,
-    });
+    const { status, body } = await handleError(
+      err,
+      req.file,
+      "could not create event",
+    );
+    res.status(status).json(body);
   }
 };
 
 const getEventById = async (req, res) => {
   try {
-    const { id } = req.params;
-
     const event = await prisma.event.findUnique({
-      where: { id: id },
+      where: { id: req.params.id },
       include: {
         sessions: { include: { subVenue: { include: { venue: true } } } },
         currentSession: true,
         organizer: true,
       },
     });
-
-    if (!event) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        msg: "event not found",
-        success: false,
-      });
-    }
+    assertFound(event, "event not found");
 
     res.status(StatusCodes.OK).json({ event, success: true });
   } catch (err) {
-    console.error(err);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "could not fetch event",
-      success: false,
-    });
+    const { status, body } = await handleError(
+      err,
+      null,
+      "could not fetch event",
+    );
+    res.status(status).json(body);
   }
 };
 
 const getEventByOrganizerId = async (req, res) => {
   try {
-    //const { id } = req.body;
-    const { id } = req.user;
-    // console.log(">>>>>>>>>uhjghvghcvfg>>>>>>>>>>>", req.user.id, id);
+    const organizer = await findOrganizer(req.user.id);
+    assertFound(organizer, "organizer not found");
 
-    const organizer = await prisma.organizer.findUnique({
-      where: { userid: id },
-    });
     const event = await prisma.event.findMany({
       where: { organizerId: organizer.id },
       include: { sessions: true, organizer: true },
     });
-    // console.log(">>>>>>>event>>>>>", event);
-
-    if (!event) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        msg: "event not found",
-        success: false,
-      });
-    }
 
     res.status(StatusCodes.OK).json({ event, success: true });
   } catch (err) {
-    console.error(err);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "could not fetch event",
-      success: false,
-    });
+    const { status, body } = await handleError(
+      err,
+      null,
+      "could not fetch event",
+    );
+    res.status(status).json(body);
   }
 };
 
 const updateEventById = async (req, res) => {
   try {
     const { id } = req.params;
-    const eventId = id;
 
-    const { category, genre, Title, Description } = req.body;
-    // const { userId } = req.body;
+    const organizer = await findOrganizer(req.user.id);
+    const event = await prisma.event.findUnique({ where: { id } });
 
-    const organizer = await prisma.organizer.findUnique({
-      // where: { userid: userId },
-      where: { userid: req.user.id },
-    });
-    const event = await prisma.event.findUnique({ where: { id: eventId } });
-
-    if (!event) {
-      await removeFile(req.file);
-      return res.status(StatusCodes.NOT_FOUND).json({
-        msg: "event not found",
-        success: false,
-      });
-    }
-
-    if (!organizer || event.organizerId !== organizer.id) {
-      await removeFile(req.file?.path);
-      return res.status(StatusCodes.FORBIDDEN).json({
-        msg: "not authorized to update this event",
-        success: false,
-      });
-    }
+    assertFound(event, "event not found");
+    assertOwner(event, organizer, "not authorized to update this event");
 
     const updated = await prisma.event.update({
-      where: { id: id },
-      data: {
-        ...(category && { category }),
-        ...(genre && { genre }),
-        ...(Title && { Title }),
-        ...(Description !== undefined && { Description }),
-        ...(req.file && { imageUrl: `/uploads/${req.file.filename}` }),
-      },
+      where: { id },
+      data: buildUpdateData(req.body, req.file),
     });
 
-    if (req.file && event.imageUrl) {
-      await removeFile(path.join("uploads", path.basename(event.imageUrl)));
-    }
+    if (req.file) await removeOldImage(event.imageUrl);
 
     res.status(StatusCodes.OK).json({
       event: updated,
@@ -170,60 +108,43 @@ const updateEventById = async (req, res) => {
       success: true,
     });
   } catch (err) {
-    console.error(err);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "could not update event",
-      success: false,
-    });
+    const { status, body } = await handleError(
+      err,
+      req.file,
+      "could not update event",
+    );
+    res.status(status).json(body);
   }
 };
 
 const deleteEventById = async (req, res) => {
   try {
     const { id } = req.params;
-    const eventId = id;
-    const userId = req.user.id;
-    // const { userId } = req.body;
 
-    const organizer = await prisma.organizer.findUnique({
-      where: { userid: userId },
-    });
+    const organizer = await findOrganizer(req.user.id);
+    const event = await prisma.event.findUnique({ where: { id } });
 
-    const event = await prisma.event.findUnique({ where: { id: eventId } });
-
-    if (!event) {
-      return res.status(StatusCodes.NOT_FOUND).json({
-        msg: "event not found",
-        success: false,
-      });
-    }
-
-    if (!organizer || event.organizerId !== organizer.id) {
-      return res.status(StatusCodes.FORBIDDEN).json({
-        msg: "not authorized to delete this event",
-        success: false,
-      });
-    }
+    assertFound(event, "event not found");
+    assertOwner(event, organizer, "not authorized to delete this event");
 
     await prisma.$transaction([
-      prisma.session.deleteMany({ where: { eventId: eventId } }),
-      prisma.event.delete({ where: { id: eventId } }),
+      prisma.session.deleteMany({ where: { eventId: id } }),
+      prisma.event.delete({ where: { id } }),
     ]);
 
-    if (event.imageUrl) {
-      await removeFile(path.join("uploads", path.basename(event.imageUrl)));
-    }
+    await removeOldImage(event.imageUrl);
 
     res.status(StatusCodes.OK).json({
       msg: "Event Deleted sucecessfully",
       success: true,
     });
   } catch (err) {
-    console.log(err);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: "Something went Wrong",
-      success: false,
-    });
+    const { status, body } = await handleError(
+      err,
+      null,
+      "Something went Wrong",
+    );
+    res.status(status).json(body);
   }
 };
 
