@@ -1,11 +1,20 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../../index.js";
 import {
+  assertFound,
+  assertVenueOwner,
+  sendError,
+} from "../../utils/serviceError.js";
+import {
   validateCategory,
   validateCategoryForUpdate,
+  buildCategoryData,
+  buildCategoryUpdateData,
+  assertSeatCountAllowed,
+  assertNotPriced,
 } from "../../Sevices/seatCategory.service.js";
-import fail from "../../utils/fail.js";
 
+// db helper: recalculates count and capacity of a subvenue
 const updateSubVenueTotals = async (tx, subVenueId) => {
   const { _count, _sum } = await tx.seatCategory.aggregate({
     where: { subVenueId },
@@ -18,48 +27,32 @@ const updateSubVenueTotals = async (tx, subVenueId) => {
   });
 };
 
-const loadOwnCategory = async (req, res) => {
+// db helper: loads a category and checks the user owns its venue
+const loadOwnCategory = async (categoryId, userId) => {
   const category = await prisma.seatCategory.findUnique({
-    where: { id: req.params.categoryId },
+    where: { id: categoryId },
     include: { subVenue: { include: { venue: true } } },
   });
-  if (!category) {
-    fail(res, StatusCodes.NOT_FOUND, "category not found");
-    return null;
-  }
-  if (category.subVenue.venue.userId !== req.user.id) {
-    fail(res, StatusCodes.FORBIDDEN, "not allowed");
-    return null;
-  }
+  assertFound(category, "category not found");
+  assertVenueOwner(category.subVenue.venue, userId);
   return category;
 };
 
 const createSeatCategory = async (req, res) => {
   try {
-    const subVenueId = req.params.subVenueId;
-    const error = validateCategory(req.body);
-    if (error) return fail(res, StatusCodes.BAD_REQUEST, error);
+    const { subVenueId } = req.params;
+    validateCategory(req.body);
 
     const subVenue = await prisma.subVenue.findUnique({
       where: { id: subVenueId },
       include: { venue: true },
     });
-    if (!subVenue)
-      return fail(res, StatusCodes.NOT_FOUND, "subvenue not found");
-    if (subVenue.venue.userId !== req.user.id) {
-      return fail(res, StatusCodes.FORBIDDEN, "not allowed");
-    }
-
-    const { categoryName, categoryDetail, seatCount } = req.body;
+    assertFound(subVenue, "subvenue not found");
+    assertVenueOwner(subVenue.venue, req.user.id);
 
     const result = await prisma.$transaction(async (tx) => {
       const category = await tx.seatCategory.create({
-        data: {
-          subVenueId,
-          categoryName: categoryName.trim(),
-          categoryDetail,
-          seatCount: seatCount,
-        },
+        data: { subVenueId, ...buildCategoryData(req.body) },
       });
       const updatedSubVenue = await updateSubVenueTotals(tx, subVenueId);
       return { category, subVenue: updatedSubVenue };
@@ -71,15 +64,7 @@ const createSeatCategory = async (req, res) => {
       success: true,
     });
   } catch (err) {
-    if (err.code === "P2002") {
-      return fail(
-        res,
-        StatusCodes.CONFLICT,
-        "this category name already exists in the subvenue",
-      );
-    }
-    console.error(err);
-    fail(res, StatusCodes.INTERNAL_SERVER_ERROR, "could not create category");
+    sendError(res, err, "could not create category");
   }
 };
 
@@ -91,32 +76,17 @@ const getCategoriesBySubVenueId = async (req, res) => {
     });
     res.status(StatusCodes.OK).json({ categories, success: true });
   } catch (err) {
-    console.error(err);
-    fail(res, StatusCodes.INTERNAL_SERVER_ERROR, "could not fetch categories");
+    sendError(res, err, "could not fetch categories");
   }
 };
 
 const updateSeatCategory = async (req, res) => {
   try {
-    const error = validateCategoryForUpdate(req.body);
-    if (error) return fail(res, StatusCodes.BAD_REQUEST, error);
+    validateCategoryForUpdate(req.body);
 
-    const category = await loadOwnCategory(req, res);
-    if (!category) return;
+    const category = await loadOwnCategory(req.params.categoryId, req.user.id);
+    const data = buildCategoryUpdateData(req.body);
 
-    const { categoryName, categoryDetail, seatCount } = req.body;
-
-    // build data from only the fields that were sent
-    const data = {};
-    if (categoryName !== undefined) data.categoryName = categoryName.trim();
-    if (categoryDetail !== undefined) data.categoryDetail = categoryDetail;
-    if (seatCount !== undefined) data.seatCount = seatCount;
-
-    if (Object.keys(data).length === 0) {
-      return fail(res, StatusCodes.BAD_REQUEST, "nothing to update");
-    }
-
-    // can't go below the seats a session is already selling from this category
     if (data.seatCount !== undefined) {
       const onSale = await prisma.sessionCategoryPrice.findFirst({
         where: {
@@ -124,13 +94,7 @@ const updateSeatCategory = async (req, res) => {
           seatsForSale: { gt: data.seatCount },
         },
       });
-      if (onSale) {
-        return fail(
-          res,
-          StatusCodes.CONFLICT,
-          `a session is selling ${onSale.seatsForSale} seats from this category, reduce that first`,
-        );
-      }
+      assertSeatCountAllowed(onSale);
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -151,33 +115,18 @@ const updateSeatCategory = async (req, res) => {
       success: true,
     });
   } catch (err) {
-    if (err.code === "P2002") {
-      return fail(
-        res,
-        StatusCodes.CONFLICT,
-        "this category name already exists in the subvenue",
-      );
-    }
-    console.error(err);
-    fail(res, StatusCodes.INTERNAL_SERVER_ERROR, "could not update category");
+    sendError(res, err, "could not update category");
   }
 };
 
 const deleteSeatCategory = async (req, res) => {
   try {
-    const category = await loadOwnCategory(req, res);
-    if (!category) return;
+    const category = await loadOwnCategory(req.params.categoryId, req.user.id);
 
     const usedCount = await prisma.sessionCategoryPrice.count({
       where: { seatCategoryId: category.id },
     });
-    if (usedCount > 0) {
-      return fail(
-        res,
-        StatusCodes.CONFLICT,
-        "this category is priced in a session, remove it from there first",
-      );
-    }
+    assertNotPriced(usedCount);
 
     const subVenue = await prisma.$transaction(async (tx) => {
       await tx.seatCategory.delete({ where: { id: category.id } });
@@ -190,8 +139,7 @@ const deleteSeatCategory = async (req, res) => {
       success: true,
     });
   } catch (err) {
-    console.error(err);
-    fail(res, StatusCodes.INTERNAL_SERVER_ERROR, "could not delete category");
+    sendError(res, err, "could not delete category");
   }
 };
 

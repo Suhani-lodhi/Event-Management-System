@@ -12,7 +12,7 @@ import {
   assertCanOpenRegistration,
   shouldCloseSessions,
 } from "../../Sevices/Organizer_Services/eventStatus.service.js";
-import { findOrganizer } from "./utils/findOrganizer.js";
+import { findOrganizer } from "../../utils/findOrganizer.js";
 
 const updateEventStatus = async (req, res) => {
   try {

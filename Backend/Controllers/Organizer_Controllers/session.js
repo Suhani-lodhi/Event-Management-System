@@ -12,7 +12,7 @@ import {
   buildSessionData,
   buildSessionUpdateData,
 } from "../../Sevices/Organizer_Services/session.service.js";
-import { findOrganizer } from "./utils/findOrganizer.js";
+import { findOrganizer } from "../../utils/findOrganizer.js";
 
 const createSession = async (req, res) => {
   try {

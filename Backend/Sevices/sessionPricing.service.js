@@ -1,20 +1,24 @@
+import { StatusCodes } from "http-status-codes";
+import { ServiceError } from "../utils/serviceError.js";
+
+const bad = (msg) => new ServiceError(msg, StatusCodes.BAD_REQUEST);
+
 export const buildSessionPricing = (items, categories) => {
-  if (!Array.isArray(items)) return { error: "categories must be an array" };
+  if (!Array.isArray(items)) throw bad("categories must be an array");
 
   const used = new Set();
-  const data = [];
 
-  for (const item of items) {
+  return items.map((item) => {
     const category = categories.find(
       (c) => String(c.id) === String(item.seatCategoryId),
     );
     if (!category) {
-      return {
-        error: `category ${item.seatCategoryId} is not in this session's subvenue`,
-      };
+      throw bad(
+        `category ${item.seatCategoryId} is not in this session's subvenue`,
+      );
     }
     if (used.has(category.id)) {
-      return { error: `${category.categoryName} is added more than once` };
+      throw bad(`${category.categoryName} is added more than once`);
     }
     used.add(category.id);
 
@@ -25,7 +29,7 @@ export const buildSessionPricing = (items, categories) => {
       item.price === "" ||
       !(price >= 0)
     ) {
-      return { error: `${category.categoryName}: a valid price is required` };
+      throw bad(`${category.categoryName}: a valid price is required`);
     }
 
     const sellAll =
@@ -40,18 +44,16 @@ export const buildSessionPricing = (items, categories) => {
       seatsForSale < 1 ||
       seatsForSale > category.seatCount
     ) {
-      return {
-        error: `${category.categoryName}: seatsForSale must be between 1 and ${category.seatCount}`,
-      };
+      throw bad(
+        `${category.categoryName}: seatsForSale must be between 1 and ${category.seatCount}`,
+      );
     }
 
-    data.push({
+    return {
       seatCategoryId: category.id,
       alias: String(item.alias ?? "").trim() || category.categoryName,
       price,
       seatsForSale,
-    });
-  }
-
-  return { data };
+    };
+  });
 };
