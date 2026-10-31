@@ -1,65 +1,26 @@
 import { StatusCodes } from "http-status-codes";
-import { validateProfile } from "../Sevices/profile.service.js";
-import prisma from "../index.js";
+import { sendMessageError } from "../utils/serviceError.js";
+import {
+  getProfileService,
+  updateProfileService,
+} from "../Sevices/profile.service.js";
 
 const getProfile = async (req, res) => {
-  const user = await prisma.users.findUnique({
-    where: { id: req.user.id },
-
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      phoneNumber: true,
-      email: true,
-      role: true,
-      isEmailVeified: true,
-      organizer: true,
-    },
-  });
-  if (!user)
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ message: "User not found" });
-  res.status(StatusCodes.OK).json(user);
+  try {
+    const user = await getProfileService(req.user.id);
+    res.status(StatusCodes.OK).json(user);
+  } catch (err) {
+    sendMessageError(res, err, "could not fetch profile");
+  }
 };
 
 const updateProfile = async (req, res) => {
-  const { error, userData, organizer } = validateProfile(req.body);
-  if (error) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ message: error });
+  try {
+    const updated = await updateProfileService(req.user.id, req.body);
+    res.status(StatusCodes.OK).json(updated);
+  } catch (err) {
+    sendMessageError(res, err, "could not update profile");
   }
-
-  const existing = await prisma.users.findUnique({
-    where: { id: req.user.id },
-
-    select: { organizer: { select: { id: true } } },
-  });
-  if (!existing)
-    return res
-      .status(StatusCodes.NOT_FOUND)
-      .json({ message: "User not found" });
-
-  const updated = await prisma.users.update({
-
-    where: { id: req.user.id },
-    data: {
-      ...userData,
-      ...(organizer && { organizer: { update: organizer } }),
-    },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      phoneNumber: true,
-      email: true,
-      role: true,
-      isEmailVeified: true,
-      organizer: true,
-    },
-  });
-
-  res.status(StatusCodes.OK).json(updated);
 };
 
 export { getProfile, updateProfile };

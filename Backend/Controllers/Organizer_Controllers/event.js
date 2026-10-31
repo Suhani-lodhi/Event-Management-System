@@ -9,8 +9,7 @@ import {
   removeOldImage,
   handleError,
 } from "../../Sevices/Organizer_Services/event.service.js";
-import { findOrganizer } from "./utils/findOrganizer.js";
-
+import { findOrganizer } from "../../utils/findOrganizer.js";
 
 const createEvent = async (req, res) => {
   try {

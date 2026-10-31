@@ -15,6 +15,19 @@ const ALLOWED_TRANSITIONS = {
   CLOSED: [],
 };
 
+import {
+  assertFound,
+  assertOwner,
+  sendError,
+} from "../../utils/serviceError.js";
+import {
+  validateEventStatus,
+  validateRegistrationStatus,
+  assertCanPublish,
+  assertCanOpenRegistration,
+  shouldCloseSessions,
+} from "../../Sevices/Organizer_Services/eventStatus.service.js";
+import { findOrganizer } from "../../utils/findOrganizer.js";
 
 const updateEventStatus = async (req, res) => {
   try {
