@@ -98,6 +98,8 @@ export default function SessionsTable({ sessions = [], showSessionStatistic}) {
       }
     }
     fetchVenues();
+
+    console.log(sessions)
   }, []);
 
 
@@ -285,13 +287,11 @@ export default function SessionsTable({ sessions = [], showSessionStatistic}) {
     return null;
   }
 
-  // The switch (registrationStatus) is the organizer's master control.
-  // When it is OPEN, the registration window dates still decide whether
-  // registration is actually open right now.
   function getRegistrationStatus(session) {
     const { regStartdateTime, regEndDateTime, registrationStatus } = session;
     if (registrationStatus === 'CLOSED') return 'CLOSED';
     if (!regStartdateTime || !regEndDateTime) return registrationStatus;
+   
 
     const now = new Date();
     if (now < new Date(regStartdateTime)) return 'UPCOMING';
@@ -299,7 +299,7 @@ export default function SessionsTable({ sessions = [], showSessionStatistic}) {
     return 'OPEN';
   }
 
-  // called by the switch after the server accepted the change
+
   function handleRegistrationChange(sessionId, registrationStatus) {
     setSessions((prev) =>
       prev.map((s) => (s.id === sessionId ? { ...s, registrationStatus } : s))
@@ -383,19 +383,19 @@ export default function SessionsTable({ sessions = [], showSessionStatistic}) {
                           }
 
                           if (column.id === 'registrationStatus') {
-                            const status = getRegistrationStatus(session);
+                            
                             return (
                               <TableCell key={column.id}>
                                 <Stack spacing={1} alignitems="flex-start">
                                   <RegistrationSwitch
-                                    sessionId={session.id}
-                                    status={session.registrationStatus}
-                                    onChange={(next) =>
-                                      handleRegistrationChange(session.id, next)
-                                    }
+                                   sessionId={session.id}
+                                  status={session.registrationStatus}
+                                  sessionStatus={session.status}
+                                  opensAt={session.regStartdateTime}
+                                  onChange={(next) => handleRegistrationChange(session.id, next)}
                                   />
                                   <Chip
-                                    label={status}
+                                    label={session.registrationStatus}
                                     size="small"
                                     color={statusColor[status] || 'default'}
                                   />

@@ -270,11 +270,12 @@ const saveSessionPricing = async (sessionId, categories) => {
         throw seatErr(err, "could not save session pricing");
     }
 };
-const updateEventStatus = async (id, status) => {
+const updateEventStatus = async (id, status, activeAt) => {
     try {
-        const res = await axiosInstance.patch(`organizer/updateEventStatus/${id}`, { status });
+        const res = await axiosInstance.patch(`organizer/updateEventStatus/${id}`, { status ,  ...(activeAt && { activeAt })});
         return res.data;
     } catch (err) {
+        console.log(err)
         throw seatErr(err, "could not update event status");
     }
 };

@@ -71,22 +71,9 @@ export default function OrganizerDashboard() {
 
   // called after the server accepted a new event status.
   // Draft and Closed also close registration on the server, so mirror that here.
-  function handleStatusChange(eventId, status) {
-    const closesRegistration = status === "DRAFTED" || status === "CLOSED";
-    setEvents((prev) =>
-      prev.map((ev) =>
-        ev.id === eventId
-          ? {
-              ...ev,
-              status,
-              sessions: closesRegistration
-                ? ev.sessions?.map((s) => ({ ...s, registrationStatus: "CLOSED" }))
-                : ev.sessions,
-            }
-          : ev
-      )
-    );
-  }
+  async function handleStatusChange() {
+  await fetchEvents();
+}
 
   function showStatistics(eventId){
     navigate('/dashboard/bookingStats', {
@@ -119,12 +106,13 @@ export default function OrganizerDashboard() {
 
         <div>
           <select onChange={(e) => setFilter(e.target.value)} value={filter}>
-            <option value="all">All</option>
-            <option value="DRAFTED">Draft</option>
-            <option value="COMING_SOON">Up-coming</option>
-            <option value="ACTIVE">Active</option>
-            <option value="CLOSED">Closed</option>
-          </select>
+  <option value="all">All</option>
+  <option value="DRAFTED">Draft</option>
+  <option value="PUBLISHED">Published</option>
+  <option value="ACTIVE">Active</option>
+  <option value="CLOSED">Closed</option>
+  <option value="CANCELLED">Cancelled</option>
+</select>
         </div>
 
 
@@ -190,17 +178,17 @@ export default function OrganizerDashboard() {
                   </div>
 
                   <EventStatusToggle
-                    eventId={event.id}
-                    status={event.status ?? "DRAFTED"}
-                    onChange={(status) => handleStatusChange(event.id, status)}
-                  />
+  eventId={event.id}
+  status={event.status ?? "DRAFTED"}
+  activeAt={event.activeAt}
+  onChange={handleStatusChange}
+/>
 
-                  {sessionCount > 0 && (
-                    <p className="st-note">
-                      Registration open for {openCount} of {sessionCount} session{sessionCount > 1 ? "s" : ""}
-                    </p>
-                  )}
-
+                  {event.status === "ACTIVE" && sessionCount > 0 && (
+  <p className="st-note">
+    Registration open for {openCount} of {sessionCount} session{sessionCount > 1 ? "s" : ""}
+  </p>
+)}
                 </div>
 
                 <span className="od-event-arrow">&#8250;</span>

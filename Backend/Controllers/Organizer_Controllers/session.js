@@ -52,12 +52,9 @@ const createSession = async (req, res) => {
 
 const getSessionsByEventId = async (req, res) => {
   try {
-<<<<<<< HEAD
     const { eventId } = req.params;
     console.log("ID-------------------", eventId);
 
-=======
->>>>>>> 2bcc74961e8062efd8dba63cd0793ff531c2ae28
     const sessions = await prisma.session.findMany({
       where: { eventId: req.params.eventId },
       orderBy: { startDateTime: "asc" },

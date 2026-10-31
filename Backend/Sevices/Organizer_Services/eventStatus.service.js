@@ -1,8 +1,8 @@
 import { StatusCodes } from "http-status-codes";
 import { ServiceError } from "../../utils/serviceError.js";
 
-const EVENT_STATUSES = ["DRAFTED", "COMING_SOON", "ACTIVE", "CLOSED"];
-const REGISTRATION_STATUSES = ["OPEN", "CLOSED"];
+const EVENT_STATUSES = ["DRAFTED", "PUBLISHED", "ACTIVE", "CANCELLED", "CLOSED"];
+const REGISTRATION_STATUSES = ["OPEN", "CLOSED", "SCHEDULED"];
 
 export const validateEventStatus = (eventId, status) => {
   if (!eventId) {
@@ -27,7 +27,7 @@ export const validateRegistrationStatus = (sessionId, registrationStatus) => {
 
 // publishing needs at least one priced session
 export const assertCanPublish = (event, status) => {
-  const goingLive = status === "COMING_SOON" || status === "ACTIVE";
+  const goingLive = status === "PUBLISHED" || status === "ACTIVE";
   if (!goingLive) return;
 
   const hasPricedSession = event.sessions.some(
