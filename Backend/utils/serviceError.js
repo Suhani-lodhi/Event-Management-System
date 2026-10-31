@@ -8,7 +8,6 @@ export class ServiceError extends Error {
   }
 }
 
-
 const PRISMA_ERRORS = {
   P2002: {
     status: StatusCodes.CONFLICT,
@@ -51,7 +50,7 @@ export const assertOwner = (owner, organizer, msg) => {
   }
 };
 
-// 403 
+// 403
 export const assertVenueOwner = (venue, userId, msg = "not allowed") => {
   if (venue.userId !== userId)
     throw new ServiceError(msg, StatusCodes.FORBIDDEN);
@@ -60,4 +59,9 @@ export const assertVenueOwner = (venue, userId, msg = "not allowed") => {
 export const sendError = (res, err, fallbackMsg) => {
   const { status, body } = handleServiceError(err, fallbackMsg);
   return res.status(status).json(body);
+};
+
+export const sendMessageError = (res, err, fallbackMsg) => {
+  const { status, body } = handleServiceError(err, fallbackMsg);
+  return res.status(status).json({ message: body.msg });
 };
