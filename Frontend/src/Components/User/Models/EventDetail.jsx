@@ -180,13 +180,13 @@ export default function ParticipantEventDetails() {
 
                 <div className="sessionBottom">
                   <span className={`regBadge ${reg.state}`}>{reg.label}</span>
-                  <button
+                  {session.registrationStatus == 'OPEN'&&<button
                     className="btn"
                     // disabled={reg.state !== "open"}
                     onClick={() => handleBook(session.id)}
                   >
                     Book
-                  </button>
+                  </button>}
                 </div>
               </div>
             );

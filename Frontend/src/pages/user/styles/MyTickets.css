@@ -59,7 +59,7 @@
 
 .info-label {
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-lavender-dark);
@@ -152,6 +152,18 @@
 .cancel-ticket{
   height: 35px;
   background-color: #b91c1c;
+}
+
+.qr-box{
+  display: flex;
+  background-color: #fff;
+  width: 500px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--color-blush-light);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  margin: auto;
+  justify-content: space-around;
 }
 
 @media (max-width: 640px) {

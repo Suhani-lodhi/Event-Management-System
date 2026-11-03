@@ -96,11 +96,18 @@ export default function MyTickets(){
 
 
     const venue = subVenue?.venue;
-  const address = venue
-    ? [venue.addressLine1, venue.city, venue.state, venue.country, venue.pincode]
+  const address1 = venue
+    ? [venue.addressLine1, venue.city]
         .filter(Boolean)
         .join(", ")
     : "";
+
+    const address2 = venue
+    ? [venue.state, venue.country, venue.pincode]
+        .filter(Boolean)
+        .join(", ")
+    : "";
+
 
     let remainingAmount = ticketSummary.reduce((sum, t)=> {
       return sum+t.subtotal
@@ -139,7 +146,7 @@ export default function MyTickets(){
             </p>
           </div>
 
-          {subVenue && (
+          {/* {subVenue && (
             <div className="info-block">
               <span className="info-label">Venue</span>
               <p>
@@ -148,7 +155,7 @@ export default function MyTickets(){
               </p>
               {address && <p className="info-muted">{address}</p>}
             </div>
-          )}
+          )} */}
 
           <div className="info-footer">
             <div>
@@ -190,10 +197,36 @@ export default function MyTickets(){
             }
             
           </div>
+
         </div>
       </div>
+      <br/>
+      <div>
+        <div className="qr-box">
+        <img src={booking.bookingQrCode} />
+         {subVenue && (
+            <div className="info-block">
+              <br></br>
+              <span className="info-label">Venue</span>
+              <p>
+                <strong>{subVenue.subVenueName}</strong>
+                <strong>{venue?.venueName && `, ${venue.venueName}`}</strong>
+              </p>
+              {address1 && <p className="info-muted">{address1}</p>}
+              {address2 && <p className="info-muted">{address2}</p>}
+              <br/>
+               {/* <div>
+              <span className="info-label">Booked Tickets</span>
+              <p>{booking.totalCount}</p>
+            </div> */}
+            </div>
 
-      
+            
+          )}
+      </div>
+               
+{session.canCancel && <p style={{textAlign: "center", margin: "10px"}}><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={() => setOpenCancel(true)} >click here</strong></u></p>}
+      </div>
 
          {tickets.length>0 && <><h2 className="tickets-heading">Tickets</h2>
    
@@ -213,7 +246,7 @@ export default function MyTickets(){
           </div>
         ))}
       </div>
-      <p><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={() => setOpenCancel(true)} >click here</strong></u></p></>}
+      </>}
     </div>
 
     <Dialog open={openCancel} onClose={() => setOpenCancel(false)}>

@@ -38,14 +38,14 @@ export default function MyBookings(){
        <div className="my-bookings">
   <h1>My Bookings</h1>
 
-  <div>
+  {/* <div>
     <div>
          Confirm Booking
     </div>
     <div>
          Cancelled Booking
     </div>
-  </div>
+  </div> */}
 
   {bookings?.length === 0 ? (
     <p className="my-bookings-empty">You have no bookings yet.</p>
