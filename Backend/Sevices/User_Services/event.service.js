@@ -3,12 +3,11 @@ import prisma from "../../index.js";
 import { ServiceError, assertFound } from "../../utils/serviceError.js";
 
 // events with these statuses are visible to participants
-export const VISIBLE_STATUSES = ["COMING_SOON", "ACTIVE", "CLOSED", "DRAFTED"];
+export const VISIBLE_STATUSES = ["ACTIVE", "CLOSED"];
 
 const CATEGORIES = ["MOVIE", "STANDUP", "GAME", "ACTIVITY"];
 const GENRES = ["COMEDY", "HORROR", "ACTION", "FUN"];
 
-// "movie, game" -> ["MOVIE", "GAME"]  (anything not in the allowed list is dropped)
 const parseList = (value, allowed) =>
   String(value || "")
     .split(",")
@@ -50,7 +49,7 @@ export const getEventByIdService = async (eventId) => {
 };
 
 export const getEventsService = () =>
-  prisma.event.findMany({ orderBy: { id: "desc" } });
+  prisma.event.findMany({where: {status:'ACTIVE'}, orderBy: { id: "desc" } });
 
 export const getEventsByFilterService = async (query) => {
   const { category, genre, search, page = 1, limit = 12 } = query;

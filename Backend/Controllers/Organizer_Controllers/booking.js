@@ -53,10 +53,10 @@ const getBookingStats = async (req, res) => {
         by: ["status"],
         where: ticketWhere,
         _count: { _all: true },
-        _sum: { unitPrice: true },                          // FIX 2: spelling
+        _sum: { unitPrice: true },                         
       }),
 
-      prisma.booking.groupBy({                              // FIX 3: this query was missing
+      prisma.booking.groupBy({                              
         by: ["status"],
         where: {
           status: { in: ["CONFIRMED", "PARTIALLY_CANCELLED", "CANCELLED"] },
@@ -66,7 +66,7 @@ const getBookingStats = async (req, res) => {
       }),
 
       prisma.cancellation.count({
-        where: { tickets: { some: { sessionCategoryPrice: scpWhere } } },   // FIX 1: spelling
+        where: { tickets: { some: { sessionCategoryPrice: scpWhere } } },  
       }),
 
       prisma.sessionCategoryPrice.aggregate({
@@ -88,7 +88,7 @@ const getBookingStats = async (req, res) => {
           sessionId: true,
           alias: true,
           price: true,
-          seatsForSale: true,                               // FIX 4: spelling
+          seatsForSale: true,                               
           seatCategory: { select: { categoryName: true } },
         },
         orderBy: [{ sessionId: "asc" }, { id: "asc" }],
@@ -105,7 +105,7 @@ const getBookingStats = async (req, res) => {
     const grossRevenue = netRevenue + refundedAmount;
 
     const bookingOf = (s) =>
-      bookingGroups.find((g) => g.status === s)?._count._all ?? 0;   // FIX 5: _count._all
+      bookingGroups.find((g) => g.status === s)?._count._all ?? 0;   
     const totalBookings = bookingGroups.reduce((sum, g) => sum + g._count._all, 0);
     const remainingTickets = remainingAgg._sum.seatsForSale ?? 0;
 
@@ -121,7 +121,7 @@ const getBookingStats = async (req, res) => {
         sessionId: c.sessionId,
         alias: c.alias,
         categoryName: c.seatCategory?.categoryName,
-        price: Number(c.price),                             // FIX 6: Decimal -> number
+        price: Number(c.price),                             
         ticketsBooked: activeCount + cancelledCount,
         ticketsActive: activeCount,
         ticketsCancelled: cancelledCount,

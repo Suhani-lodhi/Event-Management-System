@@ -1,5 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../../index.js";
+import QRCode from "qrcode"
 import { ServiceError, assertFound } from "../../utils/serviceError.js";
 import {
   sendBookingEmail,
@@ -12,20 +13,15 @@ const MAX_PER_BOOKING = 20;
 const bad = (msg) => new ServiceError(msg, StatusCodes.BAD_REQUEST);
 const conflict = (msg) => new ServiceError(msg, StatusCodes.CONFLICT);
 
-// ids are UUID strings, so they are compared as text (not with a - b)
 const byId = (a, b) => String(a).localeCompare(String(b));
 
-/* ---------------------------------------------------------------
-   Shared helpers
----------------------------------------------------------------- */
 
-// checks the tickets the user sent and returns them as clean lines
 const parseItems = (items) => {
   if (!Array.isArray(items) || items.length === 0) {
     throw bad("Select at least one ticket");
   }
 
-  // the same category sent twice -> add the quantities together
+  
   const merged = new Map();
   for (const it of items) {
     const id = it?.sessionCategoryPriceId;
@@ -36,7 +32,7 @@ const parseItems = (items) => {
     merged.set(id, (merged.get(id) || 0) + qty);
   }
 
-  // sorted by id so seats are always updated in the same order
+  
   const lines = [...merged.entries()]
     .map(([sessionCategoryPriceId, quantity]) => ({
       sessionCategoryPriceId,
@@ -56,16 +52,14 @@ const parseItems = (items) => {
   return { lines, totalCount };
 };
 
-// works out price and total for the selected tickets
-// "db" is either prisma or a transaction (tx)
+
 const buildOrder = async (db, sessionId, items) => {
   const { lines, totalCount } = parseItems(items);
 
   const session = await db.session.findUnique({ where: { id: sessionId } });
   assertFound(session, "Session not found");
 
-  // note: the schema field is regStartdateTime (small "d"), so the start
-  // check below never runs until this name is fixed
+  
   const now = new Date();
   if (now < session.regStartDateTime || now > session.regEndDateTime) {
     throw bad("Registration is not open for this session");
@@ -110,7 +104,7 @@ const buildOrder = async (db, sessionId, items) => {
   return { orderLines, totalCount, totalAmount };
 };
 
-// the booking + session + venue details shown on the booking pages
+
 const SESSION_SELECT = {
   id: true,
   startDateTime: true,
@@ -134,9 +128,7 @@ const SESSION_SELECT = {
   },
 };
 
-/* ---------------------------------------------------------------
-   Booking summary (before paying)
----------------------------------------------------------------- */
+
 
 export const getBookingSummaryService = async ({ sessionId, items } = {}) => {
   if (!sessionId) throw bad("sessionId is required");
@@ -157,18 +149,16 @@ export const getBookingSummaryService = async ({ sessionId, items } = {}) => {
   };
 };
 
-/* ---------------------------------------------------------------
-   Pay for a booking
----------------------------------------------------------------- */
+
 
 export const payForBookingService = async (userId, { sessionId, items } = {}) => {
   if (!sessionId) throw bad("sessionId is required");
 
-  // everything inside the transaction is saved together, or not at all
+ 
   const result = await prisma.$transaction(async (tx) => {
     const order = await buildOrder(tx, sessionId, items);
 
-    // take the seats (fails if someone else just bought them)
+   
     for (const line of order.orderLines) {
       const r = await tx.sessionCategoryPrice.updateMany({
         where: {
@@ -183,7 +173,7 @@ export const payForBookingService = async (userId, { sessionId, items } = {}) =>
       }
     }
 
-    // one ticket row per seat
+    
     const ticketData = [];
     for (const line of order.orderLines) {
       for (let i = 0; i < line.quantity; i++) {
@@ -215,7 +205,7 @@ export const payForBookingService = async (userId, { sessionId, items } = {}) =>
     };
   });
 
-  // a mail failure must not fail the booking
+
   sendBookingEmail(result).catch((e) =>
     console.error("booking email failed:", e),
   );
@@ -223,9 +213,6 @@ export const payForBookingService = async (userId, { sessionId, items } = {}) =>
   return { message: "Booking confirmed", bookingId: result.bookingId };
 };
 
-/* ---------------------------------------------------------------
-   My bookings
----------------------------------------------------------------- */
 
 export const getBookingsByUserIdService = async (userId) => {
   if (!userId) {
@@ -250,6 +237,7 @@ export const getBookingsByUserIdService = async (userId) => {
     },
   });
 
+  
   return {
     bookings: bookings.map((b) => ({
       id: b.id,
@@ -268,14 +256,10 @@ export const getBookingsByUserIdService = async (userId) => {
   };
 };
 
-/* ---------------------------------------------------------------
-   Cancel a booking (all tickets, or only the selected ones)
----------------------------------------------------------------- */
 
-// counts the cancelled tickets per category and adds up the refund
 const summariseCancelledTickets = (tickets) => {
-  const perCategory = new Map(); // category id -> number of tickets
-  const cancelledLines = new Map(); // category id -> line for the email
+  const perCategory = new Map(); 
+  const cancelledLines = new Map(); 
   let refundAmount = tickets[0].unitPrice.mul(0);
 
   for (const t of tickets) {
@@ -322,7 +306,6 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
       throw conflict("Booking is already cancelled");
     }
 
-    // only CONFIRMED or PARTIALLY_CANCELLED bookings can be cancelled further
     if (!["CONFIRMED", "PARTIALLY_CANCELLED"].includes(booking.status)) {
       throw conflict("This booking cannot be cancelled");
     }
@@ -353,7 +336,6 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
       );
     }
 
-    // mark the tickets cancelled (fails if another request got there first)
     const claimed = await tx.tickets.updateMany({
       where: { id: { in: tickets.map((t) => t.id) }, status: "CONFIRMED" },
       data: { status: "CANCELLED" },
@@ -376,7 +358,6 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
       });
     }
 
-    // always update the booking status, never leave it as CONFIRMED
     const remaining = await tx.tickets.count({
       where: { bookingId, status: "CONFIRMED" },
     });
@@ -397,7 +378,6 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
     };
   });
 
-  // a mail failure must not fail the cancellation
   sendCancellationEmail(bookingId, result).catch((e) =>
     console.error("cancellation email failed:", e),
   );
@@ -413,11 +393,8 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
   };
 };
 
-/* ---------------------------------------------------------------
-   Tickets of one booking
----------------------------------------------------------------- */
 
-// groups the tickets by category: one line per category
+
 const groupTicketsByCategory = (tickets) => {
   const grouped = new Map();
 
@@ -492,6 +469,7 @@ export const getTicketsService = async (userId, bookingId) => {
     },
   });
   assertFound(booking, "Booking not found");
+  const bookingQrCode = await QRCode.toDataURL(booking.id);
 
   return {
     booking: {
@@ -500,12 +478,14 @@ export const getTicketsService = async (userId, bookingId) => {
       totalAmount: Number(booking.totalAmount),
       totalCount: booking.totalCount,
       bookedOn: booking.createdAt,
+      bookingQrCode: bookingQrCode
     },
     event: booking.session.event,
     session: {
       id: booking.session.id,
       startDateTime: booking.session.startDateTime,
       endDateTime: booking.session.endDateTime,
+      canCancel : booking.session.startDateTime - Date.now() > 3*60*60*100,
     },
     subVenue: booking.session.subVenue,
     tickets: booking.ticket.map((t) => ({

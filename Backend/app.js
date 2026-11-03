@@ -15,6 +15,7 @@ import BookingRouter from "./Routes/Organizer_Routes/booking.js";
 import userEventBookingRouter from "./Routes/User_Routes/eventBooking.js";
 import categoryRouter from "./Routes/Organizer_Routes/seatCategory.js";
 import cookieParser from "cookie-parser";
+import { startEventStatusCron } from "./cron/eventStatus.cron.js";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -38,6 +39,8 @@ app.use("/organizer", authenticate, authorize("ORGANIZER"), BookingRouter);
 
 app.use("/user", authenticate, authorize("USER"), userEventRouter);
 app.use("/user", authenticate, authorize("USER"), userEventBookingRouter);
+
+startEventStatusCron();
 
 app.listen(port, () => {
   console.log("app is listening on port", port);
