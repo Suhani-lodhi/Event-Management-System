@@ -24,6 +24,7 @@ import TicketBookingPage from '../pages/user/TicketBookingPage';
 import MyBookings from '../pages/user/MyBookings';
 import MyTickets from '../pages/user/MyTickets';
 import BookingStats from '../pages/Organizer/BookingStats';
+import AttendencePage from '../pages/Organizer/AttendencePage';
 
 
 const ROLES = {
@@ -122,6 +123,12 @@ export default function AppRoutes() {
         <Route path="editVenue/:id" element={<Venues/>} />
         <Route path="bookingStats" element={<BookingStats/>} />
       </Route>
+
+      <Route path='/organizer/attendance/:id' element={
+        <ProtectedRoute allowedRoles={['ORGANIZER']}>
+          <AttendencePage/>
+        </ProtectedRoute>
+      }/>
 
 
       <Route path='/home'

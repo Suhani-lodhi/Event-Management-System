@@ -307,12 +307,32 @@ const getBookingStats = async (filters) =>{
 }
 
 
+const getBookingDetails = async (id) =>{
+    console.log("attendance",id)
+    try{
+    const res = await axiosInstance.get("/organizer/getBookingDetails/"+id);
+  return res.data;
+  }
+  catch(err){
+    throw new Error("could not fetch booking details", err);
+  }
+}
 
+const markAttendance = async (bookingId) =>{
+    try{
+        const res = await axiosInstance.patch("/organizer/"+bookingId+"/attendance");
+        return res.data;
+    }
+    catch(err){
+        console.log(err)
+        throw new Error("Could not mark attendance");
+    }
+}
 
 export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, getSubVenues, 
     deleteEventById, updateEvent, getSessionsByEventId, deleteSessionById, updateSessionById,
     createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, 
     editSubVenueById,createSubVenue, seatErr,getSeatCategories,createSeatCategory,updateSeatCategory,
     deleteSeatCategory, getSessionPricing, saveSessionPricing, updateEventStatus, updateRegistrationStatus,
-    getBookingStats
+    getBookingStats, getBookingDetails, markAttendance
 };

@@ -469,7 +469,7 @@ export const getTicketsService = async (userId, bookingId) => {
     },
   });
   assertFound(booking, "Booking not found");
-  const bookingQrCode = await QRCode.toDataURL(booking.id);
+  const bookingQrCode = await QRCode.toDataURL(`http://localhost:5173/organizer/attendance/${booking.id}`);
 
   return {
     booking: {

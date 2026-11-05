@@ -49,7 +49,7 @@ export const getEventByIdService = async (eventId) => {
 };
 
 export const getEventsService = () =>
-  prisma.event.findMany({where: {status:'ACTIVE'}, orderBy: { id: "desc" } });
+  prisma.event.findMany({where: {status:'ACTIVE', isDeleted: false}, orderBy: { id: "desc" } });
 
 export const getEventsByFilterService = async (query) => {
   const { category, genre, search, page = 1, limit = 12 } = query;
@@ -57,7 +57,7 @@ export const getEventsByFilterService = async (query) => {
   const categories = parseList(category, CATEGORIES);
   const genres = parseList(genre, GENRES);
 
-  const where = {};
+  const where = {isDeleted: false};
   if (categories.length) where.category = { in: categories };
   if (genres.length) where.genre = { in: genres };
   if (search) where.Title = { contains: search, mode: "insensitive" };

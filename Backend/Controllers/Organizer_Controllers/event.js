@@ -43,7 +43,7 @@ const createEvent = async (req, res) => {
 const getEventById = async (req, res) => {
   try {
     const event = await prisma.event.findUnique({
-      where: { id: req.params.id },
+      where: { id: req.params.id},
       include: {
         sessions: { include: { subVenue: { include: { venue: true } } } },
         currentSession: true,
@@ -69,7 +69,7 @@ const getEventByOrganizerId = async (req, res) => {
     assertFound(organizer, "organizer not found");
 
     const event = await prisma.event.findMany({
-      where: { organizerId: organizer.id },
+      where: { organizerId: organizer.id, isDeleted: false },
       include: { sessions: true, organizer: true },
     });
 
@@ -89,7 +89,7 @@ const updateEventById = async (req, res) => {
     const { id } = req.params;
 
     const organizer = await findOrganizer(req.user.id);
-    const event = await prisma.event.findUnique({ where: { id } });
+    const event = await prisma.event.findUnique({ where: { id, isDeleted: false } });
 
     assertFound(event, "event not found");
     assertOwner(event, organizer, "not authorized to update this event");
@@ -127,11 +127,10 @@ const deleteEventById = async (req, res) => {
     assertOwner(event, organizer, "not authorized to delete this event");
 
     await prisma.$transaction([
-      prisma.session.deleteMany({ where: { eventId: id } }),
-      prisma.event.delete({ where: { id } }),
+      prisma.event.update({where: {id} , data: {isDeleted: true}})
     ]);
 
-    await removeOldImage(event.imageUrl);
+   // await removeOldImage(event.imageUrl);
 
     res.status(StatusCodes.OK).json({
       msg: "Event Deleted sucecessfully",

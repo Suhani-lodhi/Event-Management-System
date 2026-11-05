@@ -94,16 +94,14 @@ const deleteVenue = async (req, res) => {
     assertFound(venue, "venue not found");
 
     const sessionCount = await prisma.session.count({
-      where: { subVenue: { venueId } },
+      where: { subVenue: { venueId } , status: { in: ["DRAFTED", "PUBLISHED", "ACTIVE"] }},
     });
     assertNoSessions(sessionCount);
 
-    await prisma.$transaction([
-      prisma.seatCategory.deleteMany({ where: { subVenue: { venueId } } }),
-      prisma.subVenue.deleteMany({ where: { venueId } }),
-      prisma.venue.delete({ where: { id: venueId } }),
-    ]);
-
+     await prisma.venue.update({
+      where: { id: venueId },
+      data: { isDeleted: true },
+    });
     res.status(StatusCodes.OK).json({
       msg: "venue deleted successfully",
       success: true,
@@ -115,7 +113,7 @@ const deleteVenue = async (req, res) => {
 
 const getVenues = async (req, res) => {
   try {
-    const venues = await prisma.venue.findMany();
+    const venues = await prisma.venue.findMany({where: {isDeleted: false}});
     res.status(StatusCodes.OK).json({ venues, success: true });
   } catch (err) {
     sendError(res, err, "could not fetch venues");
@@ -125,7 +123,7 @@ const getVenues = async (req, res) => {
 const getVenuesByOrganizerId = async (req, res) => {
   try {
     const venues = await prisma.venue.findMany({
-      where: { userId: req.user.id },
+      where: { userId: req.user.id , isDeleted: false},
       include: { subVenues: true },
       orderBy: { id: "desc" },
     });

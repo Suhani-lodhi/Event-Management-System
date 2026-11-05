@@ -33,6 +33,7 @@ export default function MyVenue() {
   }
   function confirmDelete(){
     deleteVenue(deleteId);
+    setDeleteDialog(false);
     setDeleteId(null);
   }
 

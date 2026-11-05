@@ -95,6 +95,18 @@ export default function MyTickets(){
       };
 
 
+      async function openAttendencePage(){
+        const url = 'http://localhost:5173/organizer/attendance/'+booking.id;
+          try {
+    await navigator.clipboard.writeText(url);
+    toast.success("Attendance link copied successfully!");
+  } catch (error) {
+    console.error("Failed to copy link:", error);
+    toast.error("Unable to copy link");
+  }
+      }
+
+
     const venue = subVenue?.venue;
   const address1 = venue
     ? [venue.addressLine1, venue.city]
@@ -219,6 +231,7 @@ export default function MyTickets(){
               <span className="info-label">Booked Tickets</span>
               <p>{booking.totalCount}</p>
             </div> */}
+            <button onClick={openAttendencePage}>Copy link to mark attendance</button>
             </div>
 
             

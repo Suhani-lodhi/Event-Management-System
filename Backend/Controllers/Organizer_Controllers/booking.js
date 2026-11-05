@@ -1,5 +1,7 @@
 import prisma from "../../index.js";
-
+import { getBookingDetailService } from "../../Sevices/Organizer_Services/booking.service.js";
+import { sendMessageError } from "../../utils/serviceError.js";
+import StatusCodes  from "http-status-codes"
 const getBookingStats = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -167,6 +169,17 @@ const getBookingStats = async (req, res) => {
   }
 };
 
+
+const getBookingDetails = async (req, res) => {
+  try {
+    const data = await getBookingDetailService(req.user?.id, req.params.id);
+    res.status(StatusCodes.OK).json(data);
+  } catch (err) {
+    sendMessageError(res, err, "Could not fetch Tickets");
+  }
+};
+
 export {
-getBookingStats
+getBookingStats,
+getBookingDetails
 }

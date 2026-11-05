@@ -10,6 +10,9 @@ function formatDate(value) {
     day: "numeric",
     month: "short",
     year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric"
   });
 }
 

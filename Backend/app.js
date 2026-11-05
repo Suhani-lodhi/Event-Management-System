@@ -16,6 +16,7 @@ import userEventBookingRouter from "./Routes/User_Routes/eventBooking.js";
 import categoryRouter from "./Routes/Organizer_Routes/seatCategory.js";
 import cookieParser from "cookie-parser";
 import { startEventStatusCron } from "./cron/eventStatus.cron.js";
+import attendanceRouter from './Routes/Organizer_Routes/attendance.js'
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -36,6 +37,7 @@ app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), venueRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), categoryRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), BookingRouter);
+app.use("/organizer", authenticate, authorize("ORGANIZER"), attendanceRouter)
 
 app.use("/user", authenticate, authorize("USER"), userEventRouter);
 app.use("/user", authenticate, authorize("USER"), userEventBookingRouter);
