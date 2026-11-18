@@ -14,7 +14,7 @@ import { findOrganizer } from "../../utils/findOrganizer.js";
 const createEvent = async (req, res) => {
   try {
     validateCreateEvent(req.body);
-
+    console.log(req.body, req.file);
     const organizer = await findOrganizer(req.user.id);
     assertFound(organizer, "invalid organizer: organizer not found");
 

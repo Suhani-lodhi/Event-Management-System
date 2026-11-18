@@ -5,42 +5,43 @@ import StatusCodes  from "http-status-codes"
 const getBookingStats = async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log(req.query);
+    //const toInt = (v) => (v === undefined || v === "" ? undefined : Number(v));
+    const eventId = req.query.eventId;
+    const sessionId = req.query.sessionId;
+    const seatCategoryId = req.query.seatCategoryId;
+    
+    // for (const v of [eventId, sessionId, seatCategoryId]) {
+    //   if (v === undefined) {
+    //     return res.status(400).json({ msg: "invalid query parameter", success: false });
+    //   }
+    // }
 
-    const toInt = (v) => (v === undefined || v === "" ? undefined : Number(v));
-    const eventId = toInt(req.query.eventId);
-    const sessionId = toInt(req.query.sessionId);
-    const seatCategoryId = toInt(req.query.seatCategoryId);
-
-    for (const v of [eventId, sessionId, seatCategoryId]) {
-      if (v !== undefined && !Number.isInteger(v)) {
-        return res.status(400).json({ msg: "invalid query parameter", success: false });
-      }
-    }
+    console.log("booking stats userId---->",userId)
 
     const sessionWhere = {
-      event: {organizerId : userId },
-      ...(eventId !== undefined ? { eventId } : {}),
-      ...(sessionId !== undefined ? { id: sessionId } : {}),
+      ...(eventId !== '' ? { eventId } : {}),
+      ...(sessionId !== '' ? { id: sessionId } : {}),
     };
-
     if (sessionId !== undefined) {
       const owned = await prisma.session.findFirst({
         where: sessionWhere,
         select: { id: true },
       });
       if (!owned) {
-        return res.status(403).json({ message: "Session not found", success: false });
+        return res.status(404).json({ message: "Session not found", success: false });
       }
     }
 
+      
     const scpWhere = {
       session: sessionWhere,
-      ...(seatCategoryId !== undefined ? { seatCategoryId } : {}),
+      ...(seatCategoryId !== '' ? { seatCategoryId } : {}),
     };
 
     const ticketWhere = {
       status: { in: ["CONFIRMED", "CANCELLED"] },
-      sessionCategoryPrice: scpWhere,                       // FIX 1: spelling
+      sessionCategoryPrice: scpWhere,                     
     };
 
     const [

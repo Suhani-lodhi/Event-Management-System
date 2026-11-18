@@ -32,25 +32,20 @@ const ROLES = {
   USER: '/home', 
 };
 
-
-// Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user, loading } = useAuth();
 
-  // Don't decide anything until /auth/me (and a possible refresh) has finished
   if (loading) return <div>Loading...</div>;
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Don't redirect to /login: PublicOnlyRoute would send them straight back here
     return <div>You don't have access to this page.</div>;
   }
 
   return children;
 }
 
-// Keeps logged-in users out of login/signup pages
 function PublicOnlyRoute({ children }) {
   const { isAuthenticated, user, loading } = useAuth();
 

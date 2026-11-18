@@ -85,6 +85,8 @@ const [preview, setPreview] = useState(null);
   const file = e.target.files[0];
   if (!file) return;
 
+  console.log(file);
+
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
     toast.error("Only JPG, PNG or WEBP images are allowed");
     e.target.value = "";

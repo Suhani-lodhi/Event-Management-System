@@ -83,10 +83,11 @@ const logout = (req, res) => {
 };
 
 const me = async (req, res) => {
+
   try {
     const user = await meService(req.user.id);
     return res.status(StatusCodes.OK).json({ success: true, user });
-  } catch (err) {
+  } catch (err) {    
     return sendError(res, err);
   }
 };

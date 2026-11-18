@@ -4,7 +4,7 @@ import { updateEventAndSessionStatuses } from '../Sevices/eventStatus.service.js
 let isRunning = false;
 
 export const startEventStatusCron = () =>{
-    cron.schedule("* * * * *", async () =>{
+    cron.schedule("0 * * * *", async () =>{
         if (isRunning) return;
 
         isRunning = true;
@@ -22,5 +22,5 @@ export const startEventStatusCron = () =>{
         }
     });
 
-    console.log("Event status cron scheduled successfully")
+    console.log("Event status cron scheduled successfully");
 }
