@@ -62,13 +62,25 @@ const getBookingSummary = async (payload) => {
 
 
 
-const payForBooking = async (payload) => {   
+const createPaymentOrder = async (payload) => {
   try {
-    const res = await axiosInstance.post("/user/payForBooking", payload);   
+    const res = await axiosInstance.post("/user/createPaymentOrder", payload);
     return res.data;
   } catch (err) {
-       throw new Error(err.response?.data?.message || "cannot book tickets");
+    const error = new Error(err.response?.data?.message || "cannot start payment");
+    error.status = err.response?.status;
+    throw error;
+  }
+};
 
+const payForBooking = async (payload) => {
+  try {
+    const res = await axiosInstance.post("/user/payForBooking", payload);
+    return res.data;
+  } catch (err) {
+    const error = new Error(err.response?.data?.message || "cannot book tickets");
+    error.status = err.response?.status;   // so the page can check err.status === 409
+    throw error;
   }
 };
 
@@ -103,4 +115,4 @@ const getTicketsByBookingId = async (bookingId) =>{
 }
 
 export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession, 
-   getBookingSummary, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId}
+   getBookingSummary, createPaymentOrder, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId}

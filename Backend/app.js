@@ -16,10 +16,12 @@ import userEventBookingRouter from "./Routes/User_Routes/eventBooking.js";
 import categoryRouter from "./Routes/Organizer_Routes/seatCategory.js";
 import cookieParser from "cookie-parser";
 import { startEventStatusCron } from "./cron/eventStatus.cron.js";
-import attendanceRouter from './Routes/Organizer_Routes/attendance.js'
+import attendanceRouter from "./Routes/Organizer_Routes/attendance.js";
+
+import { razorpayWebhook } from "./Controllers/User_Controllers/payment.webhook.js";
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT;
 
 app.use(
   cors({
@@ -28,6 +30,11 @@ app.use(
   }),
 );
 app.use(cookieParser());
+app.post(
+  "/payments/webhook",
+  express.raw({ type: "application/json" }),
+  razorpayWebhook,
+);
 app.use(express.json());
 app.use("/profile", profileRouter);
 app.use("/uploads", express.static("uploads"));
@@ -37,7 +44,7 @@ app.use("/organizer", authenticate, authorize("ORGANIZER"), sessionRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), venueRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), categoryRouter);
 app.use("/organizer", authenticate, authorize("ORGANIZER"), BookingRouter);
-app.use("/organizer", authenticate, authorize("ORGANIZER"), attendanceRouter)
+app.use("/organizer", authenticate, authorize("ORGANIZER"), attendanceRouter);
 
 app.use("/user", authenticate, authorize("USER"), userEventRouter);
 app.use("/user", authenticate, authorize("USER"), userEventBookingRouter);

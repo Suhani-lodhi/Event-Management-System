@@ -6,6 +6,7 @@ import {
   getBookingsByUserIdService,
   cancelBookingService,
   getTicketsService,
+  createPaymentOrderService,
 } from "../../Sevices/User_Services/booking.service.js";
 
 const getBookingSummary = async (req, res) => {
@@ -45,11 +46,10 @@ const cancelBooking = async (req, res) => {
     );
     res.status(StatusCodes.OK).json(data);
   } catch (err) {
-    sendMessageError(res, err, "Could not cancel booking");sendMessageError
+    sendMessageError(res, err, "Could not cancel booking");
+    sendMessageError;
   }
 };
-
-
 
 const getTickets = async (req, res) => {
   try {
@@ -60,6 +60,15 @@ const getTickets = async (req, res) => {
   }
 };
 
+const createPaymentOrder = async (req, res) => {
+  try {
+    const data = await createPaymentOrderService(req.user.id, req.body);
+    res.status(StatusCodes.CREATED).json(data);
+  } catch (err) {
+    console.error("createPaymentOrder failed:", err);
+    sendMessageError(res, err, "Could not create payment order");
+  }
+};
 
 export {
   getBookingSummary,
@@ -67,4 +76,5 @@ export {
   getTickets,
   getBookingsByUserId,
   cancelBooking,
+  createPaymentOrder,
 };

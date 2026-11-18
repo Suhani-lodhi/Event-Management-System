@@ -1,11 +1,12 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../../index.js";
-import QRCode from "qrcode"
+import QRCode from "qrcode";
 import { ServiceError, assertFound } from "../../utils/serviceError.js";
 import {
   sendBookingEmail,
   sendCancellationEmail,
 } from "../../utils/bookingEmail.js";
+import { razorpay, verifySignature } from "../../utils/razorpay.js";
 
 const MAX_PER_CATEGORY = 10;
 const MAX_PER_BOOKING = 20;
@@ -15,13 +16,11 @@ const conflict = (msg) => new ServiceError(msg, StatusCodes.CONFLICT);
 
 const byId = (a, b) => String(a).localeCompare(String(b));
 
-
 const parseItems = (items) => {
   if (!Array.isArray(items) || items.length === 0) {
     throw bad("Select at least one ticket");
   }
 
-  
   const merged = new Map();
   for (const it of items) {
     const id = it?.sessionCategoryPriceId;
@@ -32,7 +31,6 @@ const parseItems = (items) => {
     merged.set(id, (merged.get(id) || 0) + qty);
   }
 
-  
   const lines = [...merged.entries()]
     .map(([sessionCategoryPriceId, quantity]) => ({
       sessionCategoryPriceId,
@@ -52,14 +50,12 @@ const parseItems = (items) => {
   return { lines, totalCount };
 };
 
-
 const buildOrder = async (db, sessionId, items) => {
   const { lines, totalCount } = parseItems(items);
 
   const session = await db.session.findUnique({ where: { id: sessionId } });
   assertFound(session, "Session not found");
 
-  
   const now = new Date();
   if (now < session.regStartDateTime || now > session.regEndDateTime) {
     throw bad("Registration is not open for this session");
@@ -104,7 +100,6 @@ const buildOrder = async (db, sessionId, items) => {
   return { orderLines, totalCount, totalAmount };
 };
 
-
 const SESSION_SELECT = {
   id: true,
   startDateTime: true,
@@ -128,8 +123,6 @@ const SESSION_SELECT = {
   },
 };
 
-
-
 export const getBookingSummaryService = async ({ sessionId, items } = {}) => {
   if (!sessionId) throw bad("sessionId is required");
 
@@ -148,71 +141,6 @@ export const getBookingSummaryService = async ({ sessionId, items } = {}) => {
     totalAmount: Number(order.totalAmount),
   };
 };
-
-
-
-export const payForBookingService = async (userId, { sessionId, items } = {}) => {
-  if (!sessionId) throw bad("sessionId is required");
-
- 
-  const result = await prisma.$transaction(async (tx) => {
-    const order = await buildOrder(tx, sessionId, items);
-
-   
-    for (const line of order.orderLines) {
-      const r = await tx.sessionCategoryPrice.updateMany({
-        where: {
-          id: line.sessionCategoryPriceId,
-          sessionId,
-          seatsForSale: { gte: line.quantity },
-        },
-        data: { seatsForSale: { decrement: line.quantity } },
-      });
-      if (r.count === 0) {
-        throw conflict(`Tickets in "${line.alias}" just sold out`);
-      }
-    }
-
-    
-    const ticketData = [];
-    for (const line of order.orderLines) {
-      for (let i = 0; i < line.quantity; i++) {
-        ticketData.push({
-          sessionCategoryPriceId: line.sessionCategoryPriceId,
-          unitPrice: line.unitPrice,
-          status: "CONFIRMED",
-        });
-      }
-    }
-
-    const booking = await tx.booking.create({
-      data: {
-        userId,
-        sessionId,
-        status: "CONFIRMED",
-        totalAmount: order.totalAmount,
-        totalCount: order.totalCount,
-        ticket: { create: ticketData },
-      },
-      select: { id: true },
-    });
-
-    return {
-      bookingId: booking.id,
-      orderLines: order.orderLines,
-      totalCount: order.totalCount,
-      totalAmount: order.totalAmount,
-    };
-  });
-
-
-  sendBookingEmail(result).catch((e) =>
-    console.error("booking email failed:", e),
-  );
-
-  return { message: "Booking confirmed", bookingId: result.bookingId };
-};
-
 
 export const getBookingsByUserIdService = async (userId) => {
   if (!userId) {
@@ -237,7 +165,6 @@ export const getBookingsByUserIdService = async (userId) => {
     },
   });
 
-  
   return {
     bookings: bookings.map((b) => ({
       id: b.id,
@@ -256,10 +183,9 @@ export const getBookingsByUserIdService = async (userId) => {
   };
 };
 
-
 const summariseCancelledTickets = (tickets) => {
-  const perCategory = new Map(); 
-  const cancelledLines = new Map(); 
+  const perCategory = new Map();
+  const cancelledLines = new Map();
   let refundAmount = tickets[0].unitPrice.mul(0);
 
   for (const t of tickets) {
@@ -393,8 +319,6 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
   };
 };
 
-
-
 const groupTicketsByCategory = (tickets) => {
   const grouped = new Map();
 
@@ -469,7 +393,9 @@ export const getTicketsService = async (userId, bookingId) => {
     },
   });
   assertFound(booking, "Booking not found");
-  const bookingQrCode = await QRCode.toDataURL(`http://localhost:5173/organizer/attendance/${booking.id}`);
+  const bookingQrCode = await QRCode.toDataURL(
+    `http://localhost:5173/organizer/attendance/${booking.id}`,
+  );
 
   return {
     booking: {
@@ -478,14 +404,14 @@ export const getTicketsService = async (userId, bookingId) => {
       totalAmount: Number(booking.totalAmount),
       totalCount: booking.totalCount,
       bookedOn: booking.createdAt,
-      bookingQrCode: bookingQrCode
+      bookingQrCode: bookingQrCode,
     },
     event: booking.session.event,
     session: {
       id: booking.session.id,
       startDateTime: booking.session.startDateTime,
       endDateTime: booking.session.endDateTime,
-      canCancel : booking.session.startDateTime - Date.now() > 3*60*60*100,
+      canCancel: booking.session.startDateTime - Date.now() > 3 * 60 * 60 * 100,
     },
     subVenue: booking.session.subVenue,
     tickets: booking.ticket.map((t) => ({
@@ -499,4 +425,115 @@ export const getTicketsService = async (userId, bookingId) => {
     })),
     ticketSummary: groupTicketsByCategory(booking.ticket),
   };
+};
+export const createPaymentOrderService = async (
+  userId,
+  { sessionId, items } = {},
+) => {
+  const summary = await getBookingSummaryService({ sessionId, items }); // price from DB
+  const amount = Math.round(summary.totalAmount * 100); // paise
+
+  const order = await razorpay.orders.create({
+    amount,
+    currency: "INR",
+    receipt: `bk_${Date.now()}`,
+  });
+
+  await prisma.paymentOrder.create({
+    data: { orderId: order.id, userId, sessionId, items, amount },
+  });
+
+  return {
+    orderId: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    keyId: process.env.RAZORPAY_KEY_ID,
+  };
+};
+
+export const payForBookingService = async (userId, body = {}) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
+
+  const ok = verifySignature({
+    orderId: razorpay_order_id,
+    paymentId: razorpay_payment_id,
+    signature: razorpay_signature,
+  });
+  if (!ok) throw bad("Payment verification failed");
+
+  const pending = await prisma.paymentOrder.findUnique({
+    where: { orderId: razorpay_order_id },
+  });
+  assertFound(pending, "Order not found");
+  if (pending.userId !== userId) {
+    throw new ServiceError("Invalid order", StatusCodes.FORBIDDEN);
+  }
+
+  return confirmPayment(razorpay_order_id, razorpay_payment_id);
+};
+export const confirmPayment = async (orderId, paymentId) => {
+  const pending = await prisma.paymentOrder.findUnique({ where: { orderId } });
+  assertFound(pending, "Order not found");
+
+  if (pending.status === "PAID") {
+    return { message: "Booking confirmed", bookingId: pending.bookingId };
+  }
+  if (pending.status === "REFUNDED") {
+    throw conflict("This payment was refunded");
+  }
+
+  let result;
+  try {
+    result = await prisma.$transaction(async (tx) => {
+      // "claim" the order; if someone else already did, count is 0
+      const claimed = await tx.paymentOrder.updateMany({
+        where: { orderId, status: "CREATED" },
+        data: { status: "PAID", paymentId },
+      });
+      if (claimed.count === 0) return null;
+
+      const booked = await bookTickets(
+        tx,
+        pending.userId,
+        pending.sessionId,
+        pending.items,
+        paymentId,
+      );
+
+      // price changed since the order was created?
+      if (Math.round(Number(booked.totalAmount) * 100) !== pending.amount) {
+        throw conflict("Ticket price changed. Please try again.");
+      }
+
+      await tx.paymentOrder.update({
+        where: { orderId },
+        data: { bookingId: booked.bookingId },
+      });
+      return booked;
+    });
+  } catch (err) {
+    // sold out / registration closed etc.: money was taken, so refund it
+    if (err instanceof ServiceError) {
+      await razorpay.payments.refund(paymentId, { amount: pending.amount });
+      await prisma.paymentOrder.update({
+        where: { orderId },
+        data: { status: "REFUNDED" },
+      });
+      throw conflict(
+        "Tickets are no longer available. Your payment will be refunded.",
+      );
+    }
+    throw err; // real bug (DB down etc.): don't refund blindly
+  }
+
+  // the other request (browser or webhook) booked it first
+  if (!result) {
+    const again = await prisma.paymentOrder.findUnique({ where: { orderId } });
+    return { message: "Booking confirmed", bookingId: again.bookingId };
+  }
+
+  sendBookingEmail(result).catch((e) =>
+    console.error("booking email failed:", e),
+  );
+  return { message: "Booking confirmed", bookingId: result.bookingId };
 };

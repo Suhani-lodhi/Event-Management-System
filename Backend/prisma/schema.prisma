@@ -166,6 +166,7 @@ model Event {
   organizer        Organizer     @relation(fields: [organizerId], references: [id])
   sessions         Session[]
   currentSession   Session?      @relation("CurrentSession", fields: [currentSessionId], references: [id])
+
   @@index([status, activeAt])
 }
 
@@ -177,13 +178,14 @@ model Session {
   endDateTime           DateTime
   regStartdateTime      DateTime
   regEndDateTime        DateTime
-  status                EventStatus        @default(DRAFTED)
-  registrationStatus    RegistrationStatus @default(SCHEDULED)
+  status                EventStatus            @default(DRAFTED)
+  registrationStatus    RegistrationStatus     @default(SCHEDULED)
   subVenue              SubVenue               @relation(fields: [subVenueId], references: [id])
   currentFor            Event?                 @relation("CurrentSession")
   event                 Event                  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   sessionCategoryPrices SessionCategoryPrice[]
-  booking Booking[]
+  booking               Booking[]
+
   @@index([eventId, status])
   @@index([registrationStatus, regStartdateTime])
   @@index([registrationStatus, regEndDateTime])
@@ -211,7 +213,7 @@ model Booking {
   status       BookingStatus
   totalAmount  Decimal        @db.Decimal(10, 2)
   totalCount   Int
-  paymentRef   String?
+  paymentRef   String?        @unique
   createdAt    DateTime       @default(now())
   user         Users          @relation("User", fields: [userId], references: [id])
   session      Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -226,7 +228,7 @@ model Tickets {
   status                 BookingStatus
   unitPrice              Decimal              @db.Decimal(10, 2)
   cancellationId         String?              @db.Uuid
-  attended               Boolean   @default(false)
+  attended               Boolean              @default(false)
   attendedAt             DateTime?
   booking                Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   sessionCategoryPrice   SessionCategoryPrice @relation(fields: [sessionCategoryPriceId], references: [id], onDelete: Cascade)
@@ -250,4 +252,17 @@ model Cancellation {
   user    Users   @relation(fields: [userId], references: [id])
 
   @@index([bookingId])
+}
+
+model PaymentOrder {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @unique                           // Razorpay order id, e.g. order_Nxyz
+  userId    String   @db.Uuid
+  sessionId String   @db.Uuid
+  items     Json                                       // the tickets the user selected
+  amount    Int                                        // in paise
+  status    String   @default("CREATED")               // CREATED | PAID | REFUNDED
+  paymentId String?  @unique
+  bookingId String?  @db.Uuid
+  createdAt DateTime @default(now())
 }

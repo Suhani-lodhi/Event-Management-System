@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getBookingSummary, payForBooking } from "../../api/user";
+import { getBookingSummary, createPaymentOrder, payForBooking } from "../../api/user";
 import { toast } from "react-toastify";
 import '../user/styles/TicketBookingPage.css';
 
-const PAYMENT_WINDOW_SECONDS = 0.5 * 60;
+const PAYMENT_WINDOW_SECONDS = 5 * 60;
 
 const formatTime = (total) => {
   const h = Math.floor(total / 3600);
@@ -63,10 +63,10 @@ export default function TicketBookingPage() {
 
 
   useEffect(() => {
-    if (!summary || bookedId || secondsLeft > 0) return;
+    if (!summary || bookedId || paying || secondsLeft > 0) return;
     toast.error("Payment time expired. Please select your tickets again.");
     backToSelection();
-  }, [secondsLeft, summary, bookedId]);
+  }, [secondsLeft, summary, bookedId, paying]);
 
 
 
@@ -88,14 +88,53 @@ export default function TicketBookingPage() {
     if (paying) return;
     setPaying(true);
     try {
-      const data = await payForBooking({ sessionId, items });
-      toast.success("Booking confirmed");
-      setBookedId(data.bookingId);
+      // 1. backend works out the price and creates the Razorpay order
+      const order = await createPaymentOrder({ sessionId, items });
+
+      // 2. build the Razorpay popup
+      const rzp = new window.Razorpay({
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
+        name: "Occasia",
+        description: "Ticket booking",
+
+        // runs only if the payment succeeded
+        handler: async (response) => {
+          try {
+            const data = await payForBooking({
+              sessionId,
+              items,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            toast.success("Booking confirmed");
+            setBookedId(data.bookingId);
+          } catch (err) {
+            toast.error(err.message);
+            if (err.status === 409) backToSelection();
+          } finally {
+            setPaying(false);
+          }
+        },
+
+        // user closed the popup without paying
+        modal: { ondismiss: () => setPaying(false) },
+      });
+
+      // bank declined or payment failed
+      rzp.on("payment.failed", (r) => {
+        toast.error(r.error.description || "Payment failed");
+        setPaying(false);
+      });
+
+      rzp.open();
     } catch (err) {
       toast.error(err.message);
-      if (err.status === 409) backToSelection();   
-    } finally {
-      setPaying(false);
+      setPaying(false);   // no finally: the popup is async, its callbacks reset "paying"
+      if (err.status === 409) backToSelection();
     }
   };
 
