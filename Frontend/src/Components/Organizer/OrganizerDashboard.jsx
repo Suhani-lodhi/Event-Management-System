@@ -161,8 +161,7 @@ export default function OrganizerDashboard() {
                     </div>
                     <div className='od-icon'>
                       <FontAwesomeIcon icon={faEye} onClick={() => navigate('/dashboard/event/' + event.id)} className='od-icon-element' />
-                      <FontAwesomeIcon icon={faTrash} style={{ color: "#5d5c5c" }} onClick={() => handleDeleteClick(event.id)} />
-                      <FontAwesomeIcon icon={faChartLine} onClick={() => showStatistics(event.id)} />
+{event.status!=='ACTIVE' && <FontAwesomeIcon icon={faTrash} style={{ color: "#5d5c5c" }} onClick={() => handleDeleteClick(event.id)} />}                      <FontAwesomeIcon icon={faChartLine} onClick={() => showStatistics(event.id)} />
                     </div>
                   </div>
 

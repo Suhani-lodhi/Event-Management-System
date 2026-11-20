@@ -6,6 +6,7 @@ import {
   sendBookingEmail,
   sendCancellationEmail,
 } from "../../utils/bookingEmail.js";
+import { parseSettings } from "../Organizer_Services/event.service.js";
 
 const MAX_PER_CATEGORY = 10;
 const MAX_PER_BOOKING = 20;
@@ -194,7 +195,7 @@ export const payForBookingService = async (userId, { sessionId, items } = {}) =>
         totalCount: order.totalCount,
         ticket: { create: ticketData },
       },
-      select: { id: true },
+      select: { id: true,},
     });
 
     return {
@@ -204,7 +205,6 @@ export const payForBookingService = async (userId, { sessionId, items } = {}) =>
       totalAmount: order.totalAmount,
     };
   });
-
 
   sendBookingEmail(result).catch((e) =>
     console.error("booking email failed:", e),
@@ -257,7 +257,7 @@ export const getBookingsByUserIdService = async (userId) => {
 };
 
 
-const summariseCancelledTickets = (tickets) => {
+const summariseCancelledTickets = (tickets, settings) => {
   const perCategory = new Map(); 
   const cancelledLines = new Map(); 
   let refundAmount = tickets[0].unitPrice.mul(0);
@@ -268,6 +268,7 @@ const summariseCancelledTickets = (tickets) => {
       (perCategory.get(t.sessionCategoryPriceId) || 0) + 1,
     );
     refundAmount = refundAmount.add(t.unitPrice);
+    
 
     const line = cancelledLines.get(t.sessionCategoryPriceId) || {
       alias: t.sessionCategoryPrice.alias,
@@ -280,7 +281,13 @@ const summariseCancelledTickets = (tickets) => {
     cancelledLines.set(t.sessionCategoryPriceId, line);
   }
 
-  return { perCategory, cancelledLines, refundAmount };
+
+  let refundPercent = Number(settings.booking.refundPercentage);
+
+  refundAmount = (refundPercent/100) * refundAmount;
+  const totalTicketCancelled = tickets.length;
+
+  return { perCategory, cancelledLines, refundAmount, totalTicketCancelled};
 };
 
 export const cancelBookingService = async (userId, bookingId, ticketIds) => {
@@ -298,7 +305,10 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
   const result = await prisma.$transaction(async (tx) => {
     const booking = await tx.booking.findFirst({
       where: { id: bookingId, userId },
-      include: { session: true },
+      include: { session: {include: 
+        { event: true }
+      }
+       },
     });
     assertFound(booking, "Booking not found");
 
@@ -346,10 +356,24 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
       );
     }
 
-    const { perCategory, cancelledLines, refundAmount } =
-      summariseCancelledTickets(tickets);
+    const { perCategory, cancelledLines, refundAmount, totalTicketCancelled } =
+      summariseCancelledTickets(tickets, booking.session.event.settings);
 
-    // give the seats back, always in the same order
+    console.log("cancelled details",cancelledLines, refundAmount, perCategory, totalTicketCancelled);
+
+    const cancellationData = {
+      bookingId,
+      userId,
+      refundAmount,
+      ticketCount: totalTicketCancelled
+    }
+
+    const cancelledBooking = await prisma.cancellation.create({data: cancellationData});
+
+    if(!cancelledBooking){
+      throw conflict("Cannot cancel tickets now. Try after some time")
+    }
+
     const categoryIds = [...perCategory.keys()].sort(byId);
     for (const categoryId of categoryIds) {
       await tx.sessionCategoryPrice.update({
@@ -422,6 +446,32 @@ const groupTicketsByCategory = (tickets) => {
   return [...grouped.values()];
 };
 
+export const getRefundSummary = async (bookingId) =>{
+   const cancellation = await prisma.cancellation.findMany({
+    where : {bookingId : bookingId}
+   });
+
+   if(!cancellation){
+     throw bad("no cancellation in this booking")
+   }
+
+   console.log("bookingId: ", bookingId)
+   console.log("bookingId:", JSON.stringify(bookingId), typeof bookingId);
+   console.log(cancellation);
+   
+  const refundSummary = cancellation.reduce(
+  (acc, c) => ({
+    refundAmount: acc.refundAmount + Number(c.refundAmount),
+    cancelledTickets: acc.cancelledTickets + c.ticketCount,
+  }),
+  { refundAmount: 0, cancelledTickets: 0 }
+);
+
+console.log(refundSummary);
+
+return refundSummary;
+}
+
 export const getTicketsService = async (userId, bookingId) => {
   if (!userId) {
     throw new ServiceError("Not authenticated", StatusCodes.UNAUTHORIZED);
@@ -429,7 +479,7 @@ export const getTicketsService = async (userId, bookingId) => {
   if (!bookingId) throw bad("Invalid booking id");
 
   const booking = await prisma.booking.findFirst({
-    where: { id: bookingId, userId }, // owner check built in
+    where: { id: bookingId, userId }, 
     select: {
       id: true,
       status: true,
@@ -440,7 +490,7 @@ export const getTicketsService = async (userId, bookingId) => {
         select: {
           ...SESSION_SELECT,
           event: {
-            select: { id: true, Title: true, imageUrl: true, status: true },
+            select: { id: true, Title: true, imageUrl: true, status: true, settings: true },
           },
         },
       },
@@ -468,8 +518,12 @@ export const getTicketsService = async (userId, bookingId) => {
       },
     },
   });
+
+  console.log("event setting at booking page", booking.session.event.settings)
   assertFound(booking, "Booking not found");
   const bookingQrCode = await QRCode.toDataURL(`http://localhost:5173/organizer/attendance/${booking.id}`);
+
+  const refundSummary =  await getRefundSummary(bookingId);
 
   return {
     booking: {
@@ -481,6 +535,7 @@ export const getTicketsService = async (userId, bookingId) => {
       bookingQrCode: bookingQrCode
     },
     event: booking.session.event,
+    eventSettings: parseSettings(booking.session.event.settings),
     session: {
       id: booking.session.id,
       startDateTime: booking.session.startDateTime,
@@ -498,5 +553,7 @@ export const getTicketsService = async (userId, bookingId) => {
       sessionCategoryPriceId: t.sessionCategoryPrice.id,
     })),
     ticketSummary: groupTicketsByCategory(booking.ticket),
+    refundSummary
+    
   };
 };

@@ -1,4 +1,5 @@
 import prisma from "../index.js";
+import { parseSettings } from "../Sevices/Organizer_Services/event.service.js";
 import { sendMail } from "./mailer.js";
 import {
   bookingConfirmationTemplate,
@@ -49,6 +50,7 @@ export const sendBookingEmail = async (result) => {
     bookingId: booking.id,
     eventName: session.event.Title,
     session,
+    settings: parseSettings(session.event.settings),
     venue: buildVenueInfo(session),
     items: result.orderLines.map((l) => ({
       alias: l.alias,

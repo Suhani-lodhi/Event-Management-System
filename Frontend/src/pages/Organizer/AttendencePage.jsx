@@ -29,6 +29,7 @@ export default function MyTickets(){
     const [session, setSession] = useState(null);
     const [subVenue, setSubVenue] = useState(null);
     const [ticketSummary, setTicketSummary] = useState([])
+    const [refundDetails, setRefundDetails] = useState(null);
     const [loading, setLoading] = useState(true)
     const [cancelQty, setCancelQty] = useState({});
     const [openCancel, setOpenCancel] = useState(false);
@@ -44,7 +45,8 @@ export default function MyTickets(){
            setEvent(res.event);
            setSession(res.session);
            setSubVenue(res.subVenue);
-           setTicketSummary(res.ticketSummary)
+           setTicketSummary(res.ticketSummary);
+           setRefundDetails(res.refundSummary);
         }
         catch(err){
            console.log(err);
@@ -199,7 +201,7 @@ export default function MyTickets(){
             </div>
              <div>
               <span className="info-label">Cancelled Tickets</span>
-              <p>{booking.totalCount - tickets.length}</p>
+              <p>{refundDetails.cancelledTickets}</p>
             </div>
            </div>
             }
@@ -215,7 +217,7 @@ export default function MyTickets(){
             </div>
              <div>
               <span className="info-label">Total Refund</span>
-              <p><strong>₹{refundedAmount.toLocaleString("en-IN")}</strong></p>
+              <p><strong>₹{refundDetails.refundedAmount}</strong></p>
             </div>
             </div>
             }

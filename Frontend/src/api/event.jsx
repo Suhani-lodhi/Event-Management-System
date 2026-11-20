@@ -1,4 +1,5 @@
 import axiosInstance from "./axiosInstance";
+import { toast } from "react-toastify";
 
 const CreateEvent = async (eventData) => {
     try {
@@ -324,8 +325,24 @@ const markAttendance = async (bookingId) =>{
         return res.data;
     }
     catch(err){
-        console.log(err)
+        console.log(err);
+        toast.error(err.response?.data?.message || "Network error, please try again");
         throw new Error("Could not mark attendance");
+    }
+}
+
+const getBookingsByEmail = async (filters) =>{
+    try{
+        const res = await axiosInstance.get("/organizer/getBookingViaEmail",{
+            params: filters
+        })
+
+        return res.data;
+    }
+    catch(err){
+        console.log(err);
+        toast.error(err.response?.data?.message)
+        throw new Error ("Cannot fetch bookings corresponding email.")
     }
 }
 
@@ -334,5 +351,5 @@ export { CreateEvent, getAllEvents, getEventDetails, createSession, getVenues, g
     createVenue , getVenuesOfOrganizer, deleteVenueById, getVenueDetails, deleteSubVenue, editVenueById, 
     editSubVenueById,createSubVenue, seatErr,getSeatCategories,createSeatCategory,updateSeatCategory,
     deleteSeatCategory, getSessionPricing, saveSessionPricing, updateEventStatus, updateRegistrationStatus,
-    getBookingStats, getBookingDetails, markAttendance
+    getBookingStats, getBookingDetails, markAttendance, getBookingsByEmail
 };

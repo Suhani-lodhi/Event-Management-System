@@ -104,6 +104,15 @@
   margin: 10px ;
 }
 
+.info-icon{
+  border-radius: 50%;
+  border: 1px solid rgb(255, 109, 109);
+  width:10px;
+  height:10px;
+  padding: 2px 2px;
+  color: rgb(255, 109, 109);
+}
+
 @media (max-width: 600px) {
   .booking-summary-page {
     margin: 0;

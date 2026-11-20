@@ -163,6 +163,7 @@ model Event {
   status           EventStatus?  @default(DRAFTED)
   isDeleted        Boolean       @default(false)
   activeAt         DateTime?
+  settings         Json          @default("{}") @db.JsonB
   organizer        Organizer     @relation(fields: [organizerId], references: [id])
   sessions         Session[]
   currentSession   Session?      @relation("CurrentSession", fields: [currentSessionId], references: [id])
@@ -242,7 +243,7 @@ model Cancellation {
   ticketCount  Int
   refundAmount Decimal            @db.Decimal(10, 2)
   refundRef    String?
-  status       CancellationStatus
+  status       CancellationStatus @default(REFUND)
   createdAt    DateTime           @default(now())
   tickets      Tickets[]
 

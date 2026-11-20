@@ -84,6 +84,7 @@ const getAllBookings = async () =>{
 
 
 const cancelBooking = async (bookingId, ticketIds) => {
+  console.log("booking tickets cancel", ticketIds);
   try {
     const res = await axiosInstance.patch(`/user/cancelBooking/${bookingId}`, ticketIds ? { ticketIds } : {});
     return res.data;

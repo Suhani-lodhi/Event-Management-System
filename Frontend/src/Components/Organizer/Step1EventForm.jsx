@@ -11,7 +11,25 @@ export default function Step1EventForm({ setStep, setEventId, id, createEvent })
   const [loading, setLoading] = useState(Boolean(id)); 
   const [image, setImage] = useState(null);      
 const [preview, setPreview] = useState(null);
-  
+  const [settings, setSettings] = useState({
+    entry: {
+      idRequired: true,
+      minimumAge: 18,
+      ticketRequiredAboveAge: 5,
+      reEntryAllowed: false
+    },
+    eventRules: {
+      photographyRecordingAllowed: false,
+      petsAllowed: false,
+      outsideFoodAllowed: false,
+      smokingAllowed: false
+    },
+    booking: {
+      cancellationAllowed: true,
+      refundAllowed: true,
+      refundPercentage: 100
+    }
+  })
 
   const [eventData, setEventData] = useState({
     title: "",
@@ -25,12 +43,14 @@ const [preview, setPreview] = useState(null);
         async function getDataForEdit() {
       try {
         const data = await getEventDetails(id);
+        console.log(data);
         setEventData({
           title: data.event.Title,
           description: data.event.Description,
           category: data.event.category,
           genre: data.event.genre,
         });
+        data.event.settings!=={} && setSettings(data.event.settings) ;
         if(data.event.imageUrl){
           setPreview(`${API_URL}${data.event.imageUrl}`)
         }
@@ -66,6 +86,16 @@ const [preview, setPreview] = useState(null);
 
   function updateField(field, value) {
     setEventData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function updateSetting (section, key, value){
+    setSettings((prev) => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [key]: value
+      }
+    }))
   }
 
   function handlePublishClick() {
@@ -135,6 +165,7 @@ const [preview, setPreview] = useState(null);
   formData.append("category", eventData.category);
   formData.append("genre", eventData.genre);
   if (image) formData.append("image", image); 
+  formData.append("settings", JSON.stringify(settings));
 
   console.log([...formData.entries()]);
 
@@ -252,6 +283,142 @@ const [preview, setPreview] = useState(null);
               </div>
             </div>
           </div>
+
+
+          {/* Settings of events */}
+          <div className="ce-card">
+            <div className="ce-card-header ce-card-header-stack">
+              <label>Event Settings</label>
+            </div>
+
+            <div className='event-setting-section'>
+              <h3>Entry and Eligibility</h3>
+            <label>
+              <input type='checkbox'
+              checked={settings.entry.idRequired}
+              onChange={(e)=>
+                           updateSetting("entry", "idRequired", e.target.checked)
+              }
+              />
+              ID proof required for the entry
+            </label>
+
+           <div className="form-group">
+             <label>Minimum Age to atted the event</label>
+            <input type='number'
+            min="0"
+            defaultValue={settings.entry.minimumAge}
+            onChange={(e)=> updateSetting("entry", "minimumAge", Number(e.target.value))}
+            />
+           </div>
+
+            <div className="form-group">
+             <label>Ticket required above age</label>
+            <input type='number'
+            min="0"
+            defaultValue={settings.entry.ticketRequiredAboveAge}
+            onChange={(e)=> updateSetting("entry", "ticketRequiredAboveAge", Number(e.target.value))}
+            />
+           </div>
+
+           <label>
+              <input type='checkbox'
+              checked={settings.entry.reEntryAllowed}
+              onChange={(e)=>
+                           updateSetting("entry", "reEntryAllowed", e.target.checked)
+              }
+              />
+              Re-entry allowed
+            </label>
+            </div>
+
+
+            <div className='event-setting-section'>
+                 <h3>Event Rules and Restrictions</h3>
+                  <label>
+              <input type='checkbox'
+              checked={settings.eventRules.photographyRecordingAllowed}
+              onChange={(e)=>
+                           updateSetting("eventRules", "photographyRecordingAllowed", e.target.checked)
+              }
+              />
+              Is Photography and recording allowed?
+            </label>
+
+
+             <label>
+              <input type='checkbox'
+              checked={settings.eventRules.petsAllowed}
+              onChange={(e)=>
+                           updateSetting("eventRules", "petsAllowed", e.target.checked)
+              }
+              />
+              Is event pet-friendly?
+            </label>
+
+             <label>
+              <input type='checkbox'
+              checked={settings.eventRules.outsideFoodAllowed}
+              onChange={(e)=>
+                           updateSetting("eventRules", "outsideFoodAllowed", e.target.checked)
+              }
+              />
+              Is outside food allowed?
+            </label>
+
+             <label>
+              <input type='checkbox'
+              checked={settings.eventRules.smokingAllowed}
+              onChange={(e)=>
+                           updateSetting("eventRules", "smokingAllowed", e.target.checked)
+              }
+              />
+              Smoking allowed?
+            </label>
+            </div>
+
+            <div className='event-setting-section'>
+              <h3>Booking and Cancellation</h3>
+               <label>
+              <input type='checkbox'
+              checked={settings.booking.cancellationAllowed}
+              onChange={(e)=>
+                           updateSetting("booking", "cancellationAllowed", e.target.checked)
+              }
+              />
+              Ticket cancellation allowed?
+            </label>
+
+            <label>
+              <input type='checkbox'
+              checked={settings.booking.refundAllowed}
+              onChange={(e)=>
+                           updateSetting("booking", "refundAllowed", e.target.checked)
+              }
+              />
+              Refund available?
+            </label>
+
+            {
+              settings.booking.refundAllowed && (
+                <div className="form-group">
+                  <label>Refund Percentage</label>
+
+                  <input type="number" min="0" max="100" 
+                  defaultValue={settings.booking.refundPercentage}
+                  onChange={(e)=> updateSetting("booking", "refundPercentage", Number(e.target.value))} />
+                </div>
+              )
+            }
+
+
+            </div>
+
+          </div>
+
+
+
+
 
           <div>
             <button type="button" onClick={handlePublishClick}>

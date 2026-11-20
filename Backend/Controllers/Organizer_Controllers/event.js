@@ -93,7 +93,7 @@ const updateEventById = async (req, res) => {
 
     assertFound(event, "event not found");
     assertOwner(event, organizer, "not authorized to update this event");
-
+    console.log(req.body);
     const updated = await prisma.event.update({
       where: { id },
       data: buildUpdateData(req.body, req.file),
@@ -125,6 +125,10 @@ const deleteEventById = async (req, res) => {
 
     assertFound(event, "event not found");
     assertOwner(event, organizer, "not authorized to delete this event");
+
+    if(event.status==='ACTIVE'){
+      throw new error(403, "active event cannot be deleted");
+    }
 
     await prisma.$transaction([
       prisma.event.update({where: {id} , data: {isDeleted: true}})

@@ -169,7 +169,7 @@ export default function BookingStats() {
       ))}
     </select>
   </div>
-  <button onClick={getBookingData} className="bs-btn">Get Booking Statistics</button>
+  <button onClick={getBookingData} className="bs-btn" disabled={eventId === ""}>Get Booking Statistics</button>
 </div>
 
 {stats && (
