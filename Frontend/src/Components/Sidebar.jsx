@@ -10,7 +10,7 @@ export default function Sidebar(){
                 <NavLink to="/dashboard" end>Dashboard</NavLink>
                 <NavLink to="/dashboard/myVenues">My Venues</NavLink>
                 <NavLink to="/dashboard/bookingStats">Analytics</NavLink>
-                <NavLink to="/dashboard/checkStatus">Booking Status</NavLink>
+                {/* <NavLink to="/dashboard/checkStatus">Booking Status</NavLink> */}
                 <NavLink to="hythy">Settings</NavLink>
                 <NavLink to="/dashboard/me">My Profile</NavLink>
             </ul>

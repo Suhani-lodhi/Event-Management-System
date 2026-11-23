@@ -133,6 +133,39 @@ const getBookingStats = async (req, res) => {
       };
     });
 
+
+const bookingData = await prisma.booking.findMany({
+  where: {
+    status: { in: ["CONFIRMED", "PARTIALLY_CANCELLED", "CANCELLED"] },
+  },
+  include: {
+    user: { select: { id: true, email: true } },
+    cancellation: {
+      select: {
+        ticketCount: true,   
+        refundAmount: true,
+      },
+    },
+  },
+});
+
+
+const bookingDetails = bookingData.map((b)=>{
+  console.log(b);
+  return {
+    id: b.userId,
+    email: b.user.email,
+    bookedAt: b.createdAt,
+    totalTickets: b.totalCount,
+    totalAmount: b.totalAmount,
+    bookingId: b.id,
+    status: b.status,
+    ticketCancelled: b.cancellation[0]?.ticketCount,
+    refundedAmount: b.cancellation[0]?.refundAmount
+  }
+});
+
+
     return res.status(200).json({
       success: true,
       filters: {
@@ -145,6 +178,7 @@ const getBookingStats = async (req, res) => {
         confirmed: bookingOf("CONFIRMED"),
         partiallyCancelled: bookingOf("PARTIALLY_CANCELLED"),
         cancelled: bookingOf("CANCELLED"),
+        bookingDetails
       },
       tickets: {
         booked: activeTickets + cancelledTickets,
