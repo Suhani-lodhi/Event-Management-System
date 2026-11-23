@@ -192,10 +192,15 @@
 .od-tag {
   padding: 4px 12px;
   border-radius: 999px;
-  background: var(--color-blush-lightest);
+  background: var(--color-blush-mid);
   color: var(--color-lavender);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 800;
+}
+.od-ntag {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 300;
 }
 
 .od-event-arrow {

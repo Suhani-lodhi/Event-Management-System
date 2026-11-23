@@ -188,8 +188,9 @@ async function confirmAddSubVenue(data){
               <div className="vd-elements">
                 <h3>{sv.subVenueName || "Unnamed sub-venue"}</h3>
                 <div>
-                 <FontAwesomeIcon icon={faEdit} className="icon" onClick={() => handleEditSubVenue(sv)}/>
-                {venue.subVenues.length > 1 && <FontAwesomeIcon icon={faTrash} className="icon" onClick={() => handleDeleteSubVenue(sv.id)} />}
+                  <span tooltip title = "Edit">
+                 <FontAwesomeIcon icon={faEdit} className="icon" onClick={() => handleEditSubVenue(sv)}/></span>
+                {venue.subVenues.length > 1 && <span tooltip title = "Delete"><FontAwesomeIcon icon={faTrash} className="icon" onClick={() => handleDeleteSubVenue(sv.id)} /></span>}
                 </div>
               </div>
               <p>

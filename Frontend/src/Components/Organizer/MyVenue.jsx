@@ -73,8 +73,9 @@ export default function MyVenue() {
                   
                   <h3 className="mv-title">{v.venueName}</h3>
                   <div>
-                    <FontAwesomeIcon icon={faTrash} className="icon" onClick={() => handleDeleteDialog(v.id)}/>
-                    <FontAwesomeIcon icon={faEye} className="icon" onClick={() => viewVenue(v.id)}/>
+                    <span data-tooltip title = "Delete">
+                    <FontAwesomeIcon icon={faTrash} className="icon" onClick={() => handleDeleteDialog(v.id)}/></span>
+                    <span data-tooltip title = "View"><FontAwesomeIcon icon={faEye} className="icon" onClick={() => viewVenue(v.id)}/></span>
                   </div>
               </div>
 

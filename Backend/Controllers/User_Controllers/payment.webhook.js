@@ -3,7 +3,9 @@ import { confirmPayment } from "../../Sevices/User_Services/booking.service.js";
 
 export const razorpayWebhook = async (req, res) => {
   const signature = req.headers["x-razorpay-signature"];
-
+  if (!signature) return res.status(400).json({ message: "No signature" });
+  if (!Buffer.isBuffer(req.body))
+    return res.status(400).json({ message: "Invalid body" });
   if (!verifyWebhookSignature(req.body, signature)) {
     // req.body is a raw Buffer here
     return res.status(400).send("Invalid signature");

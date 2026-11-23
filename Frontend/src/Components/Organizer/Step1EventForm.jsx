@@ -199,10 +199,33 @@ const [preview, setPreview] = useState(null);
 
           <div className='ce-card'>
             <div className='ce-card-header'>
-              <label>Upload Image</label>
+              <label>Event card Image</label>
+            <p className="ce-card-desc">
+              Upload a landscape image for your event card.
+            </p>
             </div>
-            <input type="file" accept="image/*" onChange={handleImageChange}/>
-            {preview && <img src={preview} alt="Preview" className='ce-image-preview'  />}
+            <div className="ce-upload-image">
+              <div className="ce-upload-info">
+                <div className="ce-upload-info-item">
+                  <span className="ce-label">Landscape for website</span>
+                  <span className="ce-value">16:9 aspect ratio (1600px by 900px)</span>
+                </div>
+                <div className="ce-upload-info-item">
+                  <span className="ce-label">Max Size</span>
+                  <span className="ce-value">1.5MB</span>
+                </div>
+              </div>
+
+            <div className="ce-upload-actions">
+              {preview && (
+                <img src={preview} alt="Preview" className="ce-image-preview" />
+              )}
+              <label className="ce-file-btn">
+                Choose File
+                <input type="file" accept="image/*" hidden onChange={handleImageChange} />
+              </label>
+            </div>
+            </div>
           </div>
 
           <div className="ce-card">

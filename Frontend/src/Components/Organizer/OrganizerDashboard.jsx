@@ -15,7 +15,7 @@ export default function OrganizerDashboard() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false)
   const [eventToDelete, setEventToDelete] = useState(null);
-  const [filter, setFilter] = useState("all")
+  const [filter, setFilter] = useState("ACTIVE")
   const navigate = useNavigate();
 
   // derived from `events` so a status change shows up in the cards right away
@@ -155,14 +155,18 @@ export default function OrganizerDashboard() {
                   <div className="od-event-top">
                     <div>
                       <h3>{event.Title}</h3>
-                      <span className={`od-status od-status-${event.status?.toLowerCase()}`}>
+                      <span className={`od-status od-status-${event.status?.toLowerCase()}`} title="Event Status"  data-tooltip>
                         {event.status}
                       </span>
                     </div>
                     <div className='od-icon'>
-                      <FontAwesomeIcon icon={faEye} onClick={() => navigate('/dashboard/event/' + event.id)} className='od-icon-element' />
-                      <FontAwesomeIcon icon={faTrash} style={{ color: "#5d5c5c" }} onClick={() => handleDeleteClick(event.id)} />
+                      <span title="View Details"  data-tooltip>
+                      <FontAwesomeIcon icon={faEye} onClick={() => navigate('/dashboard/event/' + event.id)} className='od-icon-element' /></span>
+                      <span title="Delete Event"  data-tooltip>
+                      <FontAwesomeIcon icon={faTrash} style={{ color: "#5d5c5c" }} onClick={() => handleDeleteClick(event.id)} /></span>
+                      <span title="View Analytics">
                       <FontAwesomeIcon icon={faChartLine} onClick={() => showStatistics(event.id)} />
+                      </span>
                     </div>
                   </div>
 
@@ -173,7 +177,7 @@ export default function OrganizerDashboard() {
                       <span className="od-tag">{event.category}</span>
                     )}
                     {event.genre && (
-                      <span className="od-tag">{event.genre}</span>
+                      <span className='od-ntag'>{event.genre}</span>
                     )}
                   </div>
 
@@ -191,7 +195,6 @@ export default function OrganizerDashboard() {
 )}
                 </div>
 
-                <span className="od-event-arrow">&#8250;</span>
               </div>
               );
             })}

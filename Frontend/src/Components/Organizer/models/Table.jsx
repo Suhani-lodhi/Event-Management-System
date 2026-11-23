@@ -371,7 +371,8 @@ export default function SessionsTable({ sessions = [], showSessionStatistic}) {
                             return (
                               <TableCell key={column.id}>
                                 {/* {page * rowsPerPage + i + 1} */}
-                                <FontAwesomeIcon icon={faChartLine} onClick={() => showSessionStatistic(session.id)} style={{cursor: "pointer"}}/>
+                                <span title="Analytics" data-tooltip>
+                                <FontAwesomeIcon icon={faChartLine} onClick={() => showSessionStatistic(session.id)} style={{cursor: "pointer"}}/></span>
                               </TableCell>
                             );
                           }

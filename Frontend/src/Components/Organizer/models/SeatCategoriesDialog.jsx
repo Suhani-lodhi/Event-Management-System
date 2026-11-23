@@ -145,8 +145,9 @@ export default function SeatCategoriesDialog({ open, subVenue, onClose, onChange
                   <div className="vd-elements">
                     <h4>{c.categoryName}</h4>
                     <div>
-                      <FontAwesomeIcon icon={faEdit} className="icon" onClick={() => openEdit(c)} />
-                      <FontAwesomeIcon icon={faTrash} className="icon" onClick={() => setDeleteId(c.id)} />
+                      <span tooltip title = "Edit">
+                      <FontAwesomeIcon icon={faEdit} className="icon" onClick={() => openEdit(c)} /></span>
+                      <span tooltip title = "Delete"><FontAwesomeIcon icon={faTrash} className="icon" onClick={() => setDeleteId(c.id)} /></span>
                     </div>
                   </div>
                   <p><strong>Seats:</strong> {c.seatCount}</p>

@@ -108,10 +108,11 @@ export default function EventDetails(){
                 </div>
 
                     <div className="ed-event-top">
-                  <h1>{event.Title}</h1>
+                  <h1 title="Title" tooltip>{event.Title}</h1>
                   <div >
-                    <FontAwesomeIcon icon={faChartLine} onClick={() => showStatistics(event.id)} style={{cursor: "pointer"}}/>
-                    <span className={`od-status od-status-${event.status?.toLowerCase()}`}>
+                    <span data-tooltip title="Analytics">
+                    <FontAwesomeIcon icon={faChartLine} onClick={() => showStatistics(event.id)} style={{cursor: "pointer"}}/></span>
+                    <span className={`od-status od-status-${event.status?.toLowerCase()}`} data-tooltip title="Event Status">
                     {event.status}
                   </span>
                   <button onClick={() => editEvent(event.id)}>Edit event</button>
@@ -121,10 +122,10 @@ export default function EventDetails(){
                 <br />
                 <div className="od-event-tags">
                   {event.category && (
-                    <span className="od-tag">{event.category}</span>
+                    <span className="od-tag" title="event category" data-tooltip>{event.category}</span>
                   )}
                   {event.genre && (
-                    <span className="od-tag">{event.genre}</span>
+                    <span className="od-ntag" title="genre" data-tooltip>{event.genre}</span>
                   )}
                 </div>
 

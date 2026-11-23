@@ -95,9 +95,9 @@ export default function ParticipantProfile() {
             readOnly
             hint="Email can't be changed here."
           />
+        {editing && <SaveBar saving={saving} onCancel={cancelEdit} />}
         </Section>
 
-        {editing && <SaveBar saving={saving} onCancel={cancelEdit} />}
       </form>
     </div>
 

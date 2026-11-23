@@ -130,14 +130,11 @@ export default function OrganizerProfile() {
         </Section>
 
         <Section
-          title="Organization"
-          description="Attendees see your display name on your events."
+          title="Organization Details"
+          description="Attendees see your display name and address on your events."
         >
           <Field label="Display name" {...field("displayName")} />
           <Field label="Company name" {...field("companyName")} />
-        </Section>
-
-        <Section title="Address and contact" description="Where your organization is based.">
           <Field label="Address" full autoComplete="address-line1" {...field("addressLine1")} />
           <Field label="City" autoComplete="address-level2" {...field("city")} />
           <Field label="State" autoComplete="address-level1" {...field("state")} />
