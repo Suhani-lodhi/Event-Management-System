@@ -134,20 +134,37 @@ const getBookingStats = async (req, res) => {
     });
 
 
+// const bookingData = await prisma.booking.findMany({
+//   where: {
+//     status: { in: ["CONFIRMED", "PARTIALLY_CANCELLED", "CANCELLED"], eventId:  eventId, sessionId: sessionId },
+//   },
+//   include: {
+//     user: { select: { id: true, email: true } },
+//     cancellation: {
+//       select: {
+//         ticketCount: true,   
+//         refundAmount: true,
+//       },
+//     },
+//   },
+// });
+
 const bookingData = await prisma.booking.findMany({
-  where: {
-    status: { in: ["CONFIRMED", "PARTIALLY_CANCELLED", "CANCELLED"] },
-  },
-  include: {
-    user: { select: { id: true, email: true } },
-    cancellation: {
-      select: {
-        ticketCount: true,   
-        refundAmount: true,
+      where: {
+        status: { in: ["CONFIRMED", "PARTIALLY_CANCELLED", "CANCELLED"] },
+         ...(sessionId !== '' ? { id: sessionId } : {}),                                   
+        session: {
+          eventId,                                   
+          event: { organizer: { userid: req.user.id } },   
+        },
       },
-    },
-  },
-});
+      include: {
+        user: { select: { id: true, email: true } },
+        cancellation: { select: { ticketCount: true, refundAmount: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
 
 
 const bookingDetails = bookingData.map((b)=>{

@@ -41,15 +41,15 @@ const seatMap = async (req, res) => {
     const now = new Date();                          
 
     const rows = await prisma.sessionSeat.findMany({
-      where: { sessionId, seatDetail: { isActive: true } },
+      where: { sessionId},
       select: {
         id: true,
         status: true,
         lockedUntil: true,
         seatDetail: {
-          select: { rowNumber: true, RowName: true, columnNumber: true, columnName: true },
+          select: {id:true, rowNumber: true, RowName: true, columnNumber: true, columnName: true },
         },
-        sessionCategoryPrice: { select: { alias: true, price: true } },
+        sessionCategoryPrice: { select: {id:true, alias: true, price: true } },
       },
       orderBy: [
         { seatDetail: { rowNumber: "asc" } },
