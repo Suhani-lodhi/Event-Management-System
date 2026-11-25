@@ -112,8 +112,29 @@ const deleteVenue = async (req, res) => {
 };
 
 const getVenues = async (req, res) => {
+  const { eventId, theater } = req.query;
+
   try {
-    const venues = await prisma.venue.findMany({where: {isDeleted: false}});
+    const where = { isDeleted: false };
+
+    if (eventId) {
+      const event = await prisma.event.findUnique({
+        where: { id: eventId },
+        select: { category: true },
+      });
+      if (!event) {
+        return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Event not found" });
+      }
+      where.theater = event.category === "MOVIE";   
+    } else if (theater !== undefined) {
+      where.theater = theater === "true";          
+    }
+
+    const venues = await prisma.venue.findMany({
+      where,
+      orderBy: { venueName: "asc" },
+    });
+
     res.status(StatusCodes.OK).json({ venues, success: true });
   } catch (err) {
     sendError(res, err, "could not fetch venues");
