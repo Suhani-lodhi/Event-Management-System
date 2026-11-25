@@ -103,5 +103,17 @@ const getTicketsByBookingId = async (bookingId) =>{
   }
 }
 
+const getSeatMap = async (sessionId) =>{
+  try{
+    const res = await axiosInstance.get(`/user/session/${sessionId}/seatMap`);
+    return res.data;
+  }
+  catch(err){
+    console.log(err);
+    throw new Error(err.response?.data?.message || "cannot get seat Map");
+  }
+}
+
 export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession, 
-   getBookingSummary, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId}
+   getBookingSummary, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId,
+   getSeatMap}

@@ -70,7 +70,7 @@ export default function BookingStatsTable({ bookingDetails }) {
         columns={columns}
         getRowId={(row) => row.bookingId}
         initialState={{ pagination: { paginationModel } }}
-        onRowClick={(params) => navigate(`/organizer/attendance/${params.row.bookingId}`)}
+        onRowClick={(params) =>   window.open(`/organizer/attendance/${params.row.bookingId}`, "_blank")}
         pageSizeOptions={[5, 10]}
         checkboxSelection
         sx={{ border: 0 }}

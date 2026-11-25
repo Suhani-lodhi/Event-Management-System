@@ -56,7 +56,7 @@ export default function EventSettingDialog({entry, eventRules}) {
       >
         <DialogTitle>{"Event Rules and Restrictions"}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="alert-dialog-slide-description">
+          <DialogContentText id="alert-dialog-slide-description" component="div">
               <List
       sx={{
         width: '100%',

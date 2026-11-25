@@ -25,6 +25,7 @@ import MyBookings from '../pages/user/MyBookings';
 import MyTickets from '../pages/user/MyTickets';
 import BookingStats from '../pages/Organizer/BookingStats';
 import AttendencePage from '../pages/Organizer/AttendencePage';
+import SeatSelectionPage  from '../pages/user/SeatSelectionPage';
 
 
 const ROLES = {
@@ -116,8 +117,7 @@ export default function AppRoutes() {
         <Route path="myVenues" element={<Venues/>}/>
         <Route path="venue/:id" element ={<ViewVenue/>} />
         <Route path="editVenue/:id" element={<Venues/>} />
-        <Route path="bookingStats" element={<BookingStats/>} />
-        
+        <Route path="bookingStats" element={<BookingStats/>} />        
       </Route>
 
       <Route path='/organizer/attendance/:id' element={
@@ -141,6 +141,7 @@ export default function AppRoutes() {
       <Route path="event/tickets/:id/booking" element={<TicketBookingPage/>}/>
       <Route path="mybookings" element={<MyBookings/>}/>
       <Route path="bookings/:id/tickets" element={<MyTickets/>}/>
+      <Route path="sessions/:sessionId/seats" element={<SeatSelectionPage/>}/>
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

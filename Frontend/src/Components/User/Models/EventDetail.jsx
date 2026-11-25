@@ -74,8 +74,13 @@ export default function ParticipantEventDetails() {
 
   function handleBook(sessionId) {
 
-    navigate(`/home/event/tickets/${sessionId}`, {state: {event}});
-  }
+    if(event.category==='MOVIE'){
+          navigate(`/home/sessions/${sessionId}/seats`, {state: {event}});
+    }
+    else{
+          navigate(`/home/event/tickets/${sessionId}`, {state: {event}});
+    }
+    }
 
   if (loading) return <p className="loading">Loading event...</p>;
 

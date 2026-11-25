@@ -112,9 +112,11 @@ const deleteSessionById = async (id) =>{
 
 // venue
 
-const getVenues = async ()=>{
+const getVenues = async (filter)=>{
     try{
-        const res = await axiosInstance.get(`organizer/venues`);
+        const res = await axiosInstance.get(`organizer/venues`, {
+            params: filter
+        });
         return res.data
     }
     catch(err){
