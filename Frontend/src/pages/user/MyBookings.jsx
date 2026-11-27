@@ -6,6 +6,7 @@ import { getImageSrc } from "../../utils/imageUrl";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faEye } from "@fortawesome/free-solid-svg-icons";
 import '../user/styles/MyBookings.css'
+import { refundLabel } from "../../utils/refund";
 
 export default function MyBookings(){
     const [bookings, setBookings] = useState([]);
@@ -93,6 +94,18 @@ export default function MyBookings(){
                   .join(", ")}
               </p>
             )}
+          </div>
+        )}
+
+        {b.cancellations?.length > 0 && (
+          <div className="booking-card-refunds">
+            {b.cancellations.map((c) => (
+              <p key={c.id} style={{ fontSize: 13, color: "#666", margin: "4px 0" }}>
+                Refund ₹{c.refundAmount.toLocaleString("en-IN")} for {c.ticketCount} ticket
+                {c.ticketCount > 1 ? "s" : ""}
+                {c.refundRef ? ` · Ref: ${c.refundRef}` : ""} · {refundLabel(c.refundStatus)}
+              </p>
+            ))}
           </div>
         )}
 

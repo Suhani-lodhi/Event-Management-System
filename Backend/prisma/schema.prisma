@@ -39,6 +39,12 @@ enum EventStatus {
   CANCELLED
 }
 
+enum CancellationStatus {
+  REFUND
+  PENDING
+  FAILED
+}
+
 enum RegistrationStatus {
   OPEN
   CLOSED
@@ -50,11 +56,6 @@ enum BookingStatus {
   CONFIRMED
   CANCELLED
   EXPIRED
-}
-
-enum CancellationStatus {
-  REFUND
-  PENDING
 }
 
 model Users {
@@ -237,13 +238,28 @@ model Tickets {
   @@index([cancellationId])
 }
 
+model PaymentOrder {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @unique // Razorpay order id, e.g. order_Nxyz
+  userId    String   @db.Uuid
+  sessionId String   @db.Uuid
+  items     Json // the tickets the user selected
+  amount    Int // in paise
+  status    String   @default("CREATED") // CREATED | PAID | REFUNDED
+  paymentId String?  @unique
+  bookingId String?  @db.Uuid
+  createdAt DateTime @default(now())
+}
+
 model Cancellation {
   id           String             @id @default(uuid()) @db.Uuid
   bookingId    String             @db.Uuid
   userId       String             @db.Uuid
   ticketCount  Int
   refundAmount Decimal            @db.Decimal(10, 2)
-  refundRef    String?
+  refundRef    String?            @unique
+  refundError  String?
+  refundedAt   DateTime?
   status       CancellationStatus
   createdAt    DateTime           @default(now())
   tickets      Tickets[]
@@ -252,17 +268,4 @@ model Cancellation {
   user    Users   @relation(fields: [userId], references: [id])
 
   @@index([bookingId])
-}
-
-model PaymentOrder {
-  id        String   @id @default(uuid()) @db.Uuid
-  orderId   String   @unique                           // Razorpay order id, e.g. order_Nxyz
-  userId    String   @db.Uuid
-  sessionId String   @db.Uuid
-  items     Json                                       // the tickets the user selected
-  amount    Int                                        // in paise
-  status    String   @default("CREATED")               // CREATED | PAID | REFUNDED
-  paymentId String?  @unique
-  bookingId String?  @db.Uuid
-  createdAt DateTime @default(now())
 }

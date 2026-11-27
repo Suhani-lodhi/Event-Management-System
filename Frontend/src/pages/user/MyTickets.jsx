@@ -15,6 +15,7 @@ import Typography from "@mui/material/Typography";
 import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
+import { refundLabel, refundStatusText } from "../../utils/refund";
 
 
 const fmt = { dateStyle: "medium", timeStyle: "short" };
@@ -31,6 +32,8 @@ export default function MyTickets(){
     const [loading, setLoading] = useState(true)
     const [cancelQty, setCancelQty] = useState({});
     const [openCancel, setOpenCancel] = useState(false);
+    const [cancellations, setCancellations] = useState([]);
+    const [refundInfo, setRefundInfo] = useState(null);
     const navigate = useNavigate();
 
     useEffect(()=>{
@@ -44,6 +47,7 @@ export default function MyTickets(){
            setSession(res.session);
            setSubVenue(res.subVenue);
            setTicketSummary(res.ticketSummary)
+           setCancellations(res.cancellations || []);
         }
         catch(err){
            console.log(err);
@@ -84,7 +88,12 @@ export default function MyTickets(){
         const data = await cancelBooking(booking.id, ticketsToCancel);
         console.log(data);
         toast.success("Tickets cancelled successfully");
-        navigate('/home/mybookings')
+        // show the refund id; the user is sent to My Bookings when they close the dialog
+        setRefundInfo({
+          refundRef: data.refundRef,
+          refundStatus: data.refundStatus,
+          refundAmount: data.refundAmount,
+        });
       }
       catch(err){
         toast.error(err.message);
@@ -92,6 +101,21 @@ export default function MyTickets(){
       finally{
         setOpenCancel(false)
       }
+      };
+
+
+      const closeRefund = () => {
+        setRefundInfo(null);
+        navigate('/home/mybookings');
+      };
+
+      const copyRef = async (ref) => {
+        try {
+          await navigator.clipboard.writeText(ref);
+          toast.success("Refund ID copied");
+        } catch {
+          toast.error("Unable to copy");
+        }
       };
 
 
@@ -238,7 +262,7 @@ export default function MyTickets(){
           )}
       </div>
                
-{session.canCancel && <p style={{textAlign: "center", margin: "10px"}}><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={() => setOpenCancel(true)} >click here</strong></u></p>}
+{session.canCancel && tickets.length > 0 && <p style={{textAlign: "center", margin: "10px"}}><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={() => setOpenCancel(true)} >click here</strong></u></p>}
       </div>
 
          {tickets.length>0 && <><h2 className="tickets-heading">Tickets</h2>
@@ -260,6 +284,64 @@ export default function MyTickets(){
         ))}
       </div>
       </>}
+
+      {cancellations.length > 0 && (
+        <>
+          <h2 className="tickets-heading">Cancelled Tickets &amp; Refunds</h2>
+
+          <div className="ticket-rows">
+            {cancellations.map((c, index) => (
+              <div key={c.id} className="ticket-row-card">
+                <span className="ticket-number">{index + 1}</span>
+
+                <div className="ticket-row-main">
+                  <h3>
+                    {c.ticketCount} ticket{c.ticketCount > 1 ? "s" : ""} cancelled
+                  </h3>
+
+                  {c.items?.map((it) => (
+                    <p key={it.alias + it.unitPrice} className="info-muted">
+                      {it.quantity} × {it.alias} (₹{it.unitPrice.toLocaleString("en-IN")} each)
+                    </p>
+                  ))}
+
+                  <p className="info-muted">
+                    Cancelled on {new Date(c.cancelledOn).toLocaleString("en-IN", fmt)}
+                  </p>
+
+                  <p className="info-muted">
+                    Refund ID:{" "}
+                    <strong>{c.refundRef || "will appear once the refund is created"}</strong>
+                    {c.refundRef && (
+                      <button
+                        type="button"
+                        onClick={() => copyRef(c.refundRef)}
+                        style={{ marginLeft: 8, cursor: "pointer" }}
+                      >
+                        Copy
+                      </button>
+                    )}
+                  </p>
+                </div>
+
+                <div className="ticket-row-side">
+                  <strong>₹{c.refundAmount.toLocaleString("en-IN")}</strong>
+                  <p className="info-muted">{refundLabel(c.refundStatus)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p style={{ textAlign: "right", margin: "10px 0" }}>
+            Total refund:{" "}
+            <strong>
+              ₹{cancellations
+                .reduce((sum, c) => sum + c.refundAmount, 0)
+                .toLocaleString("en-IN")}
+            </strong>
+          </p>
+        </>
+      )}
     </div>
 
     <Dialog open={openCancel} onClose={() => setOpenCancel(false)}>
@@ -294,6 +376,26 @@ export default function MyTickets(){
       <DialogActions>
         <Button onClick={() => setOpenCancel(false)}>Cancel</Button>
         <Button variant="contained" color="error" onClick={handleConfirm}>Cancel Selected Tickets</Button>
+      </DialogActions>
+    </Dialog>
+
+    <Dialog open={!!refundInfo} onClose={closeRefund}>
+      <DialogTitle>Tickets cancelled</DialogTitle>
+      <DialogContent>
+        <Stack spacing={1}>
+          <Typography>
+            Refund amount: <strong>₹{refundInfo?.refundAmount?.toLocaleString("en-IN")}</strong>
+          </Typography>
+          <Typography>
+            Refund ID:{" "}
+            <strong>{refundInfo?.refundRef || "not available yet, check My Bookings later"}</strong>
+          </Typography>
+          <Typography variant="body2">{refundStatusText(refundInfo?.refundStatus)}</Typography>
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        {refundInfo?.refundRef && <Button onClick={() => copyRef(refundInfo.refundRef)}>Copy ID</Button>}
+        <Button variant="contained" onClick={closeRefund}>OK</Button>
       </DialogActions>
     </Dialog>
 

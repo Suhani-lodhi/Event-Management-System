@@ -1,5 +1,6 @@
 import { verifyWebhookSignature } from "../../utils/razorpay.js";
 import { confirmPayment } from "../../Sevices/User_Services/booking.service.js";
+import { handleRefundWebhook } from "../../Sevices/User_Services/refund.service.js";
 
 export const razorpayWebhook = async (req, res) => {
   const signature = req.headers["x-razorpay-signature"];
@@ -19,6 +20,15 @@ export const razorpayWebhook = async (req, res) => {
       await confirmPayment(payment.order_id, payment.id);
     } catch (err) {
       console.error("webhook booking failed:", err);
+    }
+  }
+
+  // Razorpay tells us when a refund finishes or fails
+  if (event.event === "refund.processed" || event.event === "refund.failed") {
+    try {
+      await handleRefundWebhook(event.event, event.payload.refund.entity);
+    } catch (err) {
+      console.error("webhook refund update failed:", err);
     }
   }
 

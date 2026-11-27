@@ -7,6 +7,11 @@ import {
   sendCancellationEmail,
 } from "../../utils/bookingEmail.js";
 import { razorpay, verifySignature } from "../../utils/razorpay.js";
+import {
+  initiateRefund,
+  publicRefundStatus,
+  NO_PAYMENT_MSG,
+} from "./refund.service.js";
 
 const MAX_PER_CATEGORY = 10;
 const MAX_PER_BOOKING = 20;
@@ -156,6 +161,17 @@ export const getBookingsByUserIdService = async (userId) => {
       totalAmount: true,
       totalCount: true,
       createdAt: true,
+      cancellation: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          ticketCount: true,
+          refundAmount: true,
+          refundRef: true,
+          status: true,
+          createdAt: true,
+        },
+      },
       session: {
         select: {
           ...SESSION_SELECT,
@@ -172,6 +188,14 @@ export const getBookingsByUserIdService = async (userId) => {
       totalAmount: Number(b.totalAmount),
       totalCount: b.totalCount,
       bookedOn: b.createdAt,
+      cancellations: b.cancellation.map((c) => ({
+        id: c.id,
+        ticketCount: c.ticketCount,
+        refundAmount: Number(c.refundAmount),
+        refundRef: c.refundRef, // Razorpay refund id, e.g. rfnd_Abc123
+        refundStatus: publicRefundStatus(c.status), // PENDING | PROCESSED | FAILED
+        cancelledOn: c.createdAt,
+      })),
       event: b.session.event,
       session: {
         id: b.session.id,
@@ -262,18 +286,40 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
       );
     }
 
+    const { perCategory, cancelledLines, refundAmount } =
+      summariseCancelledTickets(tickets);
+
+    // the payment this booking was made with (none for bookings made before Razorpay)
+    const payment = await tx.paymentOrder.findFirst({
+      where: { bookingId, status: "PAID" },
+      select: { paymentId: true, amount: true },
+    });
+    if (payment && Math.round(Number(refundAmount) * 100) > payment.amount) {
+      throw conflict("Refund amount is more than the amount paid");
+    }
+
+    // one Cancellation row per cancel click; it also holds the refund id later
+    const cancellation = await tx.cancellation.create({
+      data: {
+        bookingId,
+        userId,
+        ticketCount: tickets.length,
+        refundAmount,
+        status: "PENDING",
+        ...(payment?.paymentId ? {} : { refundError: NO_PAYMENT_MSG }),
+      },
+      select: { id: true },
+    });
+
     const claimed = await tx.tickets.updateMany({
       where: { id: { in: tickets.map((t) => t.id) }, status: "CONFIRMED" },
-      data: { status: "CANCELLED" },
+      data: { status: "CANCELLED", cancellationId: cancellation.id },
     });
     if (claimed.count !== tickets.length) {
       throw conflict(
         "Tickets were changed by another request. Please try again.",
       );
     }
-
-    const { perCategory, cancelledLines, refundAmount } =
-      summariseCancelledTickets(tickets);
 
     // give the seats back, always in the same order
     const categoryIds = [...perCategory.keys()].sort(byId);
@@ -295,6 +341,7 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
     });
 
     return {
+      cancellationId: cancellation.id,
       cancelledCount: tickets.length,
       refundAmount: Number(refundAmount),
       bookingCancelled: remaining === 0,
@@ -304,9 +351,15 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
     };
   });
 
-  sendCancellationEmail(bookingId, result).catch((e) =>
-    console.error("cancellation email failed:", e),
-  );
+  // The cancellation is saved. Now ask Razorpay for the money back.
+  // (Never call an outside service inside a database transaction.)
+  const refund = await initiateRefund(result.cancellationId);
+
+  sendCancellationEmail(bookingId, {
+    ...result,
+    refundRef: refund.refundRef,
+    refundStatus: refund.status,
+  }).catch((e) => console.error("cancellation email failed:", e));
 
   return {
     message: result.bookingCancelled
@@ -314,6 +367,8 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
       : "Selected tickets cancelled",
     cancelledCount: result.cancelledCount,
     refundAmount: result.refundAmount,
+    refundRef: refund.refundRef, // show this to the user
+    refundStatus: refund.status, // PENDING | PROCESSED | FAILED
     bookingStatus: result.bookingStatus,
     bookingCancelled: result.bookingStatus === "CANCELLED",
   };
@@ -346,6 +401,26 @@ const groupTicketsByCategory = (tickets) => {
   return [...grouped.values()];
 };
 
+// "2 x VIP" style summary of the tickets cancelled in one cancellation
+const groupCancelledTickets = (tickets = []) => {
+  const grouped = new Map();
+  for (const t of tickets) {
+    const alias = t.sessionCategoryPrice.alias;
+    const unitPrice = Number(t.unitPrice);
+    const key = `${alias}|${unitPrice}`;
+    const line = grouped.get(key) || {
+      alias,
+      unitPrice,
+      quantity: 0,
+      subtotal: 0,
+    };
+    line.quantity += 1;
+    line.subtotal += unitPrice;
+    grouped.set(key, line);
+  }
+  return [...grouped.values()];
+};
+
 export const getTicketsService = async (userId, bookingId) => {
   if (!userId) {
     throw new ServiceError("Not authenticated", StatusCodes.UNAUTHORIZED);
@@ -360,6 +435,23 @@ export const getTicketsService = async (userId, bookingId) => {
       totalAmount: true,
       totalCount: true,
       createdAt: true,
+      cancellation: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          ticketCount: true,
+          refundAmount: true,
+          refundRef: true,
+          status: true,
+          createdAt: true,
+          tickets: {
+            select: {
+              unitPrice: true,
+              sessionCategoryPrice: { select: { alias: true } },
+            },
+          },
+        },
+      },
       session: {
         select: {
           ...SESSION_SELECT,
@@ -426,6 +518,15 @@ export const getTicketsService = async (userId, bookingId) => {
       sessionCategoryPriceId: t.sessionCategoryPrice.id,
     })),
     ticketSummary: groupTicketsByCategory(booking.ticket),
+    cancellations: booking.cancellation.map((c) => ({
+      id: c.id,
+      items: groupCancelledTickets(c.tickets),
+      ticketCount: c.ticketCount,
+      refundAmount: Number(c.refundAmount),
+      refundRef: c.refundRef,
+      refundStatus: publicRefundStatus(c.status),
+      cancelledOn: c.createdAt,
+    })),
   };
 };
 
