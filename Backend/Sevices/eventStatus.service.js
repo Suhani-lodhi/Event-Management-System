@@ -107,7 +107,21 @@ export const updateEventAndSessionStatuses = async () => {
           status: "CLOSED",
         },
       }),
+
+      prisma.sessionSeat.updateMany({
+        where: {
+          status: 'LOCKED',
+          lockedUntil: {lt: now},
+          bookingId: null
+        },
+        data: {
+          lockedUntil: null,
+          status: 'AVAILABLE',
+          bookingId: null
+        }
+      })
     ]);
+
 
 
     console.log("Event and session statuses updated:", {

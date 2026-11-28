@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getBookingSummary, createPaymentOrder, payForBooking } from "../../api/user";
+import {
+  getBookingSummary,
+  createPaymentOrder,
+  payForBooking,
+  getMovieBookingSummary,
+  payForMovieTickets,
+  confirmMovieBooking,
+} from "../../api/user";
 import { toast } from "react-toastify";
 import '../user/styles/TicketBookingPage.css';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
@@ -19,8 +26,10 @@ const formatTime = (total) => {
 export default function TicketBookingPage() {
   const { id } = useParams();                 
   const sessionId = id;
+  console.log(sessionId)
   const { state } = useLocation();
-  const items = state?.items;                 
+  const items = state?.items;
+  const selectedSeats = state?.selectedSeats;                 
   const navigate = useNavigate();
 
   const [summary, setSummary] = useState(null);
@@ -29,20 +38,31 @@ export default function TicketBookingPage() {
   const [paying, setPaying] = useState(false);
   const [bookedId, setBookedId] = useState(null);   
   const [settings, setSettings] = useState(state?.settings)
+
+  const hasItems = Array.isArray(items) && items.length > 0;
+  const hasSeats = Array.isArray(selectedSeats) && selectedSeats.length > 0;
+
+
+
   const backToSelection = () =>
-    navigate(`/home/event/tickets/${sessionId}`, { replace: true });
+    hasItems ? navigate(`/home/event/tickets/${sessionId}`, { replace: true }): navigate(`/home/sessions/${sessionId}/seats`);
 
 
   useEffect(() => {
-    if (!items || items.length === 0) {
-      navigate(`/home/event/tickets/${sessionId}`, { replace: true });   
-      return;
-    }
+
+  if (!hasItems && !hasSeats) {
+    hasItems ? navigate(`/home/event/tickets/${sessionId}`, { replace: true }): navigate(`/home/sessions/${sessionId}/seats`);
+    
+    return;
+  }
 
     async function load() {
       try {
-        const data = await getBookingSummary({ sessionId, items });
-        setSummary(data);
+        const data = hasItems
+        ? await getBookingSummary({ sessionId, items })
+        : await getMovieBookingSummary({ sessionId, selectedSeats });
+
+      setSummary(data);
         setSecondsLeft(PAYMENT_WINDOW_SECONDS);   
       } catch (err) {
         toast.error(err.message);
@@ -89,49 +109,58 @@ export default function TicketBookingPage() {
     if (paying) return;
     setPaying(true);
     try {
-      // 1. backend works out the price and creates the Razorpay order
-      const order = await createPaymentOrder({ sessionId, items });
+      if (hasItems) {
+        // ticket categories: pay through Razorpay
 
-      // 2. build the Razorpay popup
-      const rzp = new window.Razorpay({
-        key: order.keyId,
-        amount: order.amount,
-        currency: order.currency,
-        order_id: order.orderId,
-        name: "Occasia",
-        description: "Ticket booking",
+        // 1. backend works out the price and creates the Razorpay order
+        const order = await createPaymentOrder({ sessionId, items });
 
-        // runs only if the payment succeeded
-        handler: async (response) => {
-          try {
-            const data = await payForBooking({
-              sessionId,
-              items,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-            toast.success("Booking confirmed");
-            setBookedId(data.bookingId);
-          } catch (err) {
-            toast.error(err.message);
-            if (err.status === 409) backToSelection();
-          } finally {
-            setPaying(false);
-          }
-        },
+        // 2. build the Razorpay popup
+        const rzp = new window.Razorpay({
+          key: order.keyId,
+          amount: order.amount,
+          currency: order.currency,
+          order_id: order.orderId,
+          name: "Occasia",
+          description: "Ticket booking",
 
-        // user closed the popup without paying
-        modal: { ondismiss: () => setPaying(false) },
-      });
+          // runs only if the payment succeeded
+          handler: async (response) => {
+            try {
+              const data = await payForBooking({
+                sessionId,
+                items,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+              toast.success("Booking confirmed");
+              setBookedId(data.bookingId);
+            } catch (err) {
+              toast.error(err.message);
+              if (err.status === 409) backToSelection();
+            } finally {
+              setPaying(false);
+            }
+          },
 
-      // bank declined or payment failed
-      rzp.on("payment.failed", (r) => {
-        toast.error(r.error.description || "Payment failed");
-        setPaying(false);
-      });
+          // user closed the popup without paying
+          modal: { ondismiss: () => setPaying(false) },
+        });
 
-      rzp.open();
+        // bank declined or payment failed
+        rzp.on("payment.failed", (r) => {
+          toast.error(r.error.description || "Payment failed");
+          setPaying(false);
+        });
+
+        rzp.open();
+      } else {
+        // movie seats: unchanged flow (not through Razorpay yet)
+        await payForMovieTickets({sessionId, selectedSeats});
+        const data = await confirmMovieBooking({sessionId, selectedSeats});
+        setBookedId(data.bookingId);
+      }
     } catch (err) {
       toast.error(err.message);
       setPaying(false);   // no finally: the popup is async, its callbacks reset "paying"

@@ -126,6 +126,39 @@ const getSeatMap = async (sessionId) =>{
   }
 }
 
+const getMovieBookingSummary = async (payload) =>{
+  try{
+    const res = await axiosInstance.post(`/user/session/getMovieTicketSummary`, payload);
+    return res.data;
+  }
+  catch(err){
+    console.log(err);
+    throw new Error(err.response?.data?.message || "cannot get movie booking summary");
+  }
+}
+
+const payForMovieTickets = async (payload) =>{
+  try{
+    const res = await axiosInstance.post(`/user/session/payForMovieSeats`, payload);
+    return res.data;
+  }
+  catch(err){
+    console.log(err);
+    throw new Error(err.response?.data?.message || "Cannot complete the booking. Something went wrong.");
+  }
+}
+
+const confirmMovieBooking = async (payload) =>{
+  try{
+    const res = await axiosInstance.post(`/user/session/confirmMovieBooking`, payload);
+    return res.data;
+  }
+  catch(err){
+    console.log(err);
+    throw new Error(err.response?.data?.message || "Cannot complete the booking. Something went wrong.");
+  }
+}
+
 export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession, 
-   getBookingSummary, createPaymentOrder, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId,
-   getSeatMap}
+   getBookingSummary, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId,
+   getSeatMap, getMovieBookingSummary, payForMovieTickets, confirmMovieBooking, createPaymentOrder}

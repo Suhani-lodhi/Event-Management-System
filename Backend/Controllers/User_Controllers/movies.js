@@ -1,96 +1,373 @@
-import { sendError } from "../../utils/serviceError.js";
-import prisma from "../../index.js";
+import { StatusCodes } from "http-status-codes";
 import { isUUID } from "class-validator";
+import prisma from "../../index.js";
+import { sendMessageError } from "../../utils/serviceError.js";
+import { getBookingSummaryService } from "../../Sevices/User_Services/booking.service.js";
+import { confirmBooking, payForMovieSeatService } from "../../Sevices/User_Services/movie.service.js";
+
+const LEGEND_COLORS = ["#8B5CF6", "#0EA5E9", "#16A34A", "#F59E0B", "#EC4899"];
+
+const STATUS_MAP = {
+  AVAILABLE: "available",
+  LOCKED: "held",
+  BOOKED: "booked",
+  BLOCKED: "blocked",
+};
 
 const seatMap = async (req, res) => {
-  const { sessionId } = req.params;
-
-  if (!isUUID(sessionId)) {
-    return res.status(400).json({ success: false, message: "Invalid session id" });
-  }
-
   try {
-    const session = await prisma.session.findUnique({
+    const { sessionId } = req.params;
+
+    if (!isUUID(sessionId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid session ID is required",
+      });
+    }
+
+    // 1. Fetch session, venue categories, seats and availability
+    const sessionData = await prisma.session.findUnique({
       where: { id: sessionId },
-      select: {
-        id: true,
-        startDateTime: true,
-        event: { select: { id: true, Title: true, imageUrl: true } },
+      include: {
+        event: {
+          select: { id: true, Title: true, settings: true },
+        },
+
         subVenue: {
-          select: {
-            subVenueName: true,
-            venue: { select: { venueName: true, city: true } },
-            seatCategories: {                   
-              select: {
-                id: true,
-                categoryName: true,
-                rowCount: true,
-                columnCount: true,
-                seatCount: true,
+          include: {
+            venue: {
+              select: { venueName: true },
+            },
+
+            seatCategories: {
+              include: {
+                seatDetails: {
+                  where: { isActive: true },
+                  orderBy: [{ rowNumber: "asc" }, { columnNumber: "asc" }],
+                },
               },
             },
           },
         },
+
+        sessionCategoryPrices: true,
+        sessionSeats: true,
       },
     });
 
-    if (!session) {
-      return res.status(404).json({ success: false, message: "Showtime not found" });
+    if (!sessionData) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
     }
 
-    const now = new Date();                          
+    const now = new Date();
 
-    const rows = await prisma.sessionSeat.findMany({
-      where: { sessionId},
-      select: {
-        id: true,
-        status: true,
-        lockedUntil: true,
-        seatDetail: {
-          select: {id:true, rowNumber: true, RowName: true, columnNumber: true, columnName: true },
+    // Categories ordered by their first row, so row 1 sits nearest the screen
+    const categories = [...sessionData.subVenue.seatCategories].sort(
+      (a, b) =>
+        (a.seatDetails[0]?.rowNumber ?? 0) - (b.seatDetails[0]?.rowNumber ?? 0)
+    );
+
+    // 2. Lookup maps
+    const sessionSeatMap = new Map(
+      sessionData.sessionSeats.map((sessionSeat) => [
+        sessionSeat.seatDetailId,
+        sessionSeat,
+      ])
+    );
+
+    const categoryPriceMap = new Map(
+      sessionData.sessionCategoryPrices.map((item) => [
+        item.seatCategoryId,
+        item,
+      ])
+    );
+
+    // 3. Layout configuration
+    const seatSize = 24;
+    const horizontalGap = 36;
+    const verticalGap = 38;
+    const leftMargin = 40;
+
+    const maxColumns = Math.max(
+      1,
+      ...categories.map((category) =>
+        Math.max(
+          category.columnCount || 0,
+          ...category.seatDetails.map((seat) => seat.columnNumber),
+          0
+        )
+      )
+    );
+
+    const canvasWidth =
+      leftMargin * 2 + (maxColumns - 1) * horizontalGap + seatSize;
+
+    let currentY = 105;
+
+    // 4. Create category sections
+    const sections = categories.map((category, categoryIndex) => {
+      const seats = category.seatDetails; // already ordered by row, then column
+      const categoryPrice = categoryPriceMap.get(category.id)?.price;
+
+      // Rows are measured from the first row of this section, so spacing
+      // doesn't depend on the row numbers of earlier categories
+      const firstRow = seats[0]?.rowNumber ?? 0;
+      const lastRow = seats[seats.length - 1]?.rowNumber ?? 0;
+      const rowsInSection = seats.length ? lastRow - firstRow + 1 : 0;
+
+      const sectionTop = currentY;
+      const sectionHeight =
+        45 + Math.max(0, rowsInSection - 1) * verticalGap + seatSize;
+
+      // 5. Convert each physical seat into Kerusi format
+      const kerusiSeats = seats
+        .map((seat) => {
+          const sessionSeat = sessionSeatMap.get(seat.id);
+
+          // No row for this showtime: skip it, never fall back to the SeatDetail id
+          if (!sessionSeat) return null;
+
+          return {
+            // SessionSeat id, so the frontend can submit it directly when booking
+            id: sessionSeat.id,
+
+            label: seat.columnName,
+            row: seat.RowName,
+            col: seat.columnNumber,
+
+            x: leftMargin + (seat.columnNumber - 1) * horizontalGap,
+            y: sectionTop + 25 + (seat.rowNumber - firstRow) * verticalGap,
+
+            type: category.id,
+
+            // Kerusi uses minor currency units
+            ...(categoryPrice !== undefined && {
+              price: {
+                amount: Math.round(Number(categoryPrice) * 100),
+                currency: "INR",
+              },
+            }),
+
+            metadata: {
+              seatDetailId: seat.id,
+              sessionSeatId: sessionSeat.id,
+              categoryId: category.id,
+              categoryName: category.categoryName,
+              columnName: seat.columnName,
+              columnNumber: seat.columnNumber,
+              rowNumber: seat.rowNumber,
+            },
+          };
+        })
+        .filter(Boolean);
+
+      const section = {
+        id: category.id,
+        index: categoryIndex,
+        label: category.categoryName,
+
+        bounds: {
+          x: 10,
+          y: sectionTop,
+          width: canvasWidth - 20,
+          height: sectionHeight,
         },
-        sessionCategoryPrice: { select: {id:true, alias: true, price: true } },
-      },
-      orderBy: [
-        { seatDetail: { rowNumber: "asc" } },
-        { seatDetail: { columnNumber: "asc" } },
-      ],
+
+        seats: kerusiSeats,
+      };
+
+      // Vertical spacing before the next category
+      currentY += sectionHeight + 35;
+
+      return section;
     });
 
-    const seats = rows.map((r) => ({
-      id: r.id,
-      category: r.sessionCategoryPrice.alias,
-      price: r.sessionCategoryPrice.price,
-      rowName: r.seatDetail.RowName,
-      rowNumber: r.seatDetail.rowNumber,
-      columnName: r.seatDetail.columnName,
-      columnNumber: r.seatDetail.columnNumber,
-      status: r.status === "LOCKED" && r.lockedUntil < now ? "AVAILABLE" : r.status,
-    }));
+    // 6. Add the screen element to the first section
+    if (sections.length > 0) {
+      sections[0].elements = [
+        {
+          id: "theatre-screen",
+          kind: "screen",
+          label: "SCREEN",
+          x: canvasWidth / 2,
+          y: 35,
+          width: Math.min(canvasWidth - 60, 350),
+          height: 18,
+        },
+      ];
+    }
 
+    // 7. Map document
+    const map = {
+      kerusi: "1.0",
 
-    const { seatCategories, ...subVenue } = session.subVenue;
-    const layout = {
-      rowCount: new Set(seats.map((s) => s.rowNumber)).size,         
-      columnCount: Math.max(0, ...seats.map((s) => s.columnNumber)),  
-      categories: seatCategories.map((c) => ({
-        id: c.id,
-        name: c.categoryName,
-        rowCount: c.rowCount,
-        columnCount: c.columnCount,
-        seatCount: c.seatCount,
-      })),
+      id: sessionData.subVenue.id,
+
+      name:
+        sessionData.subVenue.subVenueName ||
+        sessionData.subVenue.venue.venueName,
+
+      domain: "cinema",
+      locale: "en-IN",
+
+      canvas: {
+        width: canvasWidth,
+        height: currentY,
+      },
+
+      seatSize,
+
+      // The price is part of the label, so the map's legend shows e.g. "ELITE · ₹240"
+      legend: categories.map((category, index) => {
+        const price = categoryPriceMap.get(category.id)?.price;
+
+        return {
+          id: category.id,
+          label:
+            price !== undefined
+              ? `${category.categoryName} · ₹${Number(price)}`
+              : category.categoryName,
+          color: LEGEND_COLORS[index % LEGEND_COLORS.length],
+        };
+      }),
+
+      sections,
     };
 
-    res.status(200).json({
-      success: true,
-      session: { ...session, subVenue },
-      layout,
-      seats,
+    // 8. Availability state (an expired hold counts as available)
+    const stateSeats = {};
+
+    sessionData.sessionSeats.forEach((sessionSeat) => {
+      const holdExpired =
+        sessionSeat.status === "LOCKED" &&
+        sessionSeat.lockedUntil &&
+        sessionSeat.lockedUntil < now;
+
+      const status = holdExpired ? "AVAILABLE" : sessionSeat.status;
+
+      stateSeats[sessionSeat.id] = {
+        status: STATUS_MAP[status] || "blocked",
+
+        ...(status === "LOCKED" &&
+          sessionSeat.lockedUntil && {
+            holdExpires: sessionSeat.lockedUntil.toISOString(),
+          }),
+      };
     });
-  } catch (err) {
-    sendError(res, err, "could not fetch seat map");
+
+    const state = {
+      kerusi: "1.0",
+      sessionId: sessionData.id,
+      updatedAt: now.toISOString(),
+      seats: stateSeats,
+    };
+
+    // 9. Prices per category, keyed by category id (the same id as each seat's `type`)
+    const prices = Object.fromEntries(
+      categories.map((category) => {
+        const categoryPrice = categoryPriceMap.get(category.id);
+        return [
+          category.id,
+          {
+            name: category.categoryName,
+            price: categoryPrice ? Number(categoryPrice.price) : 0,
+          },
+        ];
+      })
+    );
+
+    // 10. Session info
+    const kerusiSession = {
+      kerusi: "1.0",
+      id: sessionData.id,
+      mapId: sessionData.subVenue.id,
+      label: sessionData.event.Title,
+      startsAt: sessionData.startDateTime.toISOString(),
+      endsAt: sessionData.endDateTime.toISOString(),
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Seat layout fetched successfully",
+
+      data: {
+        map,
+        session: kerusiSession,
+        state,
+        prices,
+        settings: sessionData.event.settings
+      },
+    });
+  } catch (error) {
+    console.error("Get session seat layout error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Could not fetch seat layout",
+    });
   }
 };
 
-export { seatMap };
+const getMovieSummary = async (req, res) => {
+  try {
+    const {sessionId, selectedSeats} = req.body;
+
+    console.log(sessionId);
+const tickets = await prisma.sessionSeat.findMany({
+  where: { id: { in: selectedSeats }, sessionId },        
+  select: { sessionCategoryPriceId: true },
+});
+
+if (tickets.length !== new Set(selectedSeats).size) {
+  throw new Error("Invalid seat selection"), { status: 400 };
+}
+
+const countByCategory = (rows) => {
+  const counts = new Map();
+  for (const row of rows) {
+    const id = row.sessionCategoryPriceId;
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  return [...counts].map(([categoryId, count]) => ({ sessionCategoryPriceId: categoryId, quantity: count}));
+};
+
+const categoryCounts = countByCategory(tickets);
+
+console.log(categoryCounts);
+
+const data = await getBookingSummaryService({sessionId, items: categoryCounts});
+    res.status(StatusCodes.OK).json(data);
+  } catch (err) {
+    sendMessageError(res, err, "Could not complete booking");
+  }
+};
+
+
+const payForMovieSeats = async (req, res) =>{
+  const {selectedSeats, sessionId} = req.body;
+  const userId = req.user.id;
+  try{
+     const data = await payForMovieSeatService({selectedSeats, sessionId, userId});
+    res.status(StatusCodes.OK).json(data);
+  }
+  catch(err){
+    sendMessageError(res, err, "Could not complete booking");
+  }
+}
+
+const confirmMovieBooking = async (req, res) =>{
+  const {selectedSeats, sessionId} = req.body;
+  const userId = req.user.id;
+  try{
+     const data = await confirmBooking({selectedSeats, sessionId, userId});
+    res.status(StatusCodes.OK).json(data);
+  }
+  catch(err){
+    sendMessageError(res, err, "Could not complete booking");
+  }
+}
+
+export { seatMap, getMovieSummary, payForMovieSeats, confirmMovieBooking };

@@ -17,8 +17,8 @@ import { parseSettings } from "../Organizer_Services/event.service.js";
 const MAX_PER_CATEGORY = 10;
 const MAX_PER_BOOKING = 20;
 
-const bad = (msg) => new ServiceError(msg, StatusCodes.BAD_REQUEST);
-const conflict = (msg) => new ServiceError(msg, StatusCodes.CONFLICT);
+export const bad = (msg) => new ServiceError(msg, StatusCodes.BAD_REQUEST);
+ export const conflict = (msg) => new ServiceError(msg, StatusCodes.CONFLICT);
 
 const byId = (a, b) => String(a).localeCompare(String(b));
 
@@ -130,8 +130,9 @@ const SESSION_SELECT = {
 };
 
 export const getBookingSummaryService = async ({ sessionId, items } = {}) => {
+  console.log("getBookingSummaryService", sessionId)
   if (!sessionId) throw bad("sessionId is required");
-
+  console.log("getBookingSummaryService", items)
   const order = await buildOrder(prisma, sessionId, items);
 
   return {

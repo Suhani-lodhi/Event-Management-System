@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { updateEventAndSessionStatuses } from '../Sevices/eventStatus.service.js';
+import { generateSessionSeats } from '../Sevices/User_Services/generateSessionSeats.js';
 
 let isRunning = false;
 
@@ -13,6 +14,10 @@ export const startEventStatusCron = () =>{
             console.log("event status cron started");
             await updateEventAndSessionStatuses();
             console.log("Event status cron completed");
+
+            const created = await generateSessionSeats();        
+            if (created > 0) console.log(`Created ${created} session seats`);
+
         }
         catch(err){
             console.error("event status cron failed:", err);
