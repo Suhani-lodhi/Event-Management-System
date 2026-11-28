@@ -57,7 +57,8 @@ export default function Step2Session(props) {
 
 useEffect(()=>{
   async function getVenue(){
-       const data = await getVenues({eventId: props.eventId});
+      console.log("getVenues", props)
+       const data = await getVenues({eventId: props.id ? props.id : props.eventId});
       //  console.log(data.venues);
        setVenues(data.venues)
        setLoadingVenue(false)

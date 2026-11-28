@@ -25,7 +25,6 @@ const seatMap = async (req, res) => {
       });
     }
 
-    // 1. Fetch session, venue categories, seats and availability
     const sessionData = await prisma.session.findUnique({
       where: { id: sessionId },
       include: {
@@ -64,13 +63,13 @@ const seatMap = async (req, res) => {
 
     const now = new Date();
 
-    // Categories ordered by their first row, so row 1 sits nearest the screen
+    
     const categories = [...sessionData.subVenue.seatCategories].sort(
       (a, b) =>
         (a.seatDetails[0]?.rowNumber ?? 0) - (b.seatDetails[0]?.rowNumber ?? 0)
     );
 
-    // 2. Lookup maps
+    
     const sessionSeatMap = new Map(
       sessionData.sessionSeats.map((sessionSeat) => [
         sessionSeat.seatDetailId,
@@ -85,7 +84,7 @@ const seatMap = async (req, res) => {
       ])
     );
 
-    // 3. Layout configuration
+    
     const seatSize = 24;
     const horizontalGap = 36;
     const verticalGap = 38;
@@ -107,13 +106,13 @@ const seatMap = async (req, res) => {
 
     let currentY = 105;
 
-    // 4. Create category sections
+    
     const sections = categories.map((category, categoryIndex) => {
-      const seats = category.seatDetails; // already ordered by row, then column
+      const seats = category.seatDetails; 
       const categoryPrice = categoryPriceMap.get(category.id)?.price;
 
-      // Rows are measured from the first row of this section, so spacing
-      // doesn't depend on the row numbers of earlier categories
+      
+      
       const firstRow = seats[0]?.rowNumber ?? 0;
       const lastRow = seats[seats.length - 1]?.rowNumber ?? 0;
       const rowsInSection = seats.length ? lastRow - firstRow + 1 : 0;
@@ -122,16 +121,16 @@ const seatMap = async (req, res) => {
       const sectionHeight =
         45 + Math.max(0, rowsInSection - 1) * verticalGap + seatSize;
 
-      // 5. Convert each physical seat into Kerusi format
+      
       const kerusiSeats = seats
         .map((seat) => {
           const sessionSeat = sessionSeatMap.get(seat.id);
 
-          // No row for this showtime: skip it, never fall back to the SeatDetail id
+          
           if (!sessionSeat) return null;
 
           return {
-            // SessionSeat id, so the frontend can submit it directly when booking
+            
             id: sessionSeat.id,
 
             label: seat.columnName,
@@ -143,7 +142,7 @@ const seatMap = async (req, res) => {
 
             type: category.id,
 
-            // Kerusi uses minor currency units
+            
             ...(categoryPrice !== undefined && {
               price: {
                 amount: Math.round(Number(categoryPrice) * 100),
@@ -179,13 +178,13 @@ const seatMap = async (req, res) => {
         seats: kerusiSeats,
       };
 
-      // Vertical spacing before the next category
+      
       currentY += sectionHeight + 35;
 
       return section;
     });
 
-    // 6. Add the screen element to the first section
+    
     if (sections.length > 0) {
       sections[0].elements = [
         {
@@ -200,7 +199,7 @@ const seatMap = async (req, res) => {
       ];
     }
 
-    // 7. Map document
+    
     const map = {
       kerusi: "1.0",
 
@@ -220,7 +219,7 @@ const seatMap = async (req, res) => {
 
       seatSize,
 
-      // The price is part of the label, so the map's legend shows e.g. "ELITE · ₹240"
+      
       legend: categories.map((category, index) => {
         const price = categoryPriceMap.get(category.id)?.price;
 
@@ -237,7 +236,7 @@ const seatMap = async (req, res) => {
       sections,
     };
 
-    // 8. Availability state (an expired hold counts as available)
+    
     const stateSeats = {};
 
     sessionData.sessionSeats.forEach((sessionSeat) => {
@@ -265,7 +264,7 @@ const seatMap = async (req, res) => {
       seats: stateSeats,
     };
 
-    // 9. Prices per category, keyed by category id (the same id as each seat's `type`)
+    
     const prices = Object.fromEntries(
       categories.map((category) => {
         const categoryPrice = categoryPriceMap.get(category.id);
@@ -279,7 +278,7 @@ const seatMap = async (req, res) => {
       })
     );
 
-    // 10. Session info
+    
     const kerusiSession = {
       kerusi: "1.0",
       id: sessionData.id,

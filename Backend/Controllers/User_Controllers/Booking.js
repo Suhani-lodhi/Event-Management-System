@@ -47,7 +47,6 @@ const cancelBooking = async (req, res) => {
     res.status(StatusCodes.OK).json(data);
   } catch (err) {
     sendMessageError(res, err, "Could not cancel booking");
-    sendMessageError;
   }
 };
 
