@@ -11,6 +11,7 @@ export default function CreateEvents({addSession, createEvent}) {
     const isEditMode = Boolean(id);
     const [step, setStep] = useState(addSession && !createEvent ? 2 : 1);
     const [eventId, setEventId] = useState(null)
+
     
 
     useEffect(()=>{

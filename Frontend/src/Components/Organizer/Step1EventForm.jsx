@@ -171,11 +171,12 @@ const [preview, setPreview] = useState(null);
 
   try {
     if (id) {
-      await updateEvent(id, formData);
+      const event = await updateEvent(id, formData);
       toast.success("Event edited successfully");
       setEventId(id);
     } else {
       const isAdded = await CreateEvent(formData);
+      console.log("create event ----> ",isAdded.res.data.event.id)
       setEventId(isAdded.res.data.event.id);
       toast.success("Event created Successfully");
     }

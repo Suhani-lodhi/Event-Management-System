@@ -112,7 +112,8 @@ const deleteVenue = async (req, res) => {
 };
 
 const getVenues = async (req, res) => {
-  const { eventId, theater } = req.query;
+  console.log(req.query);
+  const { eventId } = req.query;
 
   try {
     const where = { isDeleted: false };
@@ -125,10 +126,9 @@ const getVenues = async (req, res) => {
       if (!event) {
         return res.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Event not found" });
       }
+      console.log("venue controller", event);
       where.theater = event.category === "MOVIE";   
-    } else if (theater !== undefined) {
-      where.theater = theater === "true";          
-    }
+    } 
 
     const venues = await prisma.venue.findMany({
       where,

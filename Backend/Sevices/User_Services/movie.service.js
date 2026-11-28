@@ -8,6 +8,14 @@ const MAX_SEATS = process.env.MAX_SELECTABLE_SEATS;
 
 const invalid = (message) => Object.assign(new Error(message), { status: 400 });   
 
+
+const getSeatMapService = async () => {
+
+}
+
+
+
+
 const payForMovieSeatService = async ({ selectedSeats, sessionId, userId }) => {
   assertFound(userId, "userId not found");
   assertFound(sessionId, "sessionId not found");
