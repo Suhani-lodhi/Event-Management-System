@@ -80,7 +80,7 @@ export default function SeatSelectionPage() {
 
   
 function handleNext() {
-  navigate(`/home/event/tickets/${sessionId}/booking`, { state: { selectedSeats, settings } } )
+  navigate(`/home/event/tickets/${sessionId}/booking`, { state: { selectedSeats, settings, movie: true } } )
 }
 
 
@@ -109,8 +109,10 @@ function handleNext() {
       <div className="selection-summary">
         <div className="selection-header">
           <h3>Selected Seats</h3>
-          <p>You can select maximum 10 seats in one booking</p>
-          <p>{settings.booking.cancellationAllowed? "* Cancellation Allowed": "* Cancellation not allowed"}</p>
+          <p className="info">You can select maximum 10 seats in one booking</p>
+          <p className="info">{settings.booking.cancellationAllowed? "* Cancellation Allowed": "* Cancellation not allowed"}</p>
+          <p className="info">{settings.booking.cancellationAllowed && "* Partial Cancellation Not Allowed"}</p>
+
         </div>
 
         {selectedSeats.length === 0 && <p className="empty-message">No seats selected</p>}

@@ -43,7 +43,7 @@
   font-style: italic;
 }
 
-.selection-summary h3 + p + p  {
+.selection-summary .info {
   color: #888;
   font-style: italic;
 }

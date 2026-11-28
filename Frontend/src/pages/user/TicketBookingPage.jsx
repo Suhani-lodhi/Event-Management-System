@@ -136,6 +136,9 @@ export default function TicketBookingPage() {
     else{
       message+= "Cancellation is not allowed for the following booking. "
     }
+    if(state?.movie === true){
+      message += `Partial Cancellation is not allowed. `
+    }
     if(settings?.booking?.refundAllowed){
       message+= `If cancelled then you will get ${settings?.booking?.refundPercentage}% of the booking amount.`
     }

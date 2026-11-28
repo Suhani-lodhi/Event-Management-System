@@ -9,12 +9,6 @@ const MAX_SEATS = process.env.MAX_SELECTABLE_SEATS;
 const invalid = (message) => Object.assign(new Error(message), { status: 400 });   
 
 
-const getSeatMapService = async () => {
-
-}
-
-
-
 
 const payForMovieSeatService = async ({ selectedSeats, sessionId, userId }) => {
   assertFound(userId, "userId not found");
@@ -192,8 +186,91 @@ const totalAmount = totalPaise / 100;
 
 }
 
+const cancelMovieBookingService = async (bookingId, userId) => {
+
+
+    assertFound(bookingId, "Booking Id not found")
+    assertFound(userId, "User id not found");
+
+  const claimed = await prisma.$transaction(async (tx) =>{
+
+   const booking = await tx.booking.findFirst({
+      where: { id: bookingId, userId },                        
+      select: {
+        id: true,
+        status: true,
+        paymentRef: true,
+        totalAmount: true,
+        totalCount: true,
+        session: {
+          select: { startDateTime: true, event: { select: { settings: true } } },
+        },
+        ticket: {
+          select: { id: true, status: true, unitPrice: true, attended: true, sessionSeatId: true },
+        },
+      },
+    });
+
+    assertFound(booking, "Booking not found")
+
+    const now = new Date();
+    const cancelDate = now + (3 * 60 * 60 * 1000)
+    if(cancelDate<startDateTime){
+      throw conflict("The booking cancellation time has been expired");
+    }
+
+    const sessionSeatIds =  booking.tickets.map((t) => t.sessionSeatId);
+    const ticketIds = booking.tickets.map((t) => t.id);
+
+    const refundedAmount = (booking.session.event.settings.refundPercentage/100) * booking.totalAmount;
+
+    const cancellation = await tx.cancellation.create({
+      bookingId: booking.id,
+      userId,
+      ticketCount: booking.totalCount,
+      refundAmount: refundedAmount,
+    })
+    
+    if(!cancellation){
+      throw conflict("Cancellation cannot done");
+    }
+
+    await tx.booking.update({
+      where: {id: bookingId, userId},
+      data: {
+        status: 'CANCELLED',
+        cancellationId: cancellation.id
+      }
+    })
+    await tx.tickets.update({
+      where: {id: {in: ticketIds}, bookingId},
+      data: {
+        status: 'CANCELLED',
+        cancellationId: cancellation.id
+      }
+    })
+    await tx.sessionSeat.update({
+      where: {id: {id: sessionSeatIds}},
+      data: {
+        status: 'AVAILABLE'
+      }
+    })
+
+    return {
+      success: "cancelled Successfully",
+      totalCancelled: cancellation.ticketCount,
+      refund: refundedAmount
+    }
+    
+  })
+
+  return {claimed}
+
+}
+
 
 export {
     payForMovieSeatService,
-    confirmBooking
+    confirmBooking,
+    cancelMovieBookingService
 }

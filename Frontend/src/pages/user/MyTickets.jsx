@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "../user/styles/MyTickets.css";
 import { useNavigate, useParams } from "react-router-dom"
-import { cancelBooking, getTicketsByBookingId } from "../../api/user";
+import { cancelBooking, cancelMovieBooking, getTicketsByBookingId } from "../../api/user";
 import { getImageSrc } from "../../utils/imageUrl";
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from "@mui/material/DialogTitle";
@@ -16,6 +16,7 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 import EventSettingsDialog from "./model/EventSettingsDialog";
+import DialogContentText from "@mui/material/DialogContentText";
 
 
 const fmt = { dateStyle: "medium", timeStyle: "short" };
@@ -34,6 +35,7 @@ export default function MyTickets(){
     const [loading, setLoading] = useState(true)
     const [cancelQty, setCancelQty] = useState({});
     const [openCancel, setOpenCancel] = useState(false);
+    const [movieDialog, setMovieDialog] = useState(false)
     const navigate = useNavigate();
 
     useEffect(()=>{
@@ -150,6 +152,25 @@ export default function MyTickets(){
     return message;
   }
 
+  function handleBookingCancel(){
+    console.log(event);
+    if(event.category==='MOVIE'){
+      setMovieDialog(true);
+    }
+    else{
+      setOpenCancel(true)
+    }
+  }
+
+  async function handleMovieCancellation(){
+     try{
+        const data = await cancelMovieBooking(id);
+        toast.success("Booking Cancelled Successfully");
+     }
+     catch(err){
+        toast.error("Booking not cancelled");
+     }
+  }
 
 
 
@@ -275,7 +296,7 @@ export default function MyTickets(){
           )}
       </div>
                
-{session.canCancel && settings.booking.cancellationAllowed && <p style={{textAlign: "center", margin: "10px"}}><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={() => setOpenCancel(true)} >click here</strong></u></p>}
+{session.canCancel && settings.booking.cancellationAllowed && <p style={{textAlign: "center", margin: "10px"}}><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={handleBookingCancel} >click here</strong></u></p>}
       </div>
 
          {tickets.length>0 && <><h2 className="tickets-heading">Tickets</h2>
@@ -348,6 +369,19 @@ export default function MyTickets(){
         <Button onClick={() => setOpenCancel(false)}>Cancel</Button>
         <Button variant="contained" color="error" onClick={handleConfirm}>Cancel Selected Tickets</Button>
       </DialogActions>
+    </Dialog>
+
+
+    <Dialog open={movieDialog} onClose={() => setMovieDialog(false)}>
+      <DialogTitle>Booking Cancellation</DialogTitle>
+      <DialogContent>
+        <DialogContentText>Cancelling booking will cancel all the booked tickets. Are you sure you want to cancel the booking?
+        </DialogContentText>
+         <DialogActions>
+        <Button onClick={() => setMovieDialog(false)}>Cancel</Button>
+        <Button variant="contained" color="error" onClick={handleMovieCancellation}>Cancel Booking</Button>
+      </DialogActions>
+      </DialogContent>
     </Dialog>
 
     </>

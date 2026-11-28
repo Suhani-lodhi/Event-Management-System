@@ -491,7 +491,7 @@ export const getTicketsService = async (userId, bookingId) => {
         select: {
           ...SESSION_SELECT,
           event: {
-            select: { id: true, Title: true, imageUrl: true, status: true, settings: true },
+            select: { id: true, Title: true, imageUrl: true, status: true, settings: true, category: true},
           },
         },
       },

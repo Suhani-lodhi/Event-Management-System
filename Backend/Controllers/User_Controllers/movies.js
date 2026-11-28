@@ -2,8 +2,8 @@ import { StatusCodes } from "http-status-codes";
 import { isUUID } from "class-validator";
 import prisma from "../../index.js";
 import { sendMessageError } from "../../utils/serviceError.js";
-import { getBookingSummaryService } from "../../Sevices/User_Services/booking.service.js";
-import { confirmBooking, payForMovieSeatService } from "../../Sevices/User_Services/movie.service.js";
+import { cancelBookingService, getBookingSummaryService } from "../../Sevices/User_Services/booking.service.js";
+import { cancelMovieBookingService, confirmBooking, payForMovieSeatService } from "../../Sevices/User_Services/movie.service.js";
 
 const LEGEND_COLORS = ["#8B5CF6", "#0EA5E9", "#16A34A", "#F59E0B", "#EC4899"];
 
@@ -369,4 +369,16 @@ const confirmMovieBooking = async (req, res) =>{
   }
 }
 
-export { seatMap, getMovieSummary, payForMovieSeats, confirmMovieBooking };
+const cancelMovieBooking = async (req, res) => {
+  const {bookingId} = req.params;
+  const userId = req.user.id;
+
+  try{
+      const data = await cancelMovieBookingService({bookingId, userId})
+      res.status(StatusCodes.OK).json(data)
+  }catch(err){
+    sendMessageError(res, err, "Could not cancel booking");
+  }
+}
+
+export { seatMap, getMovieSummary, payForMovieSeats, confirmMovieBooking, cancelMovieBooking };

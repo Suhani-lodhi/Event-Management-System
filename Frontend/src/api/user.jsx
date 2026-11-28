@@ -147,6 +147,17 @@ const confirmMovieBooking = async (payload) =>{
   }
 }
 
+const cancelMovieBooking = async (bookingId) =>{
+  try{
+    const res = await axiosInstance.patch(`/user/cancelBooking/${bookingId}`);
+    return res.data;
+  }
+  catch(err){
+    console.log(err);
+    throw new Error(err.response?.data?.message || "Cannot cancel the booking");
+  }
+}
+
 export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession, 
    getBookingSummary, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId,
-   getSeatMap, getMovieBookingSummary, payForMovieTickets, confirmMovieBooking}
+   getSeatMap, getMovieBookingSummary, payForMovieTickets, confirmMovieBooking, cancelMovieBooking}
