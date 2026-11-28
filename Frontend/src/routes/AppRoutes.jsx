@@ -25,6 +25,7 @@ import MyBookings from '../pages/user/MyBookings';
 import MyTickets from '../pages/user/MyTickets';
 import BookingStats from '../pages/Organizer/BookingStats';
 import AttendencePage from '../pages/Organizer/AttendencePage';
+import SeatSelectionPage  from '../pages/user/SeatSelectionPage';
 
 
 const ROLES = {
@@ -32,25 +33,20 @@ const ROLES = {
   USER: '/home', 
 };
 
-
-// Blocks access to authenticated-only pages (e.g. /dashboard)
 function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user, loading } = useAuth();
 
-  // Don't decide anything until /auth/me (and a possible refresh) has finished
   if (loading) return <div>Loading...</div>;
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Don't redirect to /login: PublicOnlyRoute would send them straight back here
     return <div>You don't have access to this page.</div>;
   }
 
   return children;
 }
 
-// Keeps logged-in users out of login/signup pages
 function PublicOnlyRoute({ children }) {
   const { isAuthenticated, user, loading } = useAuth();
 
@@ -121,7 +117,7 @@ export default function AppRoutes() {
         <Route path="myVenues" element={<Venues/>}/>
         <Route path="venue/:id" element ={<ViewVenue/>} />
         <Route path="editVenue/:id" element={<Venues/>} />
-        <Route path="bookingStats" element={<BookingStats/>} />
+        <Route path="bookingStats" element={<BookingStats/>} />        
       </Route>
 
       <Route path='/organizer/attendance/:id' element={
@@ -145,6 +141,7 @@ export default function AppRoutes() {
       <Route path="event/tickets/:id/booking" element={<TicketBookingPage/>}/>
       <Route path="mybookings" element={<MyBookings/>}/>
       <Route path="bookings/:id/tickets" element={<MyTickets/>}/>
+      <Route path="sessions/:sessionId/seats" element={<SeatSelectionPage/>}/>
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

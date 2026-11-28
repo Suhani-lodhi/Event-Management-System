@@ -3,8 +3,9 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getBookingSummary, createPaymentOrder, payForBooking } from "../../api/user";
 import { toast } from "react-toastify";
 import '../user/styles/TicketBookingPage.css';
-
-const PAYMENT_WINDOW_SECONDS = 5 * 60;
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
+import { faInfo } from "@fortawesome/free-solid-svg-icons";
+const PAYMENT_WINDOW_SECONDS = 0.5 * 60;
 
 const formatTime = (total) => {
   const h = Math.floor(total / 3600);
@@ -27,7 +28,7 @@ export default function TicketBookingPage() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [bookedId, setBookedId] = useState(null);   
-
+  const [settings, setSettings] = useState(state?.settings)
   const backToSelection = () =>
     navigate(`/home/event/tickets/${sessionId}`, { replace: true });
 
@@ -82,7 +83,7 @@ export default function TicketBookingPage() {
 }, [summary, bookedId]);
 
 
-
+  
   
   const handlePay = async () => {
     if (paying) return;
@@ -142,6 +143,24 @@ export default function TicketBookingPage() {
        backToSelection();
   }
 
+  function infoMessage(){
+    let message= "";
+    if(settings?.booking?.cancellationAllowed){
+      message+= "Cancellation is allowed for the following booking. "
+    }
+    else{
+      message+= "Cancellation is not allowed for the following booking. "
+    }
+    if(settings?.booking?.refundAllowed){
+      message+= `If cancelled then you will get ${settings?.booking?.refundPercentage}% of the booking amount.`
+    }
+    else{
+      message+= "Refund is not allowed for the following booking. "
+    }
+
+    return message;
+  }
+
   if (loading) return <p>Loading Summary</p>;
   if (!summary) return null;
 
@@ -191,6 +210,20 @@ export default function TicketBookingPage() {
       <div className="summary-total">
         <p>Total tickets: {summary.totalCount}</p>
         <h2>Total: ₹{summary.totalAmount.toLocaleString("en-IN")}</h2>
+      </div>
+
+      <div style={{
+        display: "flex",
+        gap: "5px",
+        padding: "15px",
+        fontStyle: "italic",
+        color: "grey",
+        fontSize: "15px"
+      }}>
+        <FontAwesomeIcon icon={faInfo} className="info-icon" />
+        <span>
+            {infoMessage()}
+        </span>
       </div>
 
       <div>

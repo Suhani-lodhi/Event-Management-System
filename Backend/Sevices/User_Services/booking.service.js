@@ -12,6 +12,7 @@ import {
   publicRefundStatus,
   NO_PAYMENT_MSG,
 } from "./refund.service.js";
+import { parseSettings } from "../Organizer_Services/event.service.js";
 
 const MAX_PER_CATEGORY = 10;
 const MAX_PER_BOOKING = 20;
@@ -62,7 +63,7 @@ const buildOrder = async (db, sessionId, items) => {
   assertFound(session, "Session not found");
 
   const now = new Date();
-  if (now < session.regStartDateTime || now > session.regEndDateTime) {
+  if (now < session.regStartdateTime || now > session.regEndDateTime) {
     throw bad("Registration is not open for this session");
   }
 
@@ -193,7 +194,7 @@ export const getBookingsByUserIdService = async (userId) => {
         ticketCount: c.ticketCount,
         refundAmount: Number(c.refundAmount),
         refundRef: c.refundRef, // Razorpay refund id, e.g. rfnd_Abc123
-        refundStatus: publicRefundStatus(c.status), // PENDING | PROCESSED | FAILED
+        refundStatus: publicRefundStatus(c.status, c.refundRef), // PENDING | PROCESSED | FAILED | NOT_APPLICABLE
         cancelledOn: c.createdAt,
       })),
       event: b.session.event,
@@ -207,7 +208,7 @@ export const getBookingsByUserIdService = async (userId) => {
   };
 };
 
-const summariseCancelledTickets = (tickets) => {
+const summariseCancelledTickets = (tickets, settings) => {
   const perCategory = new Map();
   const cancelledLines = new Map();
   let refundAmount = tickets[0].unitPrice.mul(0);
@@ -230,6 +231,16 @@ const summariseCancelledTickets = (tickets) => {
     cancelledLines.set(t.sessionCategoryPriceId, line);
   }
 
+  // refund only the percentage the organizer set for this event
+  // (if the setting is missing, refund 100%)
+  const raw = settings?.booking?.refundPercentage;
+  const percent =
+    raw === null || raw === undefined || raw === "" ? NaN : Number(raw);
+  const refundPercent = Number.isFinite(percent)
+    ? Math.min(100, Math.max(0, percent))
+    : 100;
+  refundAmount = refundAmount.mul(refundPercent).div(100).toDecimalPlaces(2);
+
   return { perCategory, cancelledLines, refundAmount };
 };
 
@@ -248,7 +259,7 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
   const result = await prisma.$transaction(async (tx) => {
     const booking = await tx.booking.findFirst({
       where: { id: bookingId, userId },
-      include: { session: true },
+      include: { session: { include: { event: true } } },
     });
     assertFound(booking, "Booking not found");
 
@@ -287,7 +298,10 @@ export const cancelBookingService = async (userId, bookingId, ticketIds) => {
     }
 
     const { perCategory, cancelledLines, refundAmount } =
-      summariseCancelledTickets(tickets);
+      summariseCancelledTickets(
+        tickets,
+        parseSettings(booking.session.event.settings),
+      );
 
     // the payment this booking was made with (none for bookings made before Razorpay)
     const payment = await tx.paymentOrder.findFirst({
@@ -421,6 +435,23 @@ const groupCancelledTickets = (tickets = []) => {
   return [...grouped.values()];
 };
 
+// total refund and number of cancelled tickets across all cancellations of a booking
+const sumRefunds = (cancellations = []) =>
+  cancellations.reduce(
+    (acc, c) => ({
+      refundAmount: acc.refundAmount + Number(c.refundAmount),
+      cancelledTickets: acc.cancelledTickets + c.ticketCount,
+    }),
+    { refundAmount: 0, cancelledTickets: 0 },
+  );
+
+export const getRefundSummary = async (bookingId) => {
+  const cancellations = await prisma.cancellation.findMany({
+    where: { bookingId },
+  });
+  return sumRefunds(cancellations);
+};
+
 export const getTicketsService = async (userId, bookingId) => {
   if (!userId) {
     throw new ServiceError("Not authenticated", StatusCodes.UNAUTHORIZED);
@@ -456,7 +487,13 @@ export const getTicketsService = async (userId, bookingId) => {
         select: {
           ...SESSION_SELECT,
           event: {
-            select: { id: true, Title: true, imageUrl: true, status: true },
+            select: {
+              id: true,
+              Title: true,
+              imageUrl: true,
+              status: true,
+              settings: true,
+            },
           },
         },
       },
@@ -499,6 +536,7 @@ export const getTicketsService = async (userId, bookingId) => {
       bookingQrCode: bookingQrCode,
     },
     event: booking.session.event,
+    eventSettings: parseSettings(booking.session.event.settings),
     session: {
       id: booking.session.id,
       startDateTime: booking.session.startDateTime,
@@ -518,13 +556,14 @@ export const getTicketsService = async (userId, bookingId) => {
       sessionCategoryPriceId: t.sessionCategoryPrice.id,
     })),
     ticketSummary: groupTicketsByCategory(booking.ticket),
+    refundSummary: sumRefunds(booking.cancellation),
     cancellations: booking.cancellation.map((c) => ({
       id: c.id,
       items: groupCancelledTickets(c.tickets),
       ticketCount: c.ticketCount,
       refundAmount: Number(c.refundAmount),
       refundRef: c.refundRef,
-      refundStatus: publicRefundStatus(c.status),
+      refundStatus: publicRefundStatus(c.status, c.refundRef),
       cancelledOn: c.createdAt,
     })),
   };

@@ -24,7 +24,7 @@ const EVENT_ACTIONS = {
   DRAFTED: [
     { to: "PUBLISHED", label: "Publish", schedule: true },
   ],
-  PUBLISHED: [{ label: "Set go-live time", schedule: true },{ to: "ACTIVE", label: "Activate now" }, CANCEL_ACTION],
+  PUBLISHED: [{ to: "ACTIVE", label: "Activate now" }, CANCEL_ACTION],
   ACTIVE: [CANCEL_ACTION],
   CANCELLED: [],
   CLOSED: [],

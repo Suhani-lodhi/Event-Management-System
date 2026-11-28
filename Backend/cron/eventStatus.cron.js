@@ -22,5 +22,5 @@ export const startEventStatusCron = () =>{
         }
     });
 
-    console.log("Event status cron scheduled successfully")
+    console.log("Event status cron scheduled successfully");
 }

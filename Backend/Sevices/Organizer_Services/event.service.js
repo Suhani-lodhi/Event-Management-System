@@ -27,28 +27,41 @@ export const validateCreateEvent = ({ category, genre, Title }) => {
 
 
 export const buildEventData = (
-  { category, genre, Title, Description },
+  { category, genre, Title, Description, settings },
   file,
 ) => ({
   category,
   genre,
   Title,
   Description: Description || null,
+  settings: JSON.parse(settings),
   imageUrl: file ? `/uploads/${file.filename}` : null,
 });
 
 
 export const buildUpdateData = (
-  { category, genre, Title, Description },
+  { category, genre, Title, Description, settings },
   file,
 ) => ({
   ...(category && { category }),
   ...(genre && { genre }),
   ...(Title && { Title }),
   ...(Description !== undefined && { Description }),
+  ...(settings !== undefined && {settings: parseSettings(settings)}),
   ...(file && { imageUrl: `/uploads/${file.filename}` }),
 });
 
+export const parseSettings = (settings) => {
+  if(settings === undefined || settings === null){
+    return undefined;
+  }
+
+  if(typeof settings === "string"){
+    return JSON.parse(settings);
+  }
+
+  return settings;
+}
 
 export const removeOldImage = async (imageUrl) => {
   if (imageUrl) {

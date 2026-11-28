@@ -44,7 +44,7 @@ export const getEventByIdService = async (eventId) => {
     },
   });
   assertFound(event, "event not found");
-
+  
   return event;
 };
 
@@ -57,7 +57,7 @@ export const getEventsByFilterService = async (query) => {
   const categories = parseList(category, CATEGORIES);
   const genres = parseList(genre, GENRES);
 
-  const where = {isDeleted: false};
+  const where = {isDeleted: false, status: "ACTIVE"};
   if (categories.length) where.category = { in: categories };
   if (genres.length) where.genre = { in: genres };
   if (search) where.Title = { contains: search, mode: "insensitive" };

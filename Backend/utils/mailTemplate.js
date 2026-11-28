@@ -30,6 +30,7 @@ export const bookingConfirmationTemplate = ({
   items,
   totalCount,
   totalAmount,
+  settings
 }) => {
   const rows = items
     .map(
@@ -37,6 +38,9 @@ export const bookingConfirmationTemplate = ({
         `<tr><td>${i.alias}</td><td>${i.quantity}</td><td>${money(i.unitPrice)}</td><td>${money(i.subtotal)}</td></tr>`,
     )
     .join("");
+
+    const instructions = [];
+
 
   return {
     subject: `Booking confirmed – ${eventName} (#${bookingId})`,
@@ -58,6 +62,7 @@ export const bookingConfirmationTemplate = ({
         ${rows}
         <tr><td><b>Total</b></td><td><b>${totalCount}</b></td><td></td><td><b>${money(totalAmount)}</b></td></tr>
       </table>
+
     `,
   };
 };

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { getAllEvents, getBookingStats, getSessionPricing, getSessionsByEventId } from "../../api/event";
 import '../Organizer/styles/BookingStats.css'
 import { useLocation, useNavigate } from "react-router-dom";
+import BookingStatsTable from "./model/BookingStatsTable";
 
 export default function BookingStats() {
       const { state } = useLocation();
@@ -15,6 +16,7 @@ export default function BookingStats() {
     const [sessionId, setSessionId] = useState("");
     const [seatCategoryId, setSeatCategoryId] = useState("");
     const [stats, setStats] = useState(null)
+    const [bookingDetails, setBookingDetails] = useState([]);
     const navigate = useNavigate()
 
     useEffect(()=>{
@@ -75,6 +77,7 @@ export default function BookingStats() {
         const data = await getBookingStats(filters)
         console.log(data);
         setStats(data);
+        setBookingDetails(data.bookings.bookingDetails)
     }
  
 
@@ -153,7 +156,7 @@ export default function BookingStats() {
     </select>
   </div>
 
-  <div className="bs-filter">
+  {/* <div className="bs-filter">
     <label htmlFor="bs-category">Category</label>
     <select
       id="bs-category"
@@ -168,8 +171,8 @@ export default function BookingStats() {
         </option>
       ))}
     </select>
-  </div>
-  <button onClick={getBookingData} className="bs-btn">Get Booking Statistics</button>
+  </div> */}
+  <button onClick={getBookingData} className="bs-btn" disabled={eventId === ""}>Get Booking Statistics</button>
 </div>
 
 {stats && (
@@ -199,7 +202,7 @@ export default function BookingStats() {
       </div>
     </div>
 
-    <div className="bs-table-wrap">
+    {/* <div className="bs-table-wrap">
       <table className="bs-table">
         <thead>
           <tr>
@@ -226,7 +229,10 @@ export default function BookingStats() {
           ))}
         </tbody>
       </table>
-    </div>
+    </div> */}
+
+
+    <BookingStatsTable bookingDetails={bookingDetails}/>
      </>)}
 
 

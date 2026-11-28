@@ -16,6 +16,7 @@ import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 import { refundLabel, refundStatusText } from "../../utils/refund";
+import EventSettingsDialog from "./model/EventSettingsDialog";
 
 
 const fmt = { dateStyle: "medium", timeStyle: "short" };
@@ -33,6 +34,8 @@ export default function MyTickets(){
     const [cancelQty, setCancelQty] = useState({});
     const [openCancel, setOpenCancel] = useState(false);
     const [cancellations, setCancellations] = useState([]);
+    const [settings, setSettings] = useState(null);
+    const [refundDetails, setRefundDetails] = useState(null);
     const [refundInfo, setRefundInfo] = useState(null);
     const navigate = useNavigate();
 
@@ -48,6 +51,8 @@ export default function MyTickets(){
            setSubVenue(res.subVenue);
            setTicketSummary(res.ticketSummary)
            setCancellations(res.cancellations || []);
+           setSettings(res.eventSettings);
+           setRefundDetails(res.refundSummary);
         }
         catch(err){
            console.log(err);
@@ -149,6 +154,25 @@ export default function MyTickets(){
       return sum+t.subtotal
     },0); 
     const refundedAmount = booking.totalAmount - remainingAmount;
+
+
+    function infoMessage(){
+      let message = "";
+      if(settings?.booking?.cancellationAllowed){
+        message += "Cancellation is allowed for the following booking. ";
+      }
+      else{
+        message += "Cancellation is not allowed for the following booking. ";
+      }
+      if(settings?.booking?.refundAllowed){
+        message += `If cancelled then you will get ${settings?.booking?.refundPercentage}% of the booking amount.`;
+      }
+      else{
+        message += "Refund is not allowed for the following booking. ";
+      }
+
+      return message;
+    }
     return (
         <>
            <div className="my-tickets">
@@ -211,7 +235,7 @@ export default function MyTickets(){
             </div>
              <div>
               <span className="info-label">Cancelled Tickets</span>
-              <p>{booking.totalCount - tickets.length}</p>
+              <p>{refundDetails?.cancelledTickets ?? 0}</p>
             </div>
            </div>
             }
@@ -227,7 +251,7 @@ export default function MyTickets(){
             </div>
              <div>
               <span className="info-label">Total Refund</span>
-              <p><strong>₹{refundedAmount.toLocaleString("en-IN")}</strong></p>
+              <p><strong>₹{(refundDetails?.refundAmount ?? 0).toLocaleString("en-IN")}</strong></p>
             </div>
             </div>
             }
@@ -255,6 +279,17 @@ export default function MyTickets(){
               <span className="info-label">Booked Tickets</span>
               <p>{booking.totalCount}</p>
             </div> */}
+              <div style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "8px",
+                margin: "10px"
+              }}>
+                <span>
+                  <EventSettingsDialog entry={event?.settings?.entry} eventRules={event?.settings?.eventRules}/>
+                </span>
+              </div>
             <button onClick={openAttendencePage}>Copy link to mark attendance</button>
             </div>
 
@@ -262,7 +297,7 @@ export default function MyTickets(){
           )}
       </div>
                
-{session.canCancel && tickets.length > 0 && <p style={{textAlign: "center", margin: "10px"}}><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={() => setOpenCancel(true)} >click here</strong></u></p>}
+{session.canCancel && tickets.length > 0 && settings?.booking?.cancellationAllowed && <p style={{textAlign: "center", margin: "10px"}}><u>Do You want to cancel tickets? <strong style={{cursor: "pointer"}} onClick={() => setOpenCancel(true)} >click here</strong></u></p>}
       </div>
 
          {tickets.length>0 && <><h2 className="tickets-heading">Tickets</h2>
@@ -311,7 +346,12 @@ export default function MyTickets(){
 
                   <p className="info-muted">
                     Refund ID:{" "}
-                    <strong>{c.refundRef || "will appear once the refund is created"}</strong>
+                    <strong>
+                      {c.refundRef ||
+                        (c.refundStatus === "NOT_APPLICABLE"
+                          ? "none (no refund due)"
+                          : "will appear once the refund is created")}
+                    </strong>
                     {c.refundRef && (
                       <button
                         type="button"
@@ -346,6 +386,19 @@ export default function MyTickets(){
 
     <Dialog open={openCancel} onClose={() => setOpenCancel(false)}>
        <DialogTitle>Select Tickets to cancel</DialogTitle>
+
+       <div style={{
+        display: "flex",
+        gap: "5px",
+        fontStyle: "italic",
+        color: "grey",
+        fontSize: "15px",
+        margin: "10px"
+      }}>
+        <span>
+          {infoMessage()}
+        </span>
+       </div>
       <DialogContent>
         <Stack spacing={2}>
           {
@@ -388,7 +441,12 @@ export default function MyTickets(){
           </Typography>
           <Typography>
             Refund ID:{" "}
-            <strong>{refundInfo?.refundRef || "not available yet, check My Bookings later"}</strong>
+            <strong>
+              {refundInfo?.refundRef ||
+                (refundInfo?.refundStatus === "NOT_APPLICABLE"
+                  ? "none (no refund due)"
+                  : "not available yet, check My Bookings later")}
+            </strong>
           </Typography>
           <Typography variant="body2">{refundStatusText(refundInfo?.refundStatus)}</Typography>
         </Stack>

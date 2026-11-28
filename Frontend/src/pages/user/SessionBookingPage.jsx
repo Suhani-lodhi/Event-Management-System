@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
 import {  getPricingDetailsOfSession} from "../../api/user";
 import { toast } from "react-toastify";
 import "../user/styles/SessionBookingPage.css"
@@ -12,8 +12,10 @@ export default function SessionBookingPage(){
    const [ticketDetails, setTicketDetails] = useState([]);
    const [loading, setLoading] = useState(true);
    const [addTicket, setAddTicket] = useState(0)
+   const [settings, setSettings] = useState(null)
   const [quantities, setQuantities] = useState({});
   const navigate = useNavigate();
+   const { state } = useLocation();
 
    useEffect(()=>{
     async function getPricingDetails(){
@@ -28,6 +30,8 @@ export default function SessionBookingPage(){
        }
        finally{
         setLoading(false);
+        console.log(state.event);
+        setSettings(state.event.settings)
        }
     }
 
@@ -50,7 +54,7 @@ export default function SessionBookingPage(){
       const limit = Math.min(ticket.seatsForSale, MAX_PER_CATEGORY);
       const total = Object.values(prev).reduce((s, q) => s + q, 0);
 
-      if (current >= limit || total >= MAX_PER_BOOKING) return prev; // no change
+      if (current >= limit || total >= MAX_PER_BOOKING) return prev; 
       return { ...prev, [ticket.id]: current + 1 };
     });
 
@@ -79,7 +83,7 @@ export default function SessionBookingPage(){
   // console.log(id, items)
 
   // console.log(`home/event/tickets/${id}/booking`)
-  navigate(`/home/event/tickets/${id}/booking`, { state: { items } });
+  navigate(`/home/event/tickets/${id}/booking`, { state: { items, settings } });
 }
 
 
@@ -142,7 +146,14 @@ export default function SessionBookingPage(){
                     +
                   </button>
                 </div>
-               
+               <div style={{
+                fontSize: "13px",
+                opacity: "0.8"
+               }}>
+                  <i>
+                    {settings?.booking?.cancellationAllowed? "Cancellation allowed": "Cancellation not allowed"}
+                  </i>
+               </div>
               </div>
             </div>
           );

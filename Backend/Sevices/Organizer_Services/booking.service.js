@@ -1,5 +1,6 @@
 import prisma from '../../index.js'
 import { assertFound } from "../../utils/serviceError.js";
+import { getRefundSummary } from '../User_Services/booking.service.js';
 
 
 const SESSION_SELECT = {
@@ -128,5 +129,6 @@ export const getBookingDetailService = async (userId, bookingId) => {
       sessionCategoryPriceId: t.sessionCategoryPrice.id,
     })),
     ticketSummary: groupTicketsByCategory(booking.ticket),
+    refundSummary: await getRefundSummary(bookingId)
   };
 };

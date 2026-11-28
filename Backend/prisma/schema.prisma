@@ -58,6 +58,13 @@ enum BookingStatus {
   EXPIRED
 }
 
+enum SessionSeatStatus {
+  AVAILABLE
+  LOCKED
+  BOOKED
+  BLOCKED
+}
+
 model Users {
   id             String         @id @default(uuid()) @db.Uuid
   firstName      String
@@ -111,6 +118,7 @@ model Venue {
   country       String
   pincode       Int
   subVenueCount Int        @default(1)
+  theater       Boolean    @default(false)
   isDeleted     Boolean    @default(false)
   userId        String     @db.Uuid
   user          Users      @relation(fields: [userId], references: [id])
@@ -144,12 +152,38 @@ model SeatCategory {
 }
 
 model SeatDetail {
-  id             String       @id @default(uuid()) @db.Uuid
-  seatCategoryId String       @db.Uuid
+  id             String        @id @default(uuid()) @db.Uuid
+  seatCategoryId String        @db.Uuid
   columnName     String
   columnNumber   Int
+  RowName        String
   rowNumber      Int
-  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id], onDelete: Cascade)
+  isActive       Boolean       @default(true)
+  seatCategory   SeatCategory  @relation(fields: [seatCategoryId], references: [id], onDelete: Cascade)
+  sessionSeats   SessionSeat[]
+
+  @@unique([seatCategoryId, rowNumber, columnNumber])
+}
+
+model SessionSeat {
+  id                     String            @id @default(uuid()) @db.Uuid
+  sessionId              String            @db.Uuid
+  seatDetailId           String            @db.Uuid
+  sessionCategoryPriceId String            @db.Uuid
+  status                 SessionSeatStatus @default(AVAILABLE)
+  lockedUntil            DateTime?
+  bookingId              String?           @db.Uuid
+
+  session              Session              @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seatDetail           SeatDetail           @relation(fields: [seatDetailId], references: [id])
+  sessionCategoryPrice SessionCategoryPrice @relation(fields: [sessionCategoryPriceId], references: [id])
+  booking              Booking?             @relation(fields: [bookingId], references: [id])
+  tickets              Tickets[]
+
+  @@unique([sessionId, seatDetailId])
+  @@index([sessionId, status])
+  @@index([bookingId])
+  @@index([status, lockedUntil])
 }
 
 model Event {
@@ -164,6 +198,7 @@ model Event {
   status           EventStatus?  @default(DRAFTED)
   isDeleted        Boolean       @default(false)
   activeAt         DateTime?
+  settings         Json          @default("{}") @db.JsonB
   organizer        Organizer     @relation(fields: [organizerId], references: [id])
   sessions         Session[]
   currentSession   Session?      @relation("CurrentSession", fields: [currentSessionId], references: [id])
@@ -186,6 +221,7 @@ model Session {
   event                 Event                  @relation(fields: [eventId], references: [id], onDelete: Cascade)
   sessionCategoryPrices SessionCategoryPrice[]
   booking               Booking[]
+  sessionSeats          SessionSeat[]
 
   @@index([eventId, status])
   @@index([registrationStatus, regStartdateTime])
@@ -193,15 +229,16 @@ model Session {
 }
 
 model SessionCategoryPrice {
-  id             String       @id @default(uuid()) @db.Uuid
-  sessionId      String       @db.Uuid
-  seatCategoryId String       @db.Uuid
+  id             String        @id @default(uuid()) @db.Uuid
+  sessionId      String        @db.Uuid
+  seatCategoryId String        @db.Uuid
   alias          String
-  price          Decimal      @db.Decimal(10, 2)
+  price          Decimal       @db.Decimal(10, 2)
   seatsForSale   Int
-  session        Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  seatCategory   SeatCategory @relation(fields: [seatCategoryId], references: [id])
+  session        Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seatCategory   SeatCategory  @relation(fields: [seatCategoryId], references: [id])
   ticket         Tickets[]
+  sessionSeats   SessionSeat[]
 
   @@unique([sessionId, seatCategoryId])
   @@index([seatCategoryId])
@@ -220,6 +257,7 @@ model Booking {
   session      Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   ticket       Tickets[]
   cancellation Cancellation[]
+  sessionSeats SessionSeat[]
 }
 
 model Tickets {
@@ -231,9 +269,11 @@ model Tickets {
   cancellationId         String?              @db.Uuid
   attended               Boolean              @default(false)
   attendedAt             DateTime?
+  sessionSeatId          String?              @db.Uuid
   booking                Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   sessionCategoryPrice   SessionCategoryPrice @relation(fields: [sessionCategoryPriceId], references: [id], onDelete: Cascade)
   cancellation           Cancellation?        @relation(fields: [cancellationId], references: [id])
+  sessionSeat            SessionSeat?         @relation(fields: [sessionSeatId], references: [id])
 
   @@index([cancellationId])
 }
@@ -260,7 +300,7 @@ model Cancellation {
   refundRef    String?            @unique
   refundError  String?
   refundedAt   DateTime?
-  status       CancellationStatus
+  status       CancellationStatus @default(PENDING)
   createdAt    DateTime           @default(now())
   tickets      Tickets[]
 

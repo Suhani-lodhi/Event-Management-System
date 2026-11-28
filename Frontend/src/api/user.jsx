@@ -96,6 +96,7 @@ const getAllBookings = async () =>{
 
 
 const cancelBooking = async (bookingId, ticketIds) => {
+  console.log("booking tickets cancel", ticketIds);
   try {
     const res = await axiosInstance.patch(`/user/cancelBooking/${bookingId}`, ticketIds ? { ticketIds } : {});
     return res.data;
@@ -114,5 +115,17 @@ const getTicketsByBookingId = async (bookingId) =>{
   }
 }
 
+const getSeatMap = async (sessionId) =>{
+  try{
+    const res = await axiosInstance.get(`/user/session/${sessionId}/seatMap`);
+    return res.data;
+  }
+  catch(err){
+    console.log(err);
+    throw new Error(err.response?.data?.message || "cannot get seat Map");
+  }
+}
+
 export {getEventDetailsForUser, getEvents, getEventsByFilter, getPricingDetailsOfSession, 
-   getBookingSummary, createPaymentOrder, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId}
+   getBookingSummary, createPaymentOrder, payForBooking, getAllBookings, cancelBooking, getTicketsByBookingId,
+   getSeatMap}

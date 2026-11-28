@@ -1,20 +1,28 @@
 import prisma from "../../index.js"
 
+
+export class AppError extends Error {
+  constructor(message, statusCode = 400) {
+    super(message);
+    this.statusCode = statusCode;
+  }
+}
+
 export const markAttendanceService = async (bookingId, userId)=>{
      
     const now = new Date();
 
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUnique({
         where : {
             id: bookingId,
-            status: "CONFIRMED"||"PARTIALLY_CONFIRMED",
-            session:{
-                event: {
-                    organizer: {
-                        userid : userId
-                    }
-                }
-            }
+            status: { in: ["CONFIRMED", "PARTIALLY_CANCELLED"] },
+            // session:{
+            //     event: {
+            //         organizer: {
+            //             userid : userId
+            //         }
+            //     }
+            // }
         },
         select:{
             id: true,
@@ -35,8 +43,10 @@ export const markAttendanceService = async (bookingId, userId)=>{
         }
     })
 
+    console.log("booking in attendence", booking);
+
     if(!booking){
-        throw new Error("Booking not found or you are not authorized");
+        throw new AppError("Booking not found or you are not authorized", 404);
     }
 
     const session = booking.session;
@@ -48,11 +58,11 @@ export const markAttendanceService = async (bookingId, userId)=>{
     const attendanceStart = new Date(session.startDateTime.getTime() - 3*60*60*1000);
 
     if(now < attendanceStart){
-        throw new Error("Attendance scanning is not open yet. It opens 3 hours before the session");
+       throw new AppError("Attendance scanning is not open yet. It opens 3 hours before the session", 400);
     }
 
     if(now >= session.endDateTime){
-        throw new Error("This session is expired");
+        throw new AppError("The session has expired", 400);
     }
 
     const result = await prisma.tickets.updateMany({

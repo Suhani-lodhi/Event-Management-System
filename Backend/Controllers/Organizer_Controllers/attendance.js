@@ -13,7 +13,8 @@ export const markAttendance = async (req, res) =>{
         })
     }
     catch(err){
-        console.log(err.message);
-         return res.status(500).json({ msg: err.message, success: false , err: err});
+       res.status(err.statusCode || 500).json({
+      message: err.statusCode ? err.message : "Something went wrong",
+    });
     }
 }

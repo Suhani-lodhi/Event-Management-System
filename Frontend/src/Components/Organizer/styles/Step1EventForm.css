@@ -114,7 +114,7 @@
 }
 .ce-card-header {
   display: flex;
-  flex-wrap: wrap; /* title and action drop to two lines when tight */
+  flex-wrap: wrap;                    
   align-items: center;
   justify-content: space-between;
   gap: 8px 16px;
@@ -163,7 +163,7 @@
   border: 1px solid var(--color-lavender);
 }
 
-/* Columns: side by side when there is room, stacked when there isn't */
+
 .ce-row {
   display: flex;
   flex-wrap: wrap;
@@ -343,7 +343,56 @@ input[type="datetime-local"]:focus {
   min-width: 0;
 }
 
-/* ---------- phones: the only media query ---------- */
+
+.event-setting-section{
+  background-color: var(--color-blush-lightest);
+  border: 1px solid #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.event-setting-section h3{
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: var(--color-lavender);
+}
+
+.event-setting-section label{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  cursor: pointer;
+}
+
+.event-setting-section input[type="checkbox"]{
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.event-setting-section .form-group{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.event-setting-section input[type="number"]{
+  width: 50%;
+  padding: 10px 20px;
+  margin-left: 8px;
+  border: 1px solid var(--color-blush-mid);
+  border-radius: 8px;
+  outline: none;
+}
+
+.event-setting-section input:focus{
+  border-color: #1a1a1a;
+}
 @media (max-width: 480px) {
   .ce-card {
     border-radius: 10px;

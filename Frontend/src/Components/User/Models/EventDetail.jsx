@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getEventDetailsForUser } from "../../../api/user.jsx";
 import { getImageSrc } from "../../../utils/imageUrl.jsx";
 import "../Styles/EventDetails.css";
+import EventSettingDialog from "./EventSettingDialog.jsx";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -60,6 +61,7 @@ export default function ParticipantEventDetails() {
       try {
         const data = await getEventDetailsForUser(id);
         setEvent(data.event);
+        console.log(data.event.settings);
       } catch (err) {
         console.log("error occurred while getting event details");
         setError(true);
@@ -72,8 +74,13 @@ export default function ParticipantEventDetails() {
 
   function handleBook(sessionId) {
 
-    navigate(`/home/event/tickets/${sessionId}`);
-  }
+    if(event.category==='MOVIE'){
+          navigate(`/home/sessions/${sessionId}/seats`, {state: {event}});
+    }
+    else{
+          navigate(`/home/event/tickets/${sessionId}`, {state: {event}});
+    }
+    }
 
   if (loading) return <p className="loading">Loading event...</p>;
 
@@ -118,18 +125,28 @@ export default function ParticipantEventDetails() {
       <div className="card">
         <div className="titleRow">
           <h1>{event.Title}</h1>
-          {event.status && (
-            <span className={`status ${event.status.toLowerCase()}`}>
+         <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "8px"
+         }}>
+           {event.status && (
+            <span className={`status status-${event.status.toLowerCase()}`}>
               {event.status}
             </span>
           )}
+          <span>
+            <EventSettingDialog entry={event.settings.entry} eventRules={event.settings.eventRules}/>
+          </span>
+         </div>
         </div>
 
-        <div className="tags">
-          {event.category && <span className="tag">{event.category} </span>}
-          {event.genre && <span className="tag">{event.genre}</span>}
+        <div>
+          {event.category && <span className="tags">{event.category} </span>}
+          {event.genre && <span className="tags">{event.genre}</span>}
         </div>
-
+<br/>
         {event.Description && (
           <>
             <h2 className="sectionTitle">About this event</h2>

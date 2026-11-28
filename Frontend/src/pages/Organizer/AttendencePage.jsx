@@ -3,19 +3,17 @@ import "../user/styles/MyTickets.css"
 import { useNavigate, useParams } from "react-router-dom"
 import { cancelBooking, getTicketsByBookingId } from "../../api/user";
 import { getImageSrc } from "../../utils/imageUrl";
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from "@mui/material/DialogTitle";
-import Checkbox from "@mui/material/Checkbox";
-import FormGroup from "@mui/material/FormGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import { NumberField } from '@base-ui/react/number-field';
-import DialogContent from "@mui/material/DialogContent";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 import { getBookingDetails, markAttendance } from "../../api/event";
+import Button from '@mui/material/Button';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
+
 
 
 const fmt = { dateStyle: "medium", timeStyle: "short" };
@@ -29,10 +27,22 @@ export default function MyTickets(){
     const [session, setSession] = useState(null);
     const [subVenue, setSubVenue] = useState(null);
     const [ticketSummary, setTicketSummary] = useState([])
+    const [refundDetails, setRefundDetails] = useState(null);
     const [loading, setLoading] = useState(true)
     const [cancelQty, setCancelQty] = useState({});
     const [openCancel, setOpenCancel] = useState(false);
     const navigate = useNavigate();
+    const [open, setOpen] = useState(false);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
 
     useEffect(()=>{
        async function getTickets(){
@@ -44,7 +54,8 @@ export default function MyTickets(){
            setEvent(res.event);
            setSession(res.session);
            setSubVenue(res.subVenue);
-           setTicketSummary(res.ticketSummary)
+           setTicketSummary(res.ticketSummary);
+           setRefundDetails(res.refundSummary);
         }
         catch(err){
            console.log(err);
@@ -136,10 +147,7 @@ export default function MyTickets(){
     : "";
 
 
-    let remainingAmount = ticketSummary.reduce((sum, t)=> {
-      return sum+t.subtotal
-    },0); 
-    const refundedAmount = booking.totalAmount - remainingAmount;
+
     return (
         <>
            <div className="my-tickets">
@@ -199,7 +207,7 @@ export default function MyTickets(){
             </div>
              <div>
               <span className="info-label">Cancelled Tickets</span>
-              <p>{booking.totalCount - tickets.length}</p>
+              <p>{refundDetails.cancelledTickets}</p>
             </div>
            </div>
             }
@@ -215,7 +223,7 @@ export default function MyTickets(){
             </div>
              <div>
               <span className="info-label">Total Refund</span>
-              <p><strong>₹{refundedAmount.toLocaleString("en-IN")}</strong></p>
+              <p><strong>₹{refundDetails.refundAmount}</strong></p>
             </div>
             </div>
             }
@@ -247,45 +255,35 @@ export default function MyTickets(){
         ))}
       </div>
       </>}
-       <Button onClick={handleMarkAttendance} className="attendance-btn">Mark Attendance</Button>
+       {/* <Button onClick={handleMarkAttendance} className="attendance-btn">Mark Attendance</Button> */}
+
+       <p  onClick={handleClickOpen} className="attendance-btn" ><u><b>Click here to mark attendence.</b></u></p>
     </div>
 
-   
 
-    {/* <Dialog open={openCancel} onClose={() => setOpenCancel(false)}>
-       <DialogTitle>Select Tickets to cancel</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2}>
-          {
-            ticketSummary?.map((t)=>
-              <Stack key={t.sessionCategoryPriceId} direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }} spacing={3}>
-                <Typography>{t.alias} (you have {t.quantity})</Typography>
-                <NumberField.Root
-                value={cancelQty[t.sessionCategoryPriceId] ?? 0}
-                onValueChange={v => handleChange(t.sessionCategoryPriceId, v)}
-                min={0}
-                max={t.quantity}
-                >
-
-                <NumberField.Group style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                <NumberField.Decrement>−</NumberField.Decrement>
-                <NumberField.Input style={{ width: 48, textAlign: 'center' }} />
-                <NumberField.Increment>+</NumberField.Increment>
-                </NumberField.Group>
-
-                </NumberField.Root>
-              </Stack>
-            )
-          }
-        </Stack>
-      </DialogContent>
-
-
-      <DialogActions>
-        <Button onClick={() => setOpenCancel(false)}>Cancel</Button>
-        <Button variant="contained" color="error" onClick={handleConfirm}>Cancel Selected Tickets</Button>
-      </DialogActions>
-    </Dialog> */}
+      <Dialog
+        fullScreen={fullScreen}
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="responsive-dialog-title"
+      >
+        <DialogTitle id="responsive-dialog-title">
+            Mark Attendence
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This action is irreversible. Do you want to mark attendence??
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button autoFocus onClick={handleClose}>
+            Close
+          </Button>
+          <Button onClick={handleMarkAttendance} autoFocus>
+            Mark Attendence
+          </Button>
+        </DialogActions>
+      </Dialog>
 
     </>
     )

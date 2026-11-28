@@ -36,7 +36,7 @@ export default function CreateEvents({addSession, createEvent}) {
     </span>
     <span className={step === 3 ? "active" : ""} onClick={() => eventId && setStep(3)}>
       <h4>Step 3</h4>
-      <p>Settings and Form</p>
+      <p>Category and Pricing</p>
     </span>
   </div>
 </div>
